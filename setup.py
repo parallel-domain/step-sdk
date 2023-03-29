@@ -20,7 +20,7 @@ if version_file.exists():
         version = version_dict.get("VERSION", version)
 
 setup(
-    name="pd-api-py",
+    name="step-sdk",
     version=version,
     description="Parallel Domain Python Step and Stream SDK",
     author="Parallel Domain",

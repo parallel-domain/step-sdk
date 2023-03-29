@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 pp = PrettyPrinter()
 
 
-_LOCATION = 'Test_SF_6thAndMission_small_parking'
+_LOCATION = 'FICT_Racetrack_1000_1'
 _TIME_OF_DAY = 'LS_sky_noon_mostlySunny_1250_HDS025'
 _ASSET_OFFSET_X, _ASSET_OFFSET_Y = 0.0, -5.0
 
