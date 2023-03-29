@@ -1,0 +1,29 @@
+table SignedIntersectionModuleConfigFB
+{
+    id : uint64;
+    search_radius : float;
+}
+
+table AgentIntersectionStatusFB
+{
+    agent_id : uint64;
+
+    arrived : bool;
+
+    arrival_time_s : float;
+
+    has_upcoming_stop : bool;
+
+    length_to_stop_m : float;
+
+    inside_junction_lane_occupied : bool;
+}
+
+table SignedIntersectionModuleOutputFB
+{
+    vehicle_queue : [uint64];
+    ready_queue : [uint64];
+    occupied_lanes : [uint64];
+
+    agent_states : [AgentIntersectionStatusFB];
+}

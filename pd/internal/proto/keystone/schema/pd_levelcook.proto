@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package keystone;
+
+message LevelCookInfo
+{
+    string artifact_key = 1;
+    string output_artifact_uid = 2;
+
+    message Location
+    {
+      string artifact_key = 1;
+      string output_artifact_uid = 2;
+      string location_name = 3;
+    }
+    repeated Location location_list = 3;
+}

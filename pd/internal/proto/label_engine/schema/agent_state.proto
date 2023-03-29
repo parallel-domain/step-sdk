@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "options.proto";
+
+// Config message for Instance State annotation data
+message InstanceStateAnnotatorConfig
+{
+    string input_instance_map = 1  [(type)=eMeshIDMap, (stream)=eInput];
+    string output_path = 2         [(type)=eAnnotation, (stream)=eOutput];
+}
+
+message InstanceStateMetadata
+{
+    uint32 instance_id = 1;
+
+    oneof data
+    {
+        VehicleState vehicle_state = 2;
+        ParkingSpotState parking_spot_state = 3;
+        HumanState human_state = 4;
+    }
+}
+
+message VehicleState
+{
+    bool head_lights = 1;
+    bool tail_lights = 2;
+    bool emergency_lights = 3;
+    bool hazard_lights = 4;
+    bool highbeam_lights = 5;
+    bool daytime_running_lights = 6;
+    bool brake_lights = 7;
+    bool left_indicator_lights = 8;
+    bool right_indicator_lights = 9;
+
+    bool parked = 10;
+
+    bool reversing = 11;
+    float steering_angle = 12;
+    float speed = 13;
+    float tire_rotation_speed = 14;
+
+    float trailer_angle = 15;
+
+    bool is_ego = 16;
+    uint32 connected_instance_id = 17;
+}
+
+message ParkingSpotState
+{
+    ParkingSpotOrientation orientation = 1;
+    ParkingSpotColor color = 2;
+    float wear = 3;
+    string material_type = 4;
+}
+
+enum ParkingSpotOrientation
+{
+    PARALLEL = 0;
+    PERPENDICULAR = 1;
+}
+
+// TODO: refactor to merge all Color messages into one
+message ParkingSpotColor
+{
+    float red = 1;
+    float green = 2;
+    float blue = 3;
+};
+
+message HumanState
+{
+    PedestrianPhoneState ped_phone_state = 1;
+    PedestrianPoseSegmentationState ped_pose_segmentation_state = 2;
+    uint32 connected_vehicle_instance_id = 3;
+}
+
+enum PedestrianPhoneState
+{
+    PED_PHONE_STATE_NONE = 0;
+    PED_PHONE_STATE_LOOKING_AT = 1;
+    PED_PHONE_STATE_IN_HAND = 2;
+}
+
+enum PedestrianPoseSegmentationState
+{
+    PED_POSE_SEG_STATE_NONE = 0;
+    PED_POSE_SEG_STATE_BENDING = 1;
+    PED_POSE_SEG_STATE_CRAWLING = 2;
+    PED_POSE_SEG_STATE_CROUCHING = 3;
+    PED_POSE_SEG_STATE_GROUND_SITTING = 4;
+    PED_POSE_SEG_STATE_LIE_BACK = 5;
+    PED_POSE_SEG_STATE_LIE_FRONT = 6;
+    PED_POSE_SEG_STATE_LOCOMOTION = 7;
+    PED_POSE_SEG_STATE_SITTING = 8;
+    PED_POSE_SEG_STATE_STANDING = 9;
+    PED_POSE_SEG_STATE_VEHICLE_INTERACTION = 10;
+}

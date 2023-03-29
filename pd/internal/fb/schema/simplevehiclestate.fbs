@@ -1,0 +1,196 @@
+include "types.fbs";
+
+table WheelStateFB
+{
+    susp_spring_force : float;
+    longitudinal_slip : float;
+    lateral_slip : float;
+    is_in_air : bool;
+}
+
+// Vehicle state in world coordinates.
+table WorldStateFB
+{
+    // Center rear axle origin pose 
+    pose: float4x4_t;
+
+    // 3d velocity
+    velocity_mps : float3_t;
+
+    // Acceleration will be nullptr until we have a previous velocity sample
+    // to compute the acceleration.
+    acceleration_mps2 : float3_t;
+
+    // Jerk will be nullptr we have a previous acceleration sample
+    // to compute the jerk.
+    jerk_mps3 : float3_t;
+}
+
+// Vehicle motion in the 2d plane parallel to the road surface with
+// vehicle frame as the reference - i.e., velocity_mps[DirectionIndex::Forward] 
+// is velocity along the heading of the vehicle and velocity_mps[DirectionIndex::Right]
+// is the velocity perpendicular to the heading of the vehicle.
+table Vehicle2DMotionFB
+{
+    // Vehicle velocity
+    velocity_mps : float2_t;
+
+    // Acceleration will be nullptr until we have a previous velocity sample
+    // to compute the acceleration.
+    acceleration_mps2 : float2_t;
+
+    // Jerk will be nullptr we have a previous acceleration sample
+    // to compute the jerk.
+    jerk_mps3 : float2_t;
+
+    // Rate of rotation in the plane parallel to the ground.
+    yaw_rate_radps : float;
+}
+
+table SimpleVehicleStateFB
+{
+    wheel_to_world : [float4x4_t];
+
+    // leave old acceleration field still available so brake lights work when we re render old state files 
+    acceleration : float;
+    jerk : float (deprecated);
+    susp_spring_force : [float] (deprecated);
+    longitudinal_slip : [float] (deprecated);	
+    lateral_slip : [float] (deprecated);
+
+    engine_rotation_speed : float;
+    handbrake_on : bool = false;
+    emergency_lights_on : bool = false;
+
+    acceleration_valid : bool = false;
+    acceleration_vector : float3_t;
+    jerk_valid : bool = false (deprecated);
+    jerk_vector : float3_t (deprecated);
+
+    road_wheel_angle_rad : float;
+    road_wheel_angle_rate_radps : float;
+
+    wheel_states : [WheelStateFB];
+
+    // has_brake_light_on is added for backwards compatiblity so that IG knows brake_light_on is populated.
+    // we don't use a struct wrapping a bool as is the flatbuffer norm for optional fields
+    // due to the conditional interchangability of a pointer with bools leading to bugs.
+    has_brake_light_on : bool = false;
+    brake_light_on : bool = false;
+
+    world_state : WorldStateFB;
+
+    vehicle_2d_motion : Vehicle2DMotionFB;
+
+    gear : Gear = NEUTRAL;
+}
+
+table EventCollisionFB
+{
+    // Ids of agents this vehicle collided with this frame.
+    collisions : [uint64];
+}
+
+table EventNonDrivableRoadFB
+{
+    // list of locations where a nondrivable hit happened
+    locations : [float3_t];
+}
+
+union EventObject
+{
+    EventCollisionFB,
+    EventNonDrivableRoadFB
+}
+
+// flatbuffer doesn't support array of unions, wrap union in table
+table EventObjectFB
+{
+    event : EventObject;
+}
+
+table VehicleEventsFB
+{
+    events : [EventObjectFB];
+}
+
+table VehicleModelConfigFB
+{
+    // vehicle_type is the asset name
+    vehicle_type : string;
+    vehicle_color : string;
+    vehicle_accessory : string;
+    vehicle_wear : float;
+
+    wheel_type : string;
+
+    vehicle_actor : string;
+
+    lock_to_ground : bool = false;
+    ground_offset : float = 0.0;
+
+    wheel_combo : [string];
+    wheel_combo_style : [string];
+
+    accessories : [string];
+    occupants : [string];
+    user_data : string; // json string to store temporary info
+
+    randomize_vehicle_parts : bool = false;
+
+    // vehicle_class corresponds to the UTIL_vehicle_type
+    vehicle_class : string;
+}
+
+table VehicleWheelConfigFB
+{
+    name : string;
+    assets : [string];
+    radius : float;
+    width : float;
+}
+
+table VehicleConnectionFB
+{
+    other_agent_id : int;
+    joint_transform : float4x4_t;
+}
+
+table VehiclePhysicsConfigFB
+{
+    mass : float;
+    size : float3_t;
+    bbox_min : float3_t;
+    bbox_max : float3_t;
+    wheel_radius : float;
+    wheel_width : float;
+    clearance : float;
+    wheel_offsets: [float3_t];
+    maximum_velocity: float;
+    start_velocity: float;
+    
+    center_of_mass : float3_t;
+    suspension_spring_rate : float;
+    suspension_damping_rate : float;
+    gears_count : int;
+    gears_ratios : [float];
+    engine_max_torque : float;
+    engine_max_rotation_speed : float;
+    wheel_count : int;
+    antiroll_stiffnesses : [float];
+    wheel_configs : [VehicleWheelConfigFB];
+    physics_group : string;
+    start_stationary : bool;
+
+    buffer: float;
+
+    wheel_base_m : float;
+    rear_axle_to_rear_bumper_m : float;
+    front_axle_to_front_bumper_m : float;
+    half_vehicle_width_m : float;
+    geometric_center_to_rear_axle_m : float;
+
+    connections : [VehicleConnectionFB];
+
+    start_gear : Gear = DRIVE;
+}

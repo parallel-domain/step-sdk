@@ -1,0 +1,345 @@
+syntax = "proto2";
+
+package keystone;
+
+message LidarBeam
+{
+    required int32 id = 1;
+    required float azimuth = 2;
+    required float elevation = 3;
+}
+
+message LidarNoiseParams
+{
+    optional float min_dist = 1;
+    optional float max_dist = 2;
+
+    optional float min_prob = 3;
+    optional float max_prob = 4;
+
+    optional float min_offset = 5;
+    optional float max_offset = 6;
+
+    optional float min_noise = 7;
+}
+
+message AlbedoWeights
+{
+    optional float x = 1 [default = 1.0];
+    optional float y = 2 [default = 0.8]; 
+    optional float z = 3 [default = 0.4];
+}
+
+message LidarIntensityParams
+{
+	optional float retro_range_noise_stddev = 1 [default = 0.1];		// bump the depth noise for retroreflective beams
+	optional float retroreflection_noise_mean = 2 [default = 0.0];	// noise for refroreflective intensity
+	optional float retroreflection_noise_stddev = 3 [default = 0.1];
+	optional float max_attenuation_distance = 4 [default = 220.0];	// unit is meter
+
+	// reflection intensity enhance when the beam hits a retroreflective surface, the default value is 1.5, which means the intensity is 50% stronger than the general
+	optional float retro_intensity_enhance = 5 [default = 1.5];	
+
+	// Because the LiDAR beams are infrared light, the specular of the object's surface would be higher than the visible light.
+	// The default value of it should be 4.0, because in Engine code, F=50*SpecularColor=50*0.08*BaseColor=4.0*BaseColor, where 4.0 is the specular scale we used.
+	optional float intensity_specular_scale = 6 [default = 2.0];
+
+	// Because the LiDAR beams are infrared light, the beam would be spread more than the visible light. By scaling up roughness to 1.5,
+	// we could let the beam spread more. 
+	optional float intensity_roughness_scale = 7 [default = 1.5];
+
+	optional float beam_intensity = 8 [default = 2.0];				// The intensity of the beam. It could be used to scale the final intensity to a reasonable range
+
+	// The weights of rgb channels to compose the surface albedo for LiDAR beams. Because the LiDAR beams are infrared light, 
+	// the weight of red should be heavier than green and blue. So the default value is { 1.0f, 0.8f, 0.4f }
+	optional AlbedoWeights albedo_weights = 9;
+
+    // Max surface albedo value, prevent too bright
+    optional float max_albedo = 10 [default = 2.2];
+
+    // Enhance when the beam hits a traffic sign
+    optional float strong_retro_intensity_enhance = 11 [default = 1.5];
+
+    // Scale the metallic
+    optional float intensity_metallic_scale = 12 [default = 1.5];
+
+    // At least how much emissive value will enhance the intensity
+    optional float emissive_gate = 13 [default = 100.0];
+
+    // The emissive will be less than (max_emissive_rate * emissive_gate)
+    optional float max_emissive_rate = 14 [default = 10.0];
+}
+
+message AliceLidarModel
+{
+    optional int32 number_points = 1;
+    optional float min_elevation_angle = 2;
+    optional float max_elevation_angle = 3;
+    optional float min_dense_elevation_angle = 4;
+    optional float max_dense_elevation_angle = 5;
+    optional float min_azimuth_angle = 6;
+    optional float max_azimuth_angle = 7;
+    optional float sparse_radian_spacing = 8;
+    optional float dense_radian_spacing = 9;
+    optional float horizontal_spacing = 10;
+}
+
+message LidarIntrinsic
+{
+    required float sample_rate = 1;
+    required float rotation_rate = 2;
+    optional float azimuth_min = 3;
+    optional float azimuth_max = 4;
+    repeated LidarBeam beam_data = 5;
+
+    optional bool capture_rgb = 6;
+    optional bool capture_intensity = 7;
+    optional bool capture_depth = 8;
+    optional bool capture_normals = 9;
+    optional bool capture_segmentation = 10;
+    optional bool capture_instance = 11;
+    optional bool capture_detections = 12;
+    optional bool capture_motionvectors = 13;
+
+    optional float minimum_range_cutoff = 14 [default = 60.0]; // All samples with lower range will not be culled by the range based culling
+    optional float maximum_range_cutoff = 15 [default = 150.0]; // All samples with greater range will always be culled by range culling
+    optional float minimum_cutoff_prob = 21 [default = 0.0]; // Minimum culling probability, range [0.0, 1.0]
+    optional float maximum_cutoff_prob = 22 [default = 0.95]; // Maximum culling probability, range [0.0, 1.0]
+    optional float minimum_offset = 23 [default = 0.002];
+    optional float maximum_offset = 24 [default = 0.02];
+    optional float minimum_noise = 25 [default = 0.001];
+    optional float range_noise_mean = 16 [default = 0.0];
+    optional float range_noise_stddev = 17 [default = 0.005];
+
+    optional LidarIntensityParams intensity_params = 18;
+
+    optional AliceLidarModel alice_lidar_model = 19;
+    optional string pattern = 20;
+
+    optional float time_offset = 26;
+
+    optional int32 multi_returns = 27; // How many returns will be added
+    optional int32 merge_returns = 28; // Merge returns into one return or dual returns
+
+    optional bool capture_properties = 29;
+    optional bool capture_backwardmotionvectors = 30;
+
+}
+
+message DistortionParams
+{
+    optional float k1 = 1;
+    optional float k2 = 2;
+    optional float k3 = 3;
+    optional float k4 = 4;
+    optional float k5 = 5;
+    optional float k6 = 6;
+    optional float p1 = 7;
+    optional float p2 = 8;
+    optional float skew = 9;
+    optional bool is_fisheye = 10;
+    optional float fx = 11;
+    optional float fy = 12;
+    optional float cx = 13;
+    optional float cy = 14;
+    optional int32 fisheye_model = 15;
+}
+
+message PostProcessNode
+{
+    required string material=1;
+    required float weight=2;
+}
+
+message PostProcessParams
+{
+    optional float exposure_compensation = 1 [default = -100.0];
+    optional float exposure_speed_up = 2;
+    optional float exposure_speed_down = 3;
+    optional float exposure_min_ev100 = 4 [default = -100.0];
+    optional float exposure_max_ev100 = 5 [default = -100.0];
+    optional string exposure_metering_mask = 6;
+    optional float motion_blur_amount = 7 [default = 1.5];
+    optional float motion_blur_max = 8 [default = 5.0];
+    optional float dof_focal_distance = 9 [default = -1.0];
+    optional float dof_depth_blur_amount = 10;
+    optional float dof_depth_blur_radius = 11 [default = -1.0];
+    optional float vignette_intensity = 12;
+}
+
+enum DenoiseFilter {
+    AVERAGE_FILTER = 0;
+    MEDIAN_FILTER = 1;
+    FAST_MEDIAN_FILTER = 2;
+    BILATERAL_FILTER = 3;
+}
+
+message NoiseParams
+{
+    optional bool enable_bayer = 1 [default = true];
+    optional bool enable_gauss_noise = 2 [default = true];
+    optional bool enable_poisson_noise = 3 [default = true];
+    optional bool enable_denoise = 4 [default = true];
+
+    // Gaussian-Poissonian noise parameters
+    optional float gauss_noise_sigma = 5 [default = 0.025];
+    optional float poisson_noise_lambda = 6 [default = 1000.0];
+
+    // Denoise parameters
+    optional DenoiseFilter denoise_filter = 7 [default = MEDIAN_FILTER];
+    optional int32 denoise_filter_size = 8 [default = 3];
+    optional float bilateral_sigma_d = 9 [default = 3.0];
+    optional float bilateral_sigma_r = 10 [default = 20.0];
+
+    // Auto setting noise parameters depending on exposure value
+    optional bool enable_auto_noise = 11 [default = true];
+    optional int32 signal_amount = 12 [default = 5223];
+    optional float pre_amplifier_noise = 13 [default = 7.63];
+    optional float post_amplifier_noise = 14 [default = 247.5];
+
+    // Use ISO to adjust noise parameters
+    optional bool is_using_iso = 15 [default = true];
+    optional int32 iso_level = 16 [default = 800];
+
+    // Auto ISO (Aperture  priority)
+    optional bool enable_auto_iso = 17;
+    optional float fstop = 18 [default = 1.0];
+    optional float max_exposure_time = 19 [default = 0.033];
+    optional float quantum_efficiency = 20 [default = 0.7];
+}
+
+message CameraIntrinsic
+{
+    required int32 width = 1;
+    required int32 height = 2;
+    optional float fov = 3;
+    optional float supersample = 4;
+
+    optional bool capture_rgb = 5;
+    optional bool capture_depth = 6;
+    optional bool capture_normals = 7;
+    optional bool capture_segmentation = 8;
+    optional bool capture_instance = 9;
+    optional bool capture_detections = 10;
+    optional bool capture_motionvectors = 11;
+
+    optional string lut = 12;
+    optional float lut_weight = 13 [default = 1.0];
+    optional PostProcessParams post_process_params = 14;
+    repeated PostProcessNode post_process = 15;
+
+    optional DistortionParams distortion_params = 16;
+    
+    optional NoiseParams noise_params = 17;
+
+    optional bool enable_streaming = 18;
+    optional bool transmit_gray = 19;
+
+    optional string distortion_lookup_table = 20;
+
+    optional bool capture_basecolor = 21;
+    optional bool capture_properties = 22;
+
+    optional float time_offset = 23;
+    optional bool capture_backwardmotionvectors = 24;
+
+}
+
+message RadarBasicParameters
+{
+    optional float max_range = 1 [default = 204.8];
+    optional float range_resolution = 2 [default = 0.8];
+    optional float max_doppler = 3 [default = 30.0];
+    optional float doppler_resolution = 4 [default = 0.2];
+    optional float azimuth_fov = 5 [default = 110.0];
+    optional float azimuth_resolution = 6 [default = 1.0];
+    optional float elevation_fov = 7 [default = 32.0];
+    optional float elevation_resolution = 8 [default = 2.0];
+    optional bool radar_output_2d = 9 [default = false];
+    optional bool use_random_raycast = 10 [default = true];
+    optional int32 number_rays_per_frame = 11 [default = 30000];
+	optional float azimuth_accuracy = 12 [default = 0.5];
+	optional float elevation_accuracy = 13 [default = 1.0];
+}
+
+message RadarEnergyParameters
+{
+    optional float nominal_gain = 1 [default = 120.0];
+    optional float gain_jitter_std = 2 [default = 5.0];
+    optional float radiometric_coefficient = 3 [default = 4.0];
+    optional string beam_pattern_file_path = 4 [default = "../tools/beam_pattern_77ghz_radians.csv"];
+    optional bool enable_beam_pattern = 5 [default = true];
+}
+
+message RadarNoiseParameters
+{
+    optional bool enable_thermal_noise = 1 [default = true];
+    optional float thermal_noise_std = 2 [default = 3.0];
+    optional float thermal_noise_mean = 3 [default = 15.0];
+    optional bool enable_doa_noise = 4 [default = true];
+}
+
+message RadarDetectorParameters
+{
+    optional string detector_type = 1 [default = "CONSTANT_DETECTOR"];
+    optional float detector_constant_gain = 2 [default = 30.0];
+    optional float detector_radiometric_gain = 3 [default = 100.0];
+    optional float detector_radiometric_decay = 4 [default = 4.0];
+}
+
+message RadarIntrinsic
+{
+    optional RadarBasicParameters basic_parameters = 1;
+    optional RadarEnergyParameters energy_parameters = 2;
+    optional RadarNoiseParameters noise_parameters = 3;
+    optional RadarDetectorParameters detector_parameters = 4;
+}
+
+message SensorExtrinsic
+{
+    required float yaw = 1;
+    required float pitch = 2;
+    required float roll = 3;
+    required float x = 4;
+    required float y = 5;
+    required float z = 6;
+
+    // Setting this flag to true will cause the yaw value of the sensor orientation to be locked to the vehicle
+    // but leave the pitch and roll values as zero with respect to the world frame
+    optional bool lock_to_yaw = 7;
+
+    // If attach_socket is not empty, the camera would attach to a socket of the mesh
+    optional string attach_socket = 8;
+    optional bool follow_rotation = 9;
+}
+
+message SensorConfig
+{
+    required string display_name = 1;
+    oneof sensor_intrinsic {
+        CameraIntrinsic camera_intrinsic = 2;
+        LidarIntrinsic lidar_intrinsic = 3;
+        RadarIntrinsic radar_intrinsic = 4;
+    }
+    required SensorExtrinsic sensor_extrinsic = 5;
+}
+
+message SensorList
+    {
+        repeated string sensors = 1;
+    };
+
+message SensorRigConfig
+{
+    repeated SensorConfig sensor_configs = 1;
+
+    // For security reasons, in some cases we don't want to store the sensor rig data outside of our S3 bucket. In order to do this
+    // we have an optional sensor rig artifact uuid parameter in a given sensor rig.
+    // If this parameter is set, it will take precendance over any data set in the given sensor rig and we will enter into what we
+    // define as a secure sensor rig. In practical terms, the end-user have a placeholder sensor rig file that only contain the
+    // sensor_rig_artifact_uid data, if we detect that it's the case, we copy the data from S3 into the temporary location
+    // defined above in sensor_rig_data_dir_path.
+    optional string sensor_rig_artifact_uid = 2;
+
+    repeated SensorList default_sensor_splits_list = 3;
+}

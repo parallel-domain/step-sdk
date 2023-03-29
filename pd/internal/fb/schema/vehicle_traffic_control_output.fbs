@@ -1,0 +1,13 @@
+include "speed_request.fbs";
+include "types.fbs";
+
+table VehicleTrafficControlFB
+{
+    intersection_id : uint64;
+    speed_request : SpeedRequestFB;
+}
+
+table VehicleTrafficControlOutputFB
+{
+    traffic_controls : [VehicleTrafficControlFB];
+}

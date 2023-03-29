@@ -1,0 +1,89 @@
+include "types.fbs";
+
+enum PlannerMode : int { Unknown = 0, Normal, Parking }
+
+enum ParkingPreference : int { Forward = 0, Reverse, Parallel }
+
+table SimplePlanningInputFB
+{
+    target_separation: float;
+    target_speed: float;
+}
+
+enum ObstacleTypeFB : short
+{
+    ROUTE_LENGTH,
+    REVERSE_DISTANCE,
+    PATH_END,        // Parking path end, unique from route length.
+    FORWARD_AGENT,   // Agent with positive dot product of velocity with current agent
+    ONCOMING_AGENT,  // Agent with negative dot product of velocity with current agent
+    END_OF_LANE,
+    BLOCKED_LANE,    // Legacy stop sign/stop light obstacle type. Used for older maps or maps not yet encoding stop lines.
+    MERGE,
+    LINEAR_MOVER,
+    LANE_CLOSURE,
+    CROSSTRAFFIC,
+    STOP_LINE,       // Stop line. Position is encoded in the lane segment.
+}
+
+table PlanningInputFB
+{
+    route_length: float;
+    route_path: [uint64];
+    lane_offset: float;     // agent offset from centre of lane in meters
+    lane_drift_amp: float;
+    lane_drift_scale: float;
+    enable_merge_detection: bool;
+
+    lane_shift_time: float;         // Time at which to start lane shift maneuver
+    lane_shift_amount: float;       // Amount to shift left (-ve) or right (+ve) in meters
+    lane_shift_speed: float;        // Lane shift speed in ms^-1
+
+    ignore_obstacles: bool = true; // Ignore all obstacles in the planning phase
+	ignore_speed_limit: bool = false;
+    lane_change_chance: float;
+    lane_change_cooldown: float;
+    parking_preference: ParkingPreference;
+
+    ignore_obstacle_types: [ObstacleTypeFB];
+}
+
+table MotionPlanFB
+{
+    route_length: float;
+	motion_path: [uint64];
+    target_speed: float;
+    lane_segment: uint64;
+    motion_line: PolyLineFB;
+
+    lane_change_state: int;        
+	lane_change_line: PolyLineFB;
+	lane_change_start_lane: uint64;
+	lane_change_end_lane: uint64;
+
+	last_lane_change_time: float;
+
+    obstacle_present: bool;   // Is there an obstacle blocking the motion plan path
+    obstacle_distance: float; // Distance to obstacle if present
+    obstacle_speed: float;    // Speed of obstacle if present  
+
+    wait_time : float; // time waited at stopped obstacle
+    junction_lane : uint64; // Upcoming junction lane
+
+    planner_mode : PlannerMode = Normal; 
+    freeform_points : [float3_t];
+    freeform_directions : [float3_t];
+    reverse_points : [float3_t];
+    forward_points : [float3_t];
+
+    obstacle_type: ObstacleTypeFB;
+    obstacle_id: uint64;
+
+    signaled_intersection_id: uint64; // upcoming signaled intersection 
+}
+
+table PathDeviationFB
+{
+    heading_error: float;
+    crosstrack_error: float;
+}

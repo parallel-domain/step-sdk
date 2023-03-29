@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+import "pd_distributions.proto";
+
+package keystone;
+
+message EnvironmentPreset
+{
+    // This is where we want to go with dynamic time of day
+    //Distribution sun_angle = 1;
+    // This is what we currently support
+    CategoricalDistribution time_of_day = 1;
+    Distribution cloud_coverage = 2;
+    Distribution rain_intensity = 3;
+    Distribution fog_intensity = 4;
+    Distribution wetness = 5;
+    // Maybe there is a more elegant way to couple/decouple rain from wetness
+    bool independent_wetness = 6;
+}
+
+message EnvironmentDefinition
+{
+    // The number of categories in the distribution must match the number of scenario presets
+    CategoricalDistribution preset_distribution = 1;
+    repeated EnvironmentPreset presets = 2;
+}

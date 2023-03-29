@@ -1,0 +1,371 @@
+{
+    "sensor_configs": [
+        {
+            "display_name": "Flat",
+            "camera_intrinsic": {
+                "width": 1280,
+                "height": 720,
+                "fov": 65,
+                "lut": "Texture2D'/Game/pd/Textures/LUT/LUT_PD_DashCamMedia.LUT_PD_DashCamMedia'",
+                "lut_weight": 0.8,
+                "post_process": [
+                    {
+                        "material": "MaterialInstanceConstant'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens'",
+                        "weight": 1.0
+                    }
+                ],
+                "capture_rgb": true,
+                "capture_depth": true,
+                "capture_normals": true,
+                "capture_segmentation": true,
+                "capture_instance": true,
+                "capture_detections": false,
+                "capture_motionvectors": false,
+                "capture_basecolor": false,
+                "capture_properties": false,
+                "noise_params": {
+                    "enable_bayer": false,
+                    "enable_gauss_noise": false,
+                    "enable_poisson_noise": false,
+                    "enable_denoise": false,
+                    "iso_level": 200
+                }
+            },
+            "sensor_extrinsic": {
+                "yaw": 90.0,
+                "pitch": 0.0,
+                "roll": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 2.0
+            }
+        },
+        {
+            "display_name": "camera_ring_front_center",
+            "camera_intrinsic": {
+                "width": 1548,
+                "height": 2048,
+                "supersample": 1.0,
+                "capture_rgb": true,
+                "capture_depth": true,
+                "capture_normals": true,
+                "capture_segmentation": true,
+                "capture_instance": true,
+                "capture_detections": true,
+                "capture_motionvectors": true,
+                "fov": 65,
+                "lut": "Texture2D'/Game/pd/Textures/LUT/T_LUT_Aladdin_saturated_01.T_LUT_Aladdin_saturated_01'",
+                "lut_weight": 0.8,
+                "post_process": [
+                    {
+                        "material": "MaterialInstanceConstant'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens'",
+                        "weight": 1.0
+                    }
+                ],
+                "distortion_params": {
+                    "k1": -0.3,
+                    "k2": 0.1,
+                    "k3": 0.0,
+                    "k4": 0.0,
+                    "k5": 0.0,
+                    "k6": 0.0,
+                    "p1": 0.0,
+                    "p2": 0.0,
+                    "skew": 0.0,
+                    "fx": 3375.0,
+                    "fy": 3375.0,
+                    "cx": 1548.0,
+                    "cy": 2048.0,
+                    "fisheye_model": 0,
+                    "is_fisheye": false
+                },
+                "noise_params": {
+                    "enable_bayer": false,
+                    "enable_gauss_noise": false,
+                    "enable_poisson_noise": false,
+                    "enable_denoise": false,
+                    "iso_level": 200,
+                    "gauss_noise_sigma": 0.025,
+                    "poisson_noise_lambda": 1000.0,
+                    "bilateral_sigma_d": 3.0,
+                    "bilateral_sigma_r": 20.0,
+                    "enable_auto_noise": true,
+                    "signal_amount": 5223,
+                    "pre_amplifier_noise": 7.63,
+                    "post_amplifier_noise": 247.5,
+                    "is_using_iso": true,
+                    "enable_auto_iso": false,
+                    "fstop": 1.0,
+                    "max_exposure_time": 0.033,
+                    "quantum_efficiency": 0.7
+                },
+                "fov": 0.0,
+                "enable_streaming": false,
+                "transmit_gray": false,
+                "distortion_lookup_table": "",
+                "capture_basecolor": false,
+                "capture_properties": false,
+                "time_offset": 0.0
+            },
+            "sensor_extrinsic": {
+                "yaw": 0.0,
+                "pitch": 0.0,
+                "roll": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 20.0,
+                "lock_to_yaw": false,
+                "attach_socket": "",
+                "follow_rotation": false
+            }
+        },
+        {
+            "display_name": "Front_Fisheye",
+            "camera_intrinsic": {
+                "width": 1924,
+                "height": 1024,
+                "supersample": 1.0,
+                "capture_rgb": true,
+                "capture_depth": true,
+                "capture_normals": true,
+                "capture_segmentation": true,
+                "capture_instance": true,
+                "capture_detections": true,
+                "capture_motionvectors": true,
+                "lut": "Texture2D'/Game/pd/Textures/LUT/T_LUT_Aladdin_overcast_01.T_LUT_Aladdin_overcast_01'",
+                "lut_weight": 0.8,
+                "post_process": [
+                    {
+                        "material": "MaterialInstanceConstant'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens'",
+                        "weight": 1.0
+                    }
+                ],
+                "distortion_params": {
+                    "k1": -0.02384724,
+                    "k2": 0.0049912385,
+                    "k3": 0.0002520093,
+                    "k4": -0.0009823749,
+                    "k5": 0.0,
+                    "k6": 0.0,
+                    "p1": 0.0,
+                    "p2": 0.0,
+                    "skew": 0.0,
+                    "fx": 1900.0,
+                    "fy": 1900.0,
+                    "cx": 1924.0,
+                    "cy": 1084.0,
+                    "fisheye_model": 1,
+                    "is_fisheye": false
+                },
+                "noise_params": {
+                    "enable_bayer": true,
+                    "enable_gauss_noise": true,
+                    "enable_poisson_noise": true,
+                    "enable_denoise": true,
+                    "iso_level": 200,
+                    "gauss_noise_sigma": 0.025,
+                    "poisson_noise_lambda": 1000.0,
+                    "denoise_filter_size": 3,
+                    "bilateral_sigma_d": 3.0,
+                    "bilateral_sigma_r": 20.0,
+                    "enable_auto_noise": true,
+                    "signal_amount": 5223,
+                    "pre_amplifier_noise": 7.63,
+                    "post_amplifier_noise": 247.5,
+                    "is_using_iso": true,
+                    "enable_auto_iso": false,
+                    "fstop": 1.0,
+                    "max_exposure_time": 0.033,
+                    "quantum_efficiency": 0.7
+                },
+                "fov": 0.0,
+                "enable_streaming": false,
+                "transmit_gray": false,
+                "distortion_lookup_table": "",
+                "capture_basecolor": false,
+                "capture_properties": false,
+                "time_offset": 0.0
+            },
+            "sensor_extrinsic": {
+                "yaw": 0.0,
+                "pitch": 0.0,
+                "roll": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.5,
+                "lock_to_yaw": false,
+                "attach_socket": "",
+                "follow_rotation": false
+            }
+        },
+        {
+            "display_name": "OrthoCamera50",
+            "camera_intrinsic": {
+                "width": 1000,
+                "height": 1000,
+                "supersample": 1.0,
+                "capture_rgb": true,
+                "capture_depth": false,
+                "capture_normals": false,
+                "capture_segmentation": false,
+                "capture_instance": false,
+                "capture_detections": false,
+                "capture_motionvectors": false,
+                "lut": "Texture2D'/Game/pd/Textures/LUT/T_LUT_Aladdin_overcast_01.T_LUT_Aladdin_overcast_01'",
+                "lut_weight": 0.8,
+                "post_process": [
+                    {
+                        "material": "MaterialInstanceConstant'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens'",
+                        "weight": 1.0
+                    }
+                ],
+                "distortion_params": {
+                    "k1": 0.0,
+                    "k2": 0.0,
+                    "k3": 0.0,
+                    "k4": 0.0,
+                    "k5": 0.0,
+                    "k6": 0.0,
+                    "p1": 0.0,
+                    "p2": 2000.0,
+                    "skew": 0.0,
+                    "fx": 300.0,
+                    "fy": 300.0,
+                    "cx": 500.0,
+                    "cy": 500.0,
+                    "fisheye_model": 6,
+                    "is_fisheye": false
+                },
+                "noise_params": {
+                    "enable_bayer": false,
+                    "enable_gauss_noise": false,
+                    "enable_poisson_noise": false,
+                    "enable_denoise": false,
+                    "iso_level": 200
+                },
+                "fov": 0.0,
+                "transmit_gray": false,
+                "distortion_lookup_table": "",
+                "capture_basecolor": false,
+                "capture_properties": false,
+                "time_offset": 0.0
+            },
+            "sensor_extrinsic": {
+                "yaw": 0.0,
+                "pitch": 0.0,
+                "roll": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 20.0,
+                "lock_to_yaw": false,
+                "attach_socket": "",
+                "follow_rotation": false
+            }
+        },
+        {
+            "display_name": "lidar_02",
+            "lidar_intrinsic": {
+                "beam_data": [
+                    {
+                        "id": 0,
+                        "azimuth": 0.400,
+                        "elevation": -15.0
+                    },
+                    {
+                        "id": 1,
+                        "azimuth": 0.400,
+                        "elevation": 1.0
+                    },
+                    {
+                        "id": 2,
+                        "azimuth": 0.200,
+                        "elevation": -13.0
+                    },
+                    {
+                        "id": 3,
+                        "azimuth": 0.400,
+                        "elevation": 3.0
+                    },
+                    {
+                        "id": 4,
+                        "azimuth": 0.400,
+                        "elevation": -11.0
+                    },
+                    {
+                        "id": 5,
+                        "azimuth": 0.400,
+                        "elevation": 5.0
+                    },
+                    {
+                        "id": 6,
+                        "azimuth": 0.400,
+                        "elevation": -9.0
+                    },
+                    {
+                        "id": 7,
+                        "azimuth": 0.200,
+                        "elevation": 7.0
+                    },
+                    {
+                        "id": 8,
+                        "azimuth": 0.400,
+                        "elevation": -7.0
+                    },
+                    {
+                        "id": 9,
+                        "azimuth": 0.400,
+                        "elevation": 9.0
+                    },
+                    {
+                        "id": 10,
+                        "azimuth": 0.200,
+                        "elevation": -5.0
+                    },
+                    {
+                        "id": 11,
+                        "azimuth": 0.400,
+                        "elevation": 11.0
+                    },
+                    {
+                        "id": 12,
+                        "azimuth": 0.400,
+                        "elevation": -3.0
+                    },
+                    {
+                        "id": 13,
+                        "azimuth": 0.200,
+                        "elevation": 13.0
+                    },
+                    {
+                        "id": 14,
+                        "azimuth": 0.400,
+                        "elevation": -1.0
+                    },
+                    {
+                        "id": 15,
+                        "azimuth": 0.200,
+                        "elevation": 15.0
+                    }
+                ],
+                "sample_rate": 18000,
+                "rotation_rate": 10,
+                "capture_rgb": true,
+                "capture_intensity": true,
+                "capture_depth": true,
+                "capture_normals": false,
+                "capture_segmentation": true,
+                "capture_instance": true,
+                "capture_detections": true,
+                "capture_motionvectors": true
+            },
+            "sensor_extrinsic": {
+                "yaw": -5.256345272064209,
+                "pitch": -0.5511063933372498,
+                "roll": -0.7224692106246948,
+                "x": 0.1532531976699829,
+                "y": 2.530381917953491,
+                "z": 0.8573470115661621
+            }
+        }
+    ]
+}

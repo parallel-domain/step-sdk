@@ -1,0 +1,31 @@
+{
+    "sensor_configs": 
+    [
+        {
+            "display_name": "Front",
+            "camera_intrinsic":
+            {
+
+                "width": 1280,
+                "height": 720,
+                "fov": 65,
+
+                "capture_rgb": true,
+                "capture_depth": false,
+                "capture_normals": false,
+                "capture_segmentation": false,
+                "capture_instance": false,
+                "capture_motionvectors": false
+            },
+            "sensor_extrinsic":
+            {
+                "yaw": 0.0,
+                "pitch": 0.0,
+                "roll": 0.0,
+                "x": 0.0, 
+                "y": 0.0, 
+                "z": 2.0
+            }
+        }
+    ]
+}

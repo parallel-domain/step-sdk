@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package zmq;
+
+// Info for a 0MQ socket.
+// Next ID: 3. Last added: id.
+message SocketInfo {
+  // Next ID: 3. Last added: PUB.
+  enum Type {
+    UNKNOWN = 0;
+    REQ = 1;
+    SUB = 2;
+    PUB = 3;
+  }
+  Type type = 1;
+
+  // Label to identify the socket.
+  string id = 2;
+}
+
+// A socket connected to a remote address.
+// Next ID: 2. Last added: address.
+message SocketConnect {
+  // Address connected to, in format 'protocol://interface:port'.
+  string address = 1;
+}
+
+// A socket bound to a local address.
+// Next ID: 2. Last added: address.
+message SocketBind {
+  // Address bound to, in format 'protocol://interface:port'.
+  string address = 1;
+}
+
+// A message sent over 0MQ.
+// Next ID: 2. Last added: data.
+message SendMessage {
+  bytes data = 1;
+}
+
+// Represents an action on a 0MQ socket.
+// Next ID: 6. Last added: message.
+message Action {
+  // Timestamp, in seconds.
+  double timestamp = 1;
+  SocketInfo socket_info = 2;
+
+  oneof details_oneof {
+    SocketConnect connect = 3;
+    SocketBind bind = 4;
+    SendMessage message = 5;
+  }
+}

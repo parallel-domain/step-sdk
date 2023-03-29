@@ -1,0 +1,386 @@
+include "types.fbs";
+
+union SensorIntrinsicConfigFB
+{
+    CameraConfigFB,
+    LiDARConfigFB,
+    RadarConfigFB
+}
+
+struct DistortionParamsFB
+{
+    k1 : float;
+    k2 : float;
+    k3 : float;
+    k4 : float;
+    k5 : float;
+    k6 : float;
+    p1 : float;
+    p2 : float;
+    skew : float;
+    is_fisheye : bool;
+    fx : float;
+    fy : float;
+    cx : float;
+    cy : float;
+}
+
+table PostProcessParamsFB
+{
+    // Auto exposure histogram setting
+    // Logarithmic adjustment for exposure.
+    // When set to 0, there will be no adjustment, -1 is two times darker, -2 is four times darker,
+    // 1 is two times brighter, and 2 is four times brighter.
+    // See: https://docs.unrealengine.com/4.27/en-US/RenderingAndGraphics/PostProcessEffects/AutomaticExposure/
+    // Set to -100 to disable this parameter so that it will use the default value set by the location level
+    exposure_compensation : float = -100.0;
+
+    // Auto exposure histogram setting
+    // The speed at which the adaptation occurs from a dark environment to a bright environment.
+    // See: https://docs.unrealengine.com/4.27/en-US/RenderingAndGraphics/PostProcessEffects/AutomaticExposure/
+    exposure_speed_up : float = 0.0;
+
+    // Auto exposure histogram setting
+    // The speed at which adaptation occurs from a bright environment to a dark environment.
+    // See: https://docs.unrealengine.com/4.27/en-US/RenderingAndGraphics/PostProcessEffects/AutomaticExposure/
+    exposure_speed_down : float = 0.0;
+
+    // Auto exposure histogram setting
+    // The minimum brightness for auto exposure adaptation, expressed in pixel luminance (cd/m2).
+    // Value is typically negative and should be less than or equal to Max EV100.
+    // As this value increases, the scene view gets darker.
+    // If Min EV100 is equal to Max EV100, auto exposure is disabled.
+    // See: https://docs.unrealengine.com/4.27/en-US/RenderingAndGraphics/PostProcessEffects/AutomaticExposure/
+    // Set to -100 to disable this parameter so that it will use the default value set by the location level
+    exposure_min_ev100 : float = -100.0;
+
+    // Auto exposure histogram setting
+    // The maximum brightness for auto exposure adaptation, expressed in pixel luminance (cd/m2).
+    // Value is typically positive and should be greater than or equal to Min EV100.
+    // As this value decreases, the scene view gets brighter.
+    // If Max EV100 is equal to Min EV100, auto exposure is disabled.
+    // See: https://docs.unrealengine.com/4.27/en-US/RenderingAndGraphics/PostProcessEffects/AutomaticExposure/
+    // Set to -100 to disable this parameter so that it will use the default value set by the location level
+    exposure_max_ev100 : float = -100.0;
+
+    // Auto exposure histogram setting (internal-use)
+    // Use your own texture mask to meter exposure.
+    // Bright spots on the mask will have high influence on auto exposure metering, and dark spots will have low influence.
+    // See: https://docs.unrealengine.com/4.27/en-US/RenderingAndGraphics/PostProcessEffects/AutomaticExposure/
+    exposure_metering_mask : string;
+
+    motion_blur_amount : float = 1.5;
+    motion_blur_max : float = 5.0;
+    dof_focal_distance : float = -1.0;
+    dof_depth_blur_amount : float = 0.0;
+    dof_depth_blur_radius : float = -1.0;
+    vignette_intensity : float = 0.0;
+    tonemap_curve : TonemapCurveFB;
+    exposure_compensation_curve : string;
+}
+
+// deprecated
+struct PostProcessFlagsFB
+{
+    deprecated : bool;
+}
+
+table PostProcessMatsFB
+{
+    mat : string;
+    weight : float = 0.0;
+}
+
+enum pdDenoiseFilter : uint8
+{
+    AverageFilter,
+    MedianFilter,
+    FastMedianFilter,
+    BilateralFilter
+}
+
+
+table TonemapCurveFB
+{
+    slope: float = 0.66;
+    toe: float = 0.52;
+    shoulder: float = 0.49;
+    black_clip: float = 0.0;
+    white_clip: float = 0.08;
+}
+
+struct NoiseParamsFB
+{
+    enable_bayer : bool;
+    enable_gauss_noise : bool;
+    enable_poisson_noise : bool;
+    enable_denoise : bool;
+
+    gauss_noise_sigma : float;
+    poisson_noise_lambda : float;
+
+    denoise_filter : pdDenoiseFilter;
+    denoise_filter_size : int;
+    bilateral_sigma_d : float;
+    bilateral_sigma_r : float;
+
+    enable_auto_noise : bool;
+    signal_amount : int;
+    pre_amplifier_noise : float;
+    post_amplifier_noise : float;
+
+    is_using_iso : bool;
+    iso_level : int;
+
+    enable_auto_iso : bool;
+    fstop : float;
+    max_exposure_time : float;
+    quantum_efficiency : float;
+}
+
+// deprecated
+struct NoiseFlagsFB
+{
+    deprecated : bool;
+}
+
+
+table CameraConfigFB
+{
+    // Width in pixels
+    width : int;
+
+    // Height in pixels
+    height : int;
+
+    // Field of view in degrees for the larger image dimension
+    // I.e. if width>height, this determines the horizontal (left to right) field of view.
+    // If height>width, this determines the vertical (top to down) field of view.
+    // This value is only used if the focal lengths in DistortionParamsFB are not set.
+    // Square pixels are assumed when this value is in effect.
+    fov : float;
+
+    supersample : float = 1.0;
+
+    capture_rgb : bool;
+    capture_depth : bool;
+    capture_normals : bool;
+    capture_segmentation : bool;
+    capture_instances : bool;
+    capture_motionvectors : bool;
+    enable_streaming : bool = false;
+
+    distortion_params : DistortionParamsFB;
+    post_process_params : PostProcessParamsFB;
+    post_process_flags : PostProcessFlagsFB (deprecated);
+
+    lut : string;
+    lut_weight : float = 1.0;
+
+    noise_params : NoiseParamsFB;
+    noise_flags : NoiseFlagsFB (deprecated);
+
+    post_process_mats : [PostProcessMatsFB];
+
+    transmit_gray : bool = false;
+
+    // This is stored here outside the DistortionParamsFB struct in order to maintain
+    // backwards compatibility with older state files
+    // 0 - no fisheye
+    // 1 - Kannala fisheye model (OpenCV)
+    // 2 - atan distorted Kannala fisheye model (Alice)
+    // 3 - using Distortion LUT
+    // 4 - Panoramic camera with spherical perspective
+    // 5 - Panoramic camera with cylindrical perspective
+    // 6 - Orthographic camera, fx is width, fy is height, p1 is near clip plan (can be negtive), p2 is far clip plan
+    fisheye_model : int32;
+
+    distortion_lookup_table : string;
+
+    capture_basecolor : bool;
+    capture_properties : bool; // Object surface properties, including metallic, roughness and specular
+
+    // offset capture time in ms
+    time_offset : float;
+    capture_backwardmotionvectors: bool;    
+}
+
+table LiDARIntensityParamsFB
+{
+	retro_range_noise_stddev : float = 0.1;		// bump the depth noise for retroreflective beams
+	retroreflection_noise_mean : float = 0.0;	// noise for refroreflective intensity
+	retroreflection_noise_stddev : float = 0.1;
+	max_attenuation_distance : float = 220.0;	// unit is meter
+
+	// reflection intensity enhance when the beam hits a retroreflective surface, the default value is 1.5, which means the intensity is 50% stronger than the general
+	retro_intensity_enhance : float = 1.5;	
+
+	// Because the LiDAR beams are infrared light, the specular of the object's surface would be higher than the visible light.
+	// The default value of it should be 4.0, because in Engine code, F=50*SpecularColor=50*0.08*BaseColor=4.0*BaseColor, where 4.0 is the specular scale we used.
+	intensity_specular_scale : float = 2.0;
+
+	// Because the LiDAR beams are infrared light, the beam would be spread more than the visible light. By scaling up roughness to 1.5,
+	// we could let the beam spread more. 
+	intensity_roughness_scale : float = 1.5;
+
+	beam_intensity : float = 2.0;				// The intensity of the beam. It could be used to scale the final intensity to a reasonable range
+
+	// The weights of rgb channels to compose the surface albedo for LiDAR beams. Because the LiDAR beams are infrared light, 
+	// the weight of red should be heavier than green and blue. So the default value is { 1.0f, 0.8f, 0.4f }
+	albedo_weights : float3_t;
+
+    // Max surface albedo value, prevent too bright
+    max_albedo : float = 2.2;
+
+    // Enhance when the beam hits a traffic sign
+    strong_retro_intensity_enhance : float = 0.9;
+
+    // Scale the metallic
+    intensity_metallic_scale : float = 1.0;
+
+    // At least how much emissive value will enhance the intensity
+    emissive_gate : float = 100.0;
+
+    // The emissive will be less than (max_emissive_rate * emissive_gate)
+    max_emissive_rate : float = 10.0;
+}
+
+table AliceLiDARModelFB
+{
+    number_points : int = 0;
+    min_elevation_angle : float = 0.0;
+    max_elevation_angle : float = 0.0;
+    min_dense_elevation_angle : float = 0.0;
+    max_dense_elevation_angle : float = 0.0;
+    min_azimuth_angle : float = 0.0;
+    max_azimuth_angle : float = 0.0;
+    sparse_radian_spacing : float = 0.0;
+    dense_radian_spacing : float = 0.0;
+    horizontal_spacing : float = 0.0;
+}
+
+table LiDARBeamFB
+{
+    id        : uint32; // identifier for this beam
+    azimuth   : float;  // Azimuth angle (degrees) of beam, measured clockwise from y-axis in xy plane
+    elevation : float;  // Elevation angle (degrees) of beam, measured from xy plane towards z-axis
+}
+
+table LiDARConfigFB
+{
+    beam_data : [LiDARBeamFB];
+    
+    sample_rate   : float;        // Sample rate of the beams in hz
+    rotation_rate : float;        // Rotation rate of beams in hz
+
+    azimuth_min : float = 0.0;    // For "raster" style lidar units, this defines range in azimuth over
+    azimuth_max : float = 0.0;    // which the beam is swept. If == 0, then disables this raster behavior
+    elevation_delta : float = 0.0;     // How much the elevation angle changes per scaline in our raster pattern
+
+    capture_rgb          : bool;
+    capture_depth        : bool;
+    capture_normals      : bool;
+    capture_segmentation : bool;
+    capture_instances    : bool;
+    capture_motionvectors: bool = true;
+ 
+    minimum_range_cutoff : float = 15.0;  // All samples with lower range will not be culled by the range based culling
+    maximum_range_cutoff : float = 235.0; // All samples with greater range will always be culled by range culling
+    minimum_cutoff_prob : float = 0.07;  // Minimum culling probability, range [0.0, 1.0]
+    maximum_cutoff_prob : float = 0.95; // Maximum culling probability, range [0.0, 1.0]
+    minimum_offset : float = 0.002;
+    maximum_offset : float = 0.02;
+    minimum_noise : float = 0.001;
+    range_noise_mean : float = 0.0;
+    range_noise_stddev : float = 0.005;
+
+	intensity_params : LiDARIntensityParamsFB;
+
+    alice_lidar_model : AliceLiDARModelFB;
+    pattern : string;
+
+    // offset capture time in ms
+    time_offset : float;
+
+    // If 0 we get only one return, otherwise it means we add a number of returns
+    multi_returns : int = 0;
+    // Whether the merge the returns into dual returns or one return
+    // 0 means no merging, 1 means one return, 2 means dual returns
+    merge_returns : int = 0;
+
+    capture_properties : bool = false;
+    capture_backwardmotionvectors: bool;
+    multi_returns_angle: float = 0.00035;
+
+}
+
+table RadarBasicParametersFB
+{
+    max_range : float;              // Maximum radar range
+    range_resolution : float;         // Range resolution
+    max_doppler : float;               // Maximum radar doppler output
+    doppler_resolution : float;       // Doppler resolution
+    azimuth_fov : float;              // Azimuth field of view
+    azimuth_resolution : float;         // Azimuth resolution
+    elevation_fov : float;             // Elevation field of view
+    elevation_resolution : float;       // Elevation resolution
+    radar_output_2d : bool;         // Does the radar output elevation data 
+    use_random_raycast : bool;      // Use random ray cast for radar inputs
+    number_rays_per_frame : int;    // Number of random rays per frame
+}
+
+table RadarEnergyParametersFB
+{
+    nominal_gain : float;             // Energy estimator gain in range of 1m
+    gain_jitter_std : float;            // Energy estimator energy noise jitter standard deviation
+    radiometric_coefficient : float;    // The energy attenuation coefficient 
+    beam_pattern_file_path : string;        // The path to the energy estimator beam pattern file
+    enable_beam_pattern : bool;     // Does the energy model use beam pattern
+}
+
+table RadarNoiseParametersFB
+{
+    enable_thermal_noise : bool;     // Enable/disable the ‘thermal noise’ block
+    thermal_noise_std : float;          // Thermal noise standard-deviation (normal distribution) 
+    thermal_noise_mean : float;        // Thermal noise mean value (normal distribution) 
+    enable_doa_noise : bool;         // Enable/disable the ‘DOA noise’ block
+}
+
+table RadarDetectorParametersFB
+{
+    detector_type : string;                            // What kind of RD map detector to use
+    detector_constant_gain : float;          // Threshold for ‘constant threshold detector’
+    detector_radiometric_gain : float;      // Threshold in 1m for ‘Radiometric detector’
+    detector_radiometric_decay : float;         // Radiometric detector decay exponent 
+}
+
+table RadarConfigFB
+{
+    basic_parameters : RadarBasicParametersFB;
+    energy_parameters : RadarEnergyParametersFB;
+    noise_parameters : RadarNoiseParametersFB;
+    detector_parameters : RadarDetectorParametersFB;
+}
+
+table SensorExtrinsicConfigFB
+{
+    sensor_to_vehicle : float4x4_t;
+    // Setting this flag to true will cause the yaw value of the sensor orientation to be locked to the vehicle
+    // but leave the pitch and roll values as zero with respect to the world frame
+    lock_to_yaw : bool = false;
+
+    attach_socket : string;
+    follow_rotation : bool = true;
+}
+
+table SensorConfigFB
+{
+    display_name : string;   
+    sensor_intrinsic : SensorIntrinsicConfigFB;
+    sensor_extrinsic : SensorExtrinsicConfigFB;
+}
+
+table SensorRigConfigFB
+{
+    sensor_configs : [SensorConfigFB];
+}

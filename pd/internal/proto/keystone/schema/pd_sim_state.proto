@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+import "pd_sensor.proto";
+import "pd_scenario.proto";
+
+package keystone;
+
+
+message BuildSimState
+{
+    // Human readable name for this job
+    string name = 1;
+
+    // Output artifact for build results
+    string output_artifact_uid = 2;
+
+    // Set the tag/uid of the code build ECR image to use in the build and finalize steps.
+    string code_build_artifact_uid = 6;
+
+    // Location definitions for this scenario batch
+    repeated ScenarioLocation locations = 3;
+
+    // Scenario batch configuration parameters
+    ScenarioGenConfig scenario_gen = 4;
+
+    // Sensor rig definition for scenario
+    SensorRigConfig sensor_rig = 5;
+}
+
+message SimStateCull
+{
+    // Inptu artifact for sim state data
+    string input_artifact_uid = 1;
+    // Output artifact for processed sim state data
+    string output_artifact_uid = 2;
+
+    // Human readable name for this job
+    string artifact_key = 3;
+
+    // Number of frames to retain prior to capture frame
+    int32 capture_frame_window = 4;
+
+    // Number of scenarios to process per pod
+    int32 batch_size = 5;
+
+    // Set the tag/uid of the code build ECR image to use.
+    string code_build_artifact_uid = 6;
+
+    //Number of frames to trail the sim to retain lidar quality
+    int32 trailing_frame_window = 7;
+}
+
+
+// NOT YET USED....
+
+message ProcessSimStateParams
+{
+    bool override_time_of_day = 1;
+    string time_of_day = 2;
+
+    bool override_sensor_rig = 3;
+    SensorRigConfig sensor_rig = 4;
+    
+    bool override_wetness = 5;
+    float wetness = 6;
+
+    bool override_rain_intensity = 7;
+    float rain_intensity = 8;
+
+    bool override_fog_intensity = 9;
+    float fog_intensity = 10;
+
+    bool override_streetlights = 11;
+    float streetlights = 12;
+
+    bool override_headlights = 13;
+    bool headlights = 14;
+
+    bool capture_all_frames = 17;
+
+    repeated int64 cull_agents = 18;
+}
+
+message ProcessSimState
+{
+    string artifact_key = 1;
+
+    string input_artifact_uid = 2;
+    string output_artifact_uid = 3;
+
+    oneof input {
+        string param_artifact_uid = 4;
+        ProcessSimStateParams params = 5;
+    }
+
+    int32 batch_size = 6;
+}
+
+message MergeSimState
+{
+    string first_input_artifact_uid = 1;
+    string second_input_artifact_uid = 2;
+    string output_artifact_uid = 3;
+}

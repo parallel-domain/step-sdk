@@ -1,0 +1,50 @@
+{
+  "sensor_configs": [
+    {
+      "display_name": "FisheyeLeft",
+      "sensor_extrinsic": {
+        "x": -1.1,
+        "y": 1.2,
+        "z": 1.2,
+        "roll": -1.501989531760839e-17,
+        "pitch": -25.004856877359472,
+        "yaw": 90.0
+      },
+      "camera_intrinsic": {
+        "width": 3000,
+        "height": 2000,
+        "distortion_params": {
+          "fx": 866.0254037844389,
+          "fy": 866.0254037844389,
+          "cx": 1500,
+          "cy": 1000,
+          "skew": 0,
+          "fisheye_model": 3
+        },
+        "distortion_lookup_table": "customer\\Internal\\sensor_rigs\\fisheye_lookup.csv",
+        "noise_params": {
+          "enable_bayer": true,
+          "enable_gauss_noise": true,
+          "enable_poisson_noise": true,
+          "enable_denoise": true,
+          "iso_level": 200
+        },
+        "post_process": [
+          {
+            "material": "MaterialInstanceConstant'\/Game\/pd\/material\/vfx\/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens'",
+            "weight": 1.0
+          }
+        ],
+        "lut": "Texture2D'\/Game\/pd\/Textures\/LUT\/T_LUT_Aladdin_overcast_01.T_LUT_Aladdin_overcast_01'",
+        "lut_weight": 0.8,
+        "capture_rgb": true,
+        "capture_depth": true,
+        "capture_normals": true,
+        "capture_segmentation": true,
+        "capture_instance": true,
+        "capture_detections": true,
+        "capture_motionvectors": true
+      }
+    }
+  ]
+}

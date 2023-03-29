@@ -1,0 +1,64 @@
+
+/**
+ * Request for static system information.
+ * This information does not change during the lifecycle of an IG instance.
+ */
+table pdQuerySystemInfo
+{
+}
+
+
+/**
+ * Response for static system information.
+ * This information does not change during the lifecycle of an IG instance.
+ */
+table pdReturnSystemInfo
+{
+    // Semantic versioning
+    version_major : uint16;
+    version_minor : uint16;
+    version_patch : uint16;
+    version_build : string;
+}
+
+enum pdIgStateType : uint8
+{
+    IgState_Disconnected,
+    IgState_Connected,
+    IgState_Backing,
+    IgState_Loading,
+    IgState_Loaded,
+    IgState_Capturing,
+    IgState_Finishing
+}
+
+table pdIgState
+{
+    ig_state : pdIgStateType;
+}
+
+enum pdRuntimeInfoType : uint8
+{
+    RuntimeInfo_IgState,
+}
+
+/**
+ * Request for dynamic run-time information.
+ */
+table pdQueryRuntimeInfo
+{
+    query_info : pdRuntimeInfoType;
+}
+
+union pdRuntimeInfo
+{
+    pdIgState,
+}
+
+/**
+ * Response for dynamic run-time information.
+ */
+table pdReturnRuntimeInfo
+{
+    info : pdRuntimeInfo;
+}

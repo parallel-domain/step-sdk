@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "options.proto";
+import "geometry.proto";
+
+// Multi Dimensional Array, this is a way to encode numpy like arrays inside .proto
+message MDFloatArray
+{
+    repeated uint32 shape = 1;
+    repeated float data = 2;
+};
+
+message Float4x4
+{
+    float m00 = 1;
+    float m01 = 2;
+    float m02 = 3;
+    float m03 = 4;
+
+    float m10 = 5;
+    float m11 = 6;
+    float m12 = 7;
+    float m13 = 8;
+
+    float m20 = 9;
+    float m21 = 10;
+    float m22 = 11;
+    float m23 = 12;
+
+    float m30 = 13;
+    float m31 = 14;
+    float m32 = 15;
+    float m33 = 16;
+};
+
+message LUTDistortionMap
+{
+    MDFloatArray distortion_map = 1;
+    Vector3 offset = 2;
+};
+
+message FisheyeDistortionMap
+{
+    repeated float distorted_angles = 1;
+    repeated float undistorted_angles = 2;
+};
+
+message CameraDistortionCalibration
+{
+    Float4x4 projection_matrix = 1;
+    optional FisheyeDistortionMap fisheye_distortion_map = 2;
+    optional LUTDistortionMap lut_distortion_map = 3;
+};

@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+import "pd_sensor.proto";
+import "google/protobuf/descriptor.proto";
+
+package keystone;
+
+message KeystoneAttributes { 
+    string group = 1;
+}
+
+extend google.protobuf.FieldOptions { 
+    KeystoneAttributes keystone_attributes = 1234;
+}
+
+
+message RenderInfo
+{
+    string artifact_key = 1;
+    string output_artifact_uid = 2;
+    string state_file_archive_artifact_uid = 3;
+    string code_build_artifact_uid = 4;
+    string image_generator_core_artifact_uid = 5;
+
+    map<string, string> level_pak_artifact_uid = 6;
+
+    SensorRigConfig sensor_rig = 7;
+
+    repeated SensorList sensor_splits_list = 8;
+
+    // Parameter used to control which instance type to set when rendering. This
+    // is a temporary parameter and will be depreciated once PD-15262 is done.
+    bool use_high_gpu_mem_render_node = 37 [(keystone_attributes) = {group: "advanced"}];
+    bool annotate_wing_mirrors_2d = 9 [(keystone_attributes) = {group: "advanced"}];
+    bool annotate_wing_mirrors_3d = 10 [(keystone_attributes) = {group: "advanced"}];
+    bool annotate_accessories_2d = 31 [(keystone_attributes) = {group: "advanced"}];
+    bool annotate_accessories_3d = 32 [(keystone_attributes) = {group: "advanced"}];
+    bool apply_lidar_noise = 11 [(keystone_attributes) = {group: "advanced"}];
+    bool bbox_2d_only_visible_pixels = 12 [(keystone_attributes) = {group: "advanced"}];
+    bool capture_all_frames = 13 [(keystone_attributes) = {group: "advanced"}];
+    bool keep_glass_transparent = 14 [(keystone_attributes) = {group: "advanced"}];
+    bool hide_all_volumetrics = 15 [(keystone_attributes) = {group: "advanced"}];
+    bool merge_bikes_riders_3d = 16 [(keystone_attributes) = {group: "advanced"}];
+    bool output_instance_point_caches = 17 [(keystone_attributes) = {group: "advanced"}];
+    bool use_instance_point_caches = 38 [(keystone_attributes) = {group: "advanced"}];
+    bool output_telemetry = 18 [(keystone_attributes) = {group: "advanced"}];
+    bool output_truncated_3d_annotations = 19 [(keystone_attributes) = {group: "advanced"}];
+    bool physical_ground_truth = 20 [(keystone_attributes) = {group: "advanced"}];
+    float volumetric_density_scale = 21 [(keystone_attributes) = {group: "advanced"}];
+    bool render_ego_vehicle = 22 [(keystone_attributes) = {group: "advanced"}];
+    int32 use_opaque_glass = 23 [(keystone_attributes) = {group: "advanced"}];
+    int32 vehicle_color_offset = 24 [(keystone_attributes) = {group: "advanced"}];
+    bool hide_crosswalk_segmentation_mesh = 25 [(keystone_attributes) = {group: "advanced"}];
+    bool disable_reflection = 33 [(keystone_attributes) = {group: "advanced"}];
+    bool disable_specular = 34 [(keystone_attributes) = {group: "advanced"}];
+    bool box_non_visible_signal_bulbs = 35 [(keystone_attributes) = {group: "advanced"}];
+    bool enable_radar_debug = 36 [(keystone_attributes) = {group: "advanced"}];
+
+    enum EnvironmentMode {
+        NONE = 0;
+        SPREAD = 1;
+        CYCLE = 2;
+        RANDOM = 3;
+    }
+
+    EnvironmentMode environment_mode = 26 [(keystone_attributes) = {group: "advanced"}];
+
+    message Environment {
+        map<string, string> environment_attr = 1;
+    }
+
+    repeated Environment environment_attr_list = 27 [(keystone_attributes) = {group: "advanced"}];
+
+    int32 start_scene = 28 [(keystone_attributes) = {group: "advanced"}];
+    int32 end_scene = 29 [(keystone_attributes) = {group: "advanced"}];
+    int32 batch_size = 40 [(keystone_attributes) = {group: "advanced"}];
+    bool generate_previews = 30 [(keystone_attributes) = {group: "advanced"}];
+    int32 capture_rate = 41 [(keystone_attributes) = {group: "advanced"}];
+    // Set to True to enable the updated data pipeline
+    // from the IG
+    bool new_data_pipeline = 39 [(keystone_attributes) = {group: "advanced"}];
+    
+} // next index 42

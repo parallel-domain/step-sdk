@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<Type Name="SimStateFB">
+		<DisplayString>
+			SimStateFB
+		</DisplayString>
+		<Expand>
+			<Item Name ="agents">
+				agents()
+			</Item>
+		</Expand>
+	</Type>
+	<Type Name="flatbuffers::Vector&lt;*&gt;">
+		<DisplayString>{{ size={size()} }}</DisplayString>
+		<Expand>
+			<Item Name="[size]" ExcludeView="simple">size()</Item>
+			<Item Name="[capacity]" ExcludeView="simple">size()</Item>
+			<IndexListItems>
+				<Size>size()</Size>
+				<ValueNode>*data()</ValueNode>
+			</IndexListItems>
+		</Expand>
+	</Type>
+</AutoVisualizer>

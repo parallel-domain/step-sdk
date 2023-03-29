@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "google/protobuf/any.proto";
+
+import "annotation.proto";
+import "bounding_box_2d.proto";
+import "bounding_box_3d.proto";
+import "camera_calibration.proto";
+import "ig_metadata.proto";
+import "motion_vectors_2d.proto";
+import "dgp.proto";
+import "geometry.proto";
+import "instance_map.proto";
+import "mesh_map.proto";
+import "transform_map.proto";
+import "options.proto";
+import "python_engine.proto";
+
+
+
+
+message TransformPipelineNode
+{
+    string name = 1;
+    repeated string depends_on = 2;
+
+    google.protobuf.Any config = 3;
+
+    // If finalize_node is true, then this node will be run once at the end of
+    // pipeline execution in a separate pass. Code will enforce no dependencies on 
+    // nodes with this flag active
+    bool finalize_node = 4;
+}
+
+message TransformPipeline
+{
+    repeated TransformPipelineNode nodes = 1;
+}
+
+message DataTypeRecord
+{
+    DataType type = 1;
+}

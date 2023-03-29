@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package keystone;
+
+
+message NormalDistribution
+{
+    float mean = 1;
+    float variance = 2;
+}
+
+message TrucatedNormalDistribution
+{
+    float mean = 1;
+    float variance = 2;
+    float min = 3;
+    float max = 4;
+}
+
+message ContinousUniformDistribution
+{
+    float min = 1;
+    float max = 2;
+}
+
+message Bucket {
+    oneof value {
+        string string_value = 1;
+        float float_value = 2;
+        int32 int32_value = 3;
+    }
+    float probability = 4;
+}
+
+message DiscreteUniformDistribution
+{
+    repeated Bucket buckets = 1;
+}
+
+message CategoricalDistribution
+{
+    repeated Bucket buckets = 1;
+}
+
+message ConstantDistribution
+{
+    oneof value {
+        string string_value = 1;
+        float float_value = 2;
+        int32 int32_value = 3;
+    }
+}
+
+message EnumDistribution
+{
+    map<string, float> probabilities = 1;
+}
+
+message Distribution
+{
+    oneof distribution {
+        NormalDistribution normal = 1;
+        TrucatedNormalDistribution truncated_normal = 2;
+        ContinousUniformDistribution uniform_continous = 3;
+        ConstantDistribution constant = 4;
+        DiscreteUniformDistribution uniform_discrete = 5;
+        CategoricalDistribution categorical = 6;
+    }
+}
+
+message VehicleCategoryWeight
+{
+    float weight = 2;
+    map<string, float> model_weights = 3;
+}

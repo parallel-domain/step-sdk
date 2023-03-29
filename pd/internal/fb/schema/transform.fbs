@@ -1,0 +1,14 @@
+include "types.fbs";
+
+table TransformStateFB
+{
+    parent: uint64;
+
+    // The position part of object_to_world is 
+    // referencing geometric center of a mesh
+    object_to_world: float4x4_t;
+    velocity: float3_t;
+    angular_velocity: float3_t;
+    acceleration: float3_t;
+    angular_acceleration: float3_t;
+}

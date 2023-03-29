@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "options.proto";
+
+// This is currently duplicated from the UMD.proto source as that is in proto2
+// but we are using proto3 here. We should update the core UMD to proto3 at some point
+enum LaneType
+{
+    UNDEFINED_LANE = 0;
+    DRIVABLE       = 1;
+    NON_DRIVABLE   = 2;
+    PARKING        = 3;
+    SHOULDER       = 4;
+    BIKING         = 5;
+    CROSSWALK      = 6;
+    RESTRICTED     = 7;
+    PARKING_AISLE  = 8;
+    PARKING_SPACE  = 9;
+    SIDEWALK       = 10;
+}
+
+message WorldLineAnnotatorConfig
+{
+    string output_path = 1 [(type)=eAnnotation, (stream)=eOutput];
+
+    bool extract_lane_left_edge = 2;
+    bool extract_lane_right_edge = 3;
+    bool extract_lane_reference_line = 4;
+
+    repeated LaneType include_lane_types = 5;
+    repeated LaneType exclude_lane_types = 6;
+};
+
+message WorldLineMetadata
+{
+    LaneType lane_type = 1;
+    LaneLineType lane_line_type = 2;
+
+    oneof data
+    {
+        ParkingLineData parking_line_data = 3;
+    }
+}
+
+enum LaneLineType
+{
+    REFERENCE_LINE = 0;
+    LEFT_EDGE = 1;
+    RIGHT_EDGE = 2;
+}
+
+enum ParkingLineType
+{
+    SOLID = 0;
+    DASHED = 1;
+    DOUBLE_SQUARE = 2;
+    DOUBLE_ROUND = 3;
+    INVERTED_T = 4;
+    REGULAR_T = 5;
+}
+
+message ParkingLaneColor
+{
+    float red = 1;
+    float green = 2;
+    float blue = 3;
+};
+
+message ParkingLineData
+{
+    ParkingLaneColor parking_line_color = 1;
+    float parking_line_wear = 2;
+    ParkingLineType parking_line_type = 3;
+}

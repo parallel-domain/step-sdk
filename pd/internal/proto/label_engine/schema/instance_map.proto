@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "options.proto";
+import "mesh_map.proto";
+
+message Instance
+{
+    uint32 instance_id = 1;
+    repeated uint32 mesh_ids = 2;
+}
+
+message InstanceMap
+{
+    map<uint32, Instance> instances = 1;
+    map<uint32, uint32> mesh_to_instance = 2;
+}
+
+message MergeChildren
+{
+    string semantic_label = 1;
+    repeated string exclude_labels = 2;
+}
+
+message InstanceMerge
+{
+    repeated MeshSemanticMergeInfo mesh_merges = 1;
+    repeated RelationshipMergeInfo relationship_merges = 2;
+}
+
+// Provide a list of semantic ids that should be instanced. All other excluded
+message InstancedSemanticFilter
+{
+    repeated uint32 instanced_semantic_ids = 1;
+}
+
+message GenerateInstanceMapConfig
+{
+    string merge_instance_map_filepath = 1 [(type)=eConfiguration];;
+
+    string input_semantic_map = 2 [(type)=eMeshIDMap, (stream)=eInput];
+    string output_path = 3 [(type)=eMeshIDMap, (stream)=eOutput];
+}
+
+message FilterInstanceMapConfig
+{
+    string input_instance_map = 1 [(type)=eMeshIDMap, (stream)=eInput];
+    // TODO: rename to semantic_filter_config_filepath
+    string semantic_filter_config = 2 [(type)=eConfiguration];
+    string input_semantic_map = 3 [(type)=eMeshIDMap, (stream)=eInput];
+    string output_path = 4 [(type)=eMeshIDMap, (stream)=eOutput];
+}
+
+message GenerateInstanceMaskConfig
+{
+    string input_instance_map = 1 [(type)=eMeshIDMap, (stream)=eInput];
+    string output_path = 2 [(type)=eImage, (stream)=eOutput];
+}

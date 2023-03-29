@@ -1,0 +1,40 @@
+
+table SignalModuleConfigFB
+{
+	signaled_intersection: uint64;
+	light_flashing_period: double;
+	light_illuminated_percentage: double;
+}
+
+struct BulbValues
+{
+	red:    double;
+	yellow: double;
+	green:  double;
+}
+enum LogicalStateFB : byte { Inactive = 0, Red, RedFlashing, Yellow, YellowFlashing, Green, GreenFlashing}
+
+table PhaseBulbValuesFB
+{
+	phase: uint64 (key); 
+	value: BulbValues;
+	logical_state: LogicalStateFB = Inactive;
+}
+
+table SignalModuleOutputFB
+{
+	elapsed_time: double;
+    phase_bulb_values: [PhaseBulbValuesFB];
+}
+
+table TrafficLightObjectFB
+{
+    signaled_intersection_id: uint64 (key);
+    phase_id: uint64;
+    position: float3_t;
+}
+
+table TrafficLightObjectConfigFB
+{
+    traffic_light_objects: [TrafficLightObjectFB];
+}

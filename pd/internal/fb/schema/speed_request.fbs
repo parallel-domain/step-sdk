@@ -1,0 +1,27 @@
+
+enum SpeedRequestTypeFB : byte
+{
+    INVALID,
+    GEAR_CHANGE,
+    OBJECT,
+    TRAFFIC_LIGHT,
+    STOP_SIGN,
+    PARKING_FINISHED,
+    CURVATURE,
+    DEAD_END,
+    SEGMENT_END,
+}
+
+table SpeedRequestFB
+{
+    distance_m : float;
+    speed_mps : float;
+    
+    accel_min_mps2 : float;
+    accel_max_mps2 : float;
+
+    jerk_min_mps3 : float;
+    jerk_max_mps3 : float;
+
+    type : SpeedRequestTypeFB = INVALID;
+}

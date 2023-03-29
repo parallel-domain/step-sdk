@@ -1,0 +1,89 @@
+include "types.fbs";
+include "transform.fbs";
+include "simplevehiclestate.fbs";
+include "planning.fbs";
+include "control.fbs";
+include "nav_route_output.fbs";
+include "simple_module.fbs";
+include "signal_module.fbs";
+include "sensor_module.fbs";
+include "model.fbs";
+include "linear_mover.fbs";
+include "signed_intersection_module.fbs";
+include "vehicle_controller_output.fbs";
+include "vehicle_planner_output.fbs";
+include "roles.fbs";
+include "trajectory_output.fbs";
+include "spline.fbs";
+include "vehicle_traffic_control_output.fbs";
+include "events.fbs";
+
+union StateObject
+{
+    TransformStateFB,
+    SimpleVehicleStateFB,
+    SimplePlanningInputFB,
+    PlanningInputFB,
+    MotionPlanFB,
+    ControlConfigFB,
+    ControlStateFB,
+    SimpleModuleConfigFB,
+    SimpleModuleOutputFB,
+    SignalModuleConfigFB,
+    SignalModuleOutputFB,
+    PhaseBulbValuesFB,
+    VehicleModelConfigFB,
+    VehiclePhysicsConfigFB,
+    SensorRigConfigFB,
+    TrafficLightObjectConfigFB,
+    ModelConfigFB,
+    LinearMoverConfigFB,
+    PathDeviationFB,
+    SignedIntersectionModuleOutputFB,
+    SignedIntersectionModuleConfigFB,
+    SimpleControlStateFB,
+    VehicleEventsFB,
+    PedestrianStateFB,
+    AssetPlacementFB,
+    NavRouteOutputFB,
+    VehicleControllerOutputFB,
+    VehiclePlannerOutputFB,
+    RoleOutputFB,
+    TrajectoryOutputFB,
+    ParkingPlannerOutputFB,
+    SplineInfoFB,
+    VehicleTrafficControlOutputFB,
+	AgentEventsFB,
+}
+
+table StateObjectFB
+{
+    id    : uint64 (key);
+    state : StateObject;
+}
+
+table AgentStateFB
+{
+    id    : uint64 (key);
+    state : [StateObjectFB];
+    modules : [uint64];
+}
+
+table SimStateFB
+{
+    world_info : WorldInfoFB;
+    agents     : [AgentStateFB];
+
+    // Simulation time in seconds plus the epoch time at the start of simulation.
+    // Step mode: Successive states received by server must contain strictly increasing timestamps.
+    //            Successive states with equal or decreasing timestamps will result in undefined behaviour.
+    //            This restriction does not apply across level reloads.
+    time       : double;
+    capture    : bool = true;
+
+    // For internal use:
+    // Simulation time since the beginning of simulation (0.0 is the start of sim)
+    current_time : double;
+}
+
+root_type SimStateFB;

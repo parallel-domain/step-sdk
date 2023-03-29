@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "options.proto";
+
+
+message GenerateMotionVectors2DConfig
+{
+    string output_path = 1           [(type)=eImage, (stream)=eOutput];
+    optional bool backwards = 2;
+}

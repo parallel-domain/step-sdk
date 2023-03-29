@@ -1,0 +1,139 @@
+syntax = "proto3";
+
+import "pd_environments.proto";
+import "pd_spawn.proto";
+
+package keystone;
+
+message VelocityKey
+{
+    float t = 1;
+    repeated float velocity = 2;
+}
+
+message LinearMover
+{
+    uint64 agent_id = 1;
+
+    string model = 2;
+
+    bool orient_to_velocity = 3;
+    repeated float origin = 4;
+    repeated float rotation = 5;
+    repeated VelocityKey velocity_keys = 6;
+}
+
+message Vehicle
+{
+    uint64 agent_id = 1;
+    bool sensors = 2;
+
+    string color = 3;
+    string vehicle_actor = 4;
+    string vehicle_type = 5;
+
+    repeated float position = 6;
+    float velocity = 7;
+
+    repeated uint64 lane_path = 8;
+
+    float target_velocity = 9;
+    float target_separation = 10;
+    float aggression = 11;
+
+    float lane_drift_amp = 12;
+    float lane_drift_scale = 13;
+    float lane_offset = 14;
+
+    float lane_shift_amount = 15;
+    float lane_shift_speed = 16;
+    float lane_shift_time = 17;
+
+    float brake_until_time = 18;
+    float constant_accelerate = 19;
+
+    bool enable_merge_detection = 20;
+    bool ignore_obstacles = 21;
+	bool ignore_speed_limit = 22;
+}
+
+message Sensor
+{
+    uint64 agent_id = 1;
+    repeated float origin = 2;
+    repeated float rotation = 3;
+}
+
+message ScenarioLocation
+{
+    string location = 1;
+    string location_guid = 2;
+    int32 num_scenarios = 3;
+    int32 num_retries = 5;
+    GeneratorConfig generator_config = 4;
+}
+
+message ScenarioGenConfig
+{
+    int32 num_frames = 1;
+    int32 sim_settle_frames = 2;
+    int32 start_skip_frames = 3;
+    int32 end_skip_frames = 4;
+    int32 sim_capture_rate = 5;
+    float sim_update_time = 6;
+    int32 scenario_seed = 7;
+    int32 output_offset = 8;
+    bool merge_batches = 9;
+    int32 batch_size = 10;
+    EnvironmentDefinition environment = 11;
+    SpawnConfig spawn_config = 12;
+    float sim_terminate_on_collision_within_radius_m = 13;
+    float sim_terminate_on_pedestrian_collision_within_radius_m = 14;
+    bool check_offroad_vehicles = 15;
+    bool sim_terminate_on_drone_flight_path_end = 16;
+}
+
+message AgentTag
+{
+	uint64 agent_id = 1;
+	repeated string tags = 2;
+}
+
+message ScenarioDefinition
+{
+    string name = 1;
+
+    int32 num_frames = 2;
+    int32 skip_frames = 3;
+    float current_time = 4;
+    float sim_update_time = 5;
+    int32 output_frame_skip = 6;
+
+    string world = 7;
+    string lighting = 8;
+
+    float fog_intensity = 9;
+    float rain_intensity = 10;
+    float wetness = 11;
+    float street_lights = 12;
+    bool headlights = 13;
+
+    repeated LinearMover linear_movers = 14;
+    repeated Vehicle vehicles = 15;
+    repeated Sensor sensors = 18;
+
+    enum PerformanceFeature
+    {
+        HighFidelityMode = 0;
+        PerformanceMode = 1;
+    }
+    PerformanceFeature performance_feature = 16;
+
+    int32 anti_aliasing = 17;
+	
+    //Json blob used to transfer values from the spawn config, or other 'setup' into scenario during runtime.
+    string config_blob = 19;
+	
+	// Structure used to pass information to the encoder from the scenario generation.
+	repeated AgentTag agent_tags = 20;
+}

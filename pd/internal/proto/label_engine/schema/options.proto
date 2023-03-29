@@ -1,0 +1,42 @@
+syntax="proto3";
+
+package pd.data;
+
+import "google/protobuf/descriptor.proto";
+
+enum DataType
+{
+    eNone = 0;
+    eImage = 1;
+    eMesh = 2;
+    eMeshMap = 3;
+    eNull = 4;
+    eTransformMap = 5;
+    eSensor = 6;
+    eMeshIDMap = 7;
+    ePointCloud = 8;
+    eAnnotation = 9;
+    eUMD = 10;
+    eSimState = 11;
+    eCameraDistortionCalibration = 12;
+    eConfiguration = 13;
+    eIGMetadata = 14;
+}
+
+enum StreamType
+{
+    eInput = 0;
+    eOutput = 1;
+}
+
+enum StreamDimensions
+{
+  eSingle = 0;
+  eTime = 1;
+  eSensorAndTime = 2;
+}
+
+extend google.protobuf.FieldOptions {
+  DataType type = 50000;
+  StreamType stream = 50001;
+}

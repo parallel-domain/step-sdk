@@ -1,0 +1,171 @@
+include "types.fbs";
+
+enum TurnType : byte
+{
+	UNDEFINED = 0,
+	LEFT = 1,
+	RIGHT = 2,
+	STRAIGHT = 3
+}
+
+table PIDConfigFB
+{
+	p: float;
+	i: float;
+	d: float;
+	s: float;
+	integral_blend: float;
+
+	output_min: float;
+	output_max: float;
+
+	clamp_i: bool = false;
+	i_min: float;
+	i_max: float;
+}
+
+table AgentIntersectionConfigFB
+{
+	// Id of the intersection this configuration is for
+	intersection_id: uint64 = 0;
+
+	// Speed below which to consider the agent stopped.
+	stop_speed_threshold_mps: float = 0.01;
+
+	// Distance past the stop line to stop. Negative means stop before the stop line.
+	stop_offset_m: float = 0.0;
+
+	// Should the agent proceed before it is the agent's turn.
+	proceed_out_of_turn: bool = false;
+}
+
+table ControlConfigFB
+{
+	// PID Configs
+	steering: PIDConfigFB;
+	accelerate: PIDConfigFB;
+	stop: PIDConfigFB;
+
+    // Other data
+    steering_look_ahead: float;
+    accelerate_look_ahead: float;
+    target_speed: float;
+    max_sinuosity: float;
+    sinuosity_scale: float;
+
+	accelerate_max: float (deprecated);
+	brake_max: float (deprecated);
+
+	// Maximum road wheel angle (i.e. if there's a steering rack in the vehicle model with ratio not equal to 1, this field is for the tires, not the steering wheel).
+    steering_max: float;
+
+    target_separation: float;   	// Target separation time to leading agent
+    aggression: float;          	// Aggression to use when approaching leading agent
+
+    brake_until_time: float;    	// Apply brakes until this time, then proceed as normal
+    
+    constant_accelerate: float;		// If constant_accelerate != 0.0f, vehicle targets a constant acceleration value
+
+    curvature_separation_normal: float (deprecated);
+    path_separation_min_normal: float (deprecated);
+    path_separation_scale_normal: float (deprecated);
+    speed_separation_scale_normal: float (deprecated);
+    steering_damping_normal: float (deprecated);
+    heading_error_scale_normal: float (deprecated);
+
+    curvature_separation_slow: float (deprecated);
+    path_separation_min_slow: float (deprecated);
+    path_separation_scale_slow: float (deprecated);
+    speed_separation_scale_slow: float (deprecated);
+    steering_damping_slow: float (deprecated);
+    heading_error_scale_slow: float (deprecated);
+
+	signed_intersection_configs: [AgentIntersectionConfigFB];
+
+	// Brake until agent ego's time to this agent along the ego path is less than this value
+	brake_until_ego_time_to_agent_s: float;
+
+	initial_steering_angle_rad : float = 0;
+}
+
+table PIDRingBufferFB
+{
+	buffer_size: uint32;
+	values: [float];
+}
+
+table PIDControllerFB
+{
+	error: float;
+	integral: float;
+	delta: float;
+	output: float;
+
+	error_buffer: PIDRingBufferFB;
+	integral_buffer: PIDRingBufferFB;
+	delta_buffer: PIDRingBufferFB;
+	output_buffer: PIDRingBufferFB;
+}
+
+// The name Limits and min/max cause conflicts when
+// building the dataset project, so the naming below
+// is chosen to be unique.
+table KinematicLimits
+{
+	limit_min : float;
+	limit_max : float;
+}
+
+table ControlStateFB
+{
+	vehicle_vector : float3_t;
+	target_vector : float3_t;
+	velocity : float3_t;
+	dot_prod : float;
+	perp_dot : float;
+	error : float;
+
+	steering: float;
+	accelerate: float;
+	brake: float;
+
+	steering_controller: PIDControllerFB;
+	accelerate_controller: PIDControllerFB;
+	stop_controller: PIDControllerFB;
+
+	obstacle_distance: float;
+
+	indicator_state: IndicatorState;
+        
+    // 0 is neutral, -1 is reverse
+    gear : Gear = DRIVE;
+
+	target_speed : float;
+
+	target_accel_valid : bool = false;
+	target_accel_mps2 : float;
+
+	filtered_accel_valid : bool = false;
+	filtered_accel_mps2 : float;
+
+	accel_limits_mps2 : KinematicLimits;
+	jerk_limits_mps3 : KinematicLimits;
+
+	// Set to true if brake has been released for brake_until_ego_time_to_agent_s
+	brake_until_ego_time_to_agent_met: bool = false;
+}
+
+// control state of purely base control actions
+// this can be embedded in other control states we create
+table SimpleControlStateFB
+{
+	steering: float;
+	accelerate: float;
+	brake: float;
+	clutch: float;
+
+	handbrake: float;
+
+	gear : short;
+}
+

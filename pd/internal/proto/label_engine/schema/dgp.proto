@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "options.proto";
+
+
+message WriteDGPDatasetConfig
+{
+    string semantic_label_filepath = 1 [(type)=eConfiguration];
+    string dgp_output_path = 2 [(stream)=eOutput];
+    string input_semantic_map = 3 [(type)=eMeshIDMap, (stream)=eInput];
+    string input_semantic_mask = 4 [(type)=eImage, (stream)=eInput];
+    string input_bounding_box_2d = 5 [(type)=eAnnotation, (stream)=eInput];
+    string input_bounding_box_3d = 6 [(type)=eAnnotation, (stream)=eInput];
+    string input_instance_mask = 7 [(type)=eImage, (stream)=eInput];
+    string input_instance_state = 8 [(type)=eAnnotation, (stream)=eInput];
+    string input_instance_point_2d = 9 [(type)=eAnnotation, (stream)=eInput];
+    string input_instance_point_3d = 10 [(type)=eAnnotation, (stream)=eInput];
+    string input_instance_map = 11  [(type)=eMeshIDMap, (stream)=eInput];
+    string input_motion_vector_2d = 12[(type)=eAnnotation, (stream)=eInput];
+};

@@ -1,0 +1,32 @@
+include "types.fbs";
+
+struct VelocityKeyFB
+{
+    t : float;
+    velocity : float3_t;
+}
+
+table LinearMoverConfigFB
+{
+    origin   : float3_t;
+    rotation : float3x3_t;
+    velocity_keys : [VelocityKeyFB];
+    orient_to_velocity : bool = true;
+    
+    bbox_min : float3_t;
+    bbox_max : float3_t;
+	
+	stop_at_path_end : bool = true;
+}
+
+table PedestrianStateFB
+{
+    goal : float4x4_t;
+    maxSpeed : float;
+    pathDist : float;
+    pathId : uint64;
+    behavior_flags : uint64;
+    state_timer : float;
+    animation_data : string;
+	surface_flags : uint64;
+}

@@ -1,0 +1,1813 @@
+syntax = "proto2";
+
+import "pd_types.proto";
+import "pd_distributions.proto";
+
+package keystone;
+
+/*
+Description:
+    Wrapper for all scenario parameters. Applied once per location specified in scenario generation. 
+*/
+message UnifiedGeneratorParameters
+{
+    /*
+    Description:
+        Determines which atomic generators are used for the scenario.
+    
+    Range:
+        Parameters within AtomicGeneratorParameters, can specify multiple
+    
+    Required:
+        Yes, if none, nothing will be generated. 
+    */
+    repeated AtomicGeneratorParameters atomics = 1;
+
+    /*
+    Description: 
+        Combines multiple scenes into a single scene for rendering efficiency
+
+    Range:
+        Bool 
+
+    Required: 
+        No, will use default value.
+    */
+    optional bool use_merge_batches = 2 [default = false];
+
+    
+    /*
+    Description: 
+        Contains parameters that apply to all atomic generators
+
+    Range: 
+        DefaultAtomicGeneratorParamters message
+
+    Required:
+        No, if not specified it will use atomic-specific defaults
+    */
+    optional DefaultAtomicGeneratorParameters default_params = 3;
+
+    /*
+    Description: 
+        Contains parameters that modify the map
+
+    Range:
+        EnvironmentParameters message
+
+    Required: 
+        No, if not specified, will use what comes by default with each map
+    */
+    optional EnvironmentParameters environment_params = 4;
+}
+
+/*
+Description: Parent type for each atomic.
+*/
+message AtomicGeneratorParameters
+{
+    oneof parameters {
+        EgoAgentGeneratorParameters ego_agent = 1;
+        VehicleGeneratorParameters vehicle = 2;
+        TrafficGeneratorParameters traffic = 3;
+        ParkedVehicleGeneratorParameters parked_vehicles = 4;
+        StaticAgentGeneratorParameters static_agent = 5;
+        DebrisGeneratorParameters debris = 6;
+        PedestrianGeneratorParameters pedestrian = 7;
+        RandomPedestrianGeneratorParameters random_pedestrian = 8;
+        DroneGeneratorParameters drone = 9;
+    }
+}
+
+/*
+Description: Contains parameters applied to all atomics within UnifiedGeneratorParameters
+*/
+message DefaultAtomicGeneratorParameters
+{
+    /*
+    Description:
+        Default vehicle distribution. If the vehicle distribution is not set for an atomic, it will fall back to this distribution.
+
+    Range:
+        map
+
+    Required: 
+        No. If not specified, will fall back to atomic-specific default
+    */
+    
+    map<string, VehicleCategoryWeight> vehicle_distribution = 1;
+}
+
+/*
+Description: Contains parameters that modify map
+*/
+message EnvironmentParameters
+{
+    /*
+    Description: 
+        Specifies the spawn probability of spawning in an available spot for signs. (i.e. controls density)
+        Only affects maps that begin with "SIGNAGE_". 
+
+    Range: 
+        0.0 to 1.0
+
+    Required: 
+        No, will use default 0 values
+    */
+    optional CenterSpreadConfig sign_spawn_probability = 1;
+
+    /*
+    Description:
+        Probability of spawning crosswalk signs in crosswalk signs slots
+        Crosswalk signs are placed in or near crosswalks on the road for extra indication of the crosswalk 
+        to vehicles.
+        Only affects maps that begin with "SIGNAGE_". 
+
+    Range: 
+        0.0 to 1.0
+        
+    Required: 
+        No, will use default 0 values
+    */
+    optional CenterSpreadConfig crosswalk_sign_spawn_probability = 2;
+    
+    /*
+    Description:
+        Specifies road markings (e.g. parallel/perpendicular parking space lines, parking space texture, etc.)
+
+    Range: 
+        map
+
+    Required: 
+        No, uses default values for the RoadMarkingData types specified below: 
+        "parking_spot_config"     {marker_type = MI_pavement_01, rgb = {1.0f, 1.0f, 1.0f}, wear = 0.0f}
+        "parking_lot_marker"      {marker_type = "DOUBLE_SQUARE", rgb = {1.0f, 1.0f, 1.0f}, wear = 0.0f}
+        "parallel_parking_marker" {rgb = {1.0f, 1.0f, 1.0f}, wear = 0.0f}
+    */
+    map<string, RoadMarkingData> marker_data_map = 3;
+    
+    /*
+    Description: 
+        Specifies what country signs are from. 
+        Only affects ISA maps.
+            "Belgium"
+            "Bulgaria"
+            "Czechia"
+            "Denmark"
+            "Germany"
+            "Estonia"
+            "Ireland"
+            "Greece"
+            "Spain"
+            "France"
+            "Croatia"
+            "Italy"
+            "Cyprus"
+            "Latvia"
+            "Lithuania"
+            "Luxembourg"
+            "Hungary"
+            "Malta"
+            "Netherlands"
+            "Austria"
+            "Poland"
+            "Portugal"
+            "Romania"
+            "Slovenia"
+            "Slovakia"
+            "Finland"
+            "Sweden"
+            "Norway"
+            "Switzerland"
+
+    Range: 
+        EnumDistribution
+
+    Required:
+        No
+    */
+    optional EnumDistribution region = 4;
+}
+
+/*
+Description: This contains parameters that control appearance of road markings
+*/
+message RoadMarkingData
+{
+    /*
+    Description: 
+        Not implemented yet. 
+        Specifies whether to use RGB values from asset registry. 
+
+    Range: 
+        Bool
+
+    Required:
+        No, will use default value
+    */
+    optional bool use_preset = 1 [default = false];
+
+    /*
+    Description: 
+        Specifies RGB color to override with
+
+    Range: 
+        3 dimensional array with values from 0-1, ie [0.2, 0.2, 0.2]
+
+    Required:
+        No, will use default values specified in marker_data_map
+    */
+    repeated FloatArray override_colors = 2;
+
+    /*
+    Description: 
+        Not implemented yet.
+        Colors specified in asset registry to use for road markings used if use_preset is set to True. 
+
+    Range: 
+        RGB values existing in asset registry
+
+    Required:
+        No
+    */
+    repeated string preset_colors = 3;
+
+    /*
+    Description: 
+        Specifies a marker name. 
+        The available options are specific to which key it is under in marker_data_map. 
+
+    Range: 
+        Parking space markers include {
+            "Single",
+            "Dashed",
+            "Double Open",      (parallel lines)
+            "Double Squared",   (parallel lines closed at the end with a line, resembling long rectangles)
+            "Double Round",     (parallel lines closed at the end with a semi-circle)
+            "T" 
+        }
+        Parking surface markers include {
+            "MI_pavement_01"
+            "MI_ParkingTiles_BrickBasket_01"
+            "MI_ParkingTiles_BrickHerring_01"
+            "MI_ParkingTiles_BrickHex_01"
+            "MI_ParkingTiles_BrickOrnate_01"
+            "MI_ParkingTiles_CobbleStone_01"
+            "MI_ParkingTiles_CobbleStone_02"
+            "MI_ParkingTiles_ConcreteBrick_01"
+            "MI_ParkingTiles_ConcreteBrick_02"
+            "MI_ParkingTiles_ConcreteBrick_03"
+            "MI_ParkingTiles_ConcretePavers_01"
+            "MI_ParkingTiles_StoneFlag_01"
+        }
+
+    Required:
+        No, will use default values specified in marker_data_map
+    */
+    repeated string marker_types = 4;
+
+    /*
+    Description: 
+        Determines how "worn down" the markings are. 1 is most worn down, 0 is zero wear
+
+    Range: 
+        0.0 to 1.0
+
+    Required:
+        No, will use default 0 values
+    */
+    optional CenterSpreadConfig wear = 5;
+}
+
+/*
+Description: Used to describe RGB value in RoadMarkingData
+*/
+message FloatArray
+{
+    repeated float data = 1;
+}
+
+/*
+Description: Places an ego sensor in the world
+Constraints: Required for every scenario. Only works with VEHICLE agent_type, other agent types not implemented yet
+*/
+message EgoAgentGeneratorParameters
+{
+    /*
+    Description: 
+        Determines what the ego sensor is attached to
+
+    Range: 
+        AgentType (only works with VEHICLE agent_type)
+
+    Required: 
+        No, will default to VEHICLE
+    */
+    optional AgentType agent_type = 1 [default = VEHICLE];
+    
+    /*
+    Description: 
+        If AgentType is VEHICLE, determines what vehicle type the ego sensor attaches to
+
+    Range: 
+        Must be a vehicle model that is in our asset registry
+
+    Required: 
+        No, will default to suv_medium_02
+    */
+    optional string ego_model = 2 [default = "suv_medium_02"];
+
+    /*
+    Description: 
+        Determines where the ego vehicle will spawn
+
+    Range: 
+        PositionRequest
+
+    Required: 
+        Yes
+    */
+    optional PositionRequest position_request = 3;
+
+    /*
+    Description: 
+        Used if agent_type is VEHICLE
+
+    Range: 
+        VehicleSpawnData 
+
+    Required:
+        No, will use defaults specified in VehicleSpawnData
+    */
+    optional VehicleSpawnData vehicle_spawn_data = 4;
+
+    /*
+    Description: 
+        Used if agent_type is PEDESTRIAN
+
+    Range: 
+        PedestrianSpawnData 
+
+    Required: 
+        No, will use defaults specified in PedestrianSpawnData
+    */
+    optional PedestrianSpawnData pedestrian_spawn_data = 5;
+
+    /*
+    Description: 
+        Used if agent_type is DRONE
+
+    Range:
+        DroneSpawnData 
+
+    Required: 
+        No, will use defaults specified in DroneSpawnData
+    */
+    optional DroneSpawnData drone_spawn_data = 6;
+}
+
+enum AgentType
+{
+    UNSPECIFIED = 0;
+    VEHICLE = 1;
+    PARKED_VEHICLE = 2;
+    TRAILER_VEHICLE = 3;
+    PEDESTRIAN = 4;
+    STATIC_OBJECT = 5;
+    DRONE = 6;
+    ANIMAL = 7;
+}
+
+/*
+Description: Places a single vehicle into the world
+Constraints: Requires ego atomic
+*/
+message VehicleGeneratorParameters
+{
+    /*
+    Description: 
+        Vehicle asset name we want to spawn
+
+    Range: 
+        Vehicle model within our asset registry 
+
+    Required:
+        Yes
+    */
+    optional string model = 1;
+
+    /*
+    Description: 
+        Determines where the vehicle will spawn
+
+    Range: 
+        PositionRequest
+
+    Required: 
+        Yes
+    */
+    optional PositionRequest position_request = 2;
+
+    /*
+    Description: 
+        Controls the single vehicle's spawning characteristics and movement behavior
+
+    Range: 
+        VehicleSpawnData 
+
+    Required: 
+        No, will use defaults specified in VehicleSpawnData
+    */
+    optional VehicleSpawnData vehicle_spawn_data = 3;
+}
+
+/*
+Description: Places multiple vehicles into the world
+Constraints: Requires ego atomic
+*/
+message TrafficGeneratorParameters
+{
+    /*
+    Description: 
+        Determines the spawn radius of vehicles (see LocationRelativePositionRequest)
+
+    Range: 
+        Only works with LocationRelativePositionRequest
+
+    Required: 
+        Yes
+    */
+    optional PositionRequest position_request = 1;
+
+    /*
+    Description: 
+        Within spawn radius, probability that a vehicle will spawn in an available spot. (i.e. controls density)
+
+    Range: 
+        0.0 to 1.0, with 1.0 being the most dense. Recommended to use 0.8 for high density.
+
+    Required: 
+        No, will use default value if not specified
+    */
+    optional float spawn_probability = 2 [default = 0.8];
+
+    /*
+    Description: 
+        This contains parameters that control vehicle/vehicle related behavior
+
+    Range:
+        VehicleSpawnData 
+
+    Required:
+        No, will use defaults specified in VehicleSpawnData
+    */
+    optional VehicleSpawnData vehicle_spawn_data = 3;
+    
+    /*
+    Description: 
+        Likelihood of vehicles spawning
+
+    Range: 
+        map
+
+    Necessary: 
+        No. If not specified, will default to:
+        MIDSIZE	    0.181
+        COMPACT	    0.177
+        BUS	        0.019
+        TRUCK	    0.038
+        SUV	        0.197
+        VAN     	0.066
+        BICYCLE	    0.061
+        MOTORCYCLE	0.068
+        CARAVAN/RV	0.009
+        FULLSIZE	0.184
+    */
+    map<string, VehicleCategoryWeight> vehicle_distribution = 4;
+
+    /*
+    Description: 
+        Recommended to leave as default. Map of vehicle type to their start separation time distributions. 
+        Uses initial speed * separation time to determine distance between vehicles.
+
+    Range: 
+        map
+
+    Required: 
+        No, if not specified will use defaults, see map below:
+        {"bicycle", {0.7f, 1.7f}}, 
+        {"heavy", {2.5f, 3.5f}},
+        {"heavy_nondriven", {2.5f, 3.5f}},
+        {"light", {0.7f, 1.7f}},
+        {"light_nondriven", {0.7f, 1.7f}},
+        {"medium", {1.5f, 2.5f}},
+        {"medium_nondriven", {1.5f, 2.5f}},
+        {"motorcycle", {0.7f, 1.7f}}
+    */
+    map<string, ContinousUniformDistribution> start_separation_time_map = 5;
+
+    /*
+    Description: 
+        Map of vehicle type to their target separation time distributions
+
+    Range:
+        map
+
+    Required:
+        No, if not specified it will use the Default Separation Time Distribution Map specified above
+    */
+    map<string, ContinousUniformDistribution> target_separation_time_map = 6;
+}
+
+/*
+Description: Places a parked vehicle into the world
+Constraints: Requires ego atomic
+*/
+message ParkedVehicleGeneratorParameters
+{
+    /*
+    Description:
+        Determines the spawn radius of parked vehicles (see LocationRelativePositionRequest)
+
+    Range: 
+        Only works with LocationRelativePositionRequest
+
+    Required:
+        Yes
+    */
+    optional PositionRequest position_request = 1;
+
+    /*
+    Description: 
+        For every available parking space within the spawn radius, the generator will use this probability to determine if a 
+        parked vehicle should spawn there, (i.e. controls density)
+
+    Range: 
+        PositionRequest
+
+    Required: 
+        No, if not specified will use default probability {center=0.5, spread=0}
+    */
+    optional CenterSpreadConfig spawn_probability = 2;
+
+    /*
+    Description: 
+        Likelihood of vehicle types spawning
+
+    Range: 
+        map
+
+    Required: 
+        No, if not specified, will use these defaults:
+        MIDSIZE	    0.181
+        COMPACT	    0.177
+        BUS	        0.019
+        TRUCK	    0.038
+        SUV	        0.197
+        VAN     	0.066
+        BICYCLE	    0.061
+        MOTORCYCLE	0.068
+        CARAVAN/RV	0.009
+        FULLSIZE	0.184
+    */
+    map<string, VehicleCategoryWeight> vehicle_distribution = 3;
+}
+
+/*
+Description: Places a static agent into the world
+Constraints: Requires ego atomic
+*/
+message StaticAgentGeneratorParameters
+{
+    /*
+    Description:
+        Determines where the static agent will spawn
+
+    Range:
+        PositionRequest
+
+    Required: 
+        Yes
+    */
+    optional PositionRequest position_request = 1;
+    
+    /*
+    Description: 
+        The asset name of the static agent we want to place
+
+    Range:
+        An asset in our asset registry 
+
+    Required:
+        Yes
+    */
+    optional string model = 2;
+}
+
+/*
+Description: Places debris into the world
+Constraints: Requires ego atomic
+*/
+message DebrisGeneratorParameters
+{
+    /*
+    Description: 
+        For every possible spawn location, use the probability to determine if object actually spawns. (i.e controls density)
+
+    Range:
+        0.0 to 1.0, where 1.0 is the most dense
+
+    Required: 
+        No, will use default value if not specified 
+    */
+    optional float spawn_probability = 1 [default = 0.01];
+
+    /*
+    Description: 
+        Determines where in the lane we want to spawn on 
+            
+    Range: 
+        -1.0 to 1.0.
+        Where 1.0 is spawning toward center of lane,
+             -1.0 is spawning towards edges of lane,
+              0.0 is evenly spaced 
+
+    Required: 
+        No, uses 0.0 if not specified 
+    */
+    optional float debris_center_bias = 2;
+
+    /*
+    Description:
+        Minimum spawning distance from ego
+
+    Range: 
+        Greater than or equal to 0
+
+    Required: 
+        No, uses 0.0 if not specified
+    */
+    optional float min_debris_distance = 3;
+
+    /*
+    Description:
+        Maximum spawning distance
+
+    Range:
+        Must be greater than min_debris_distance
+
+    Required: 
+        No, uses default value if not specified
+    */
+    optional float max_debris_distance = 4 [default = 50.0];
+
+    /*
+    Description:
+        Comma separated list of asset names to spawn with this generator. 
+        Example: "trash_bottle_tall_01,trash_box_amazon_01"
+        Each asset has an equal chance of being spawned.
+
+    Range:
+        Each entry in the comma separated list must be a valid asset name
+
+    Required:
+        No, uses default value if not specified
+    */
+    optional string debris_asset_tag = 5 [default = "trash_bottle_tall_01"];
+
+    /*
+    Description: 
+        Removes any assets present in debris_asset_tag
+
+    Range: 
+        Existing asset name in our asset list generated from debris_asset_tag
+
+    Required: 
+        No, if not specified we do not remove anything
+    */
+    optional string debris_asset_remove_tag = 6;
+
+    /*
+    Description: 
+        Determines the spawn radius of debris (see LocationRelativePositionRequest)
+
+    Range: 
+        Only works with LocationRelativePositionRequest
+
+    Required:
+        Yes
+    */
+    optional PositionRequest position_request = 7;
+    
+    /*
+    Description:
+        Specifies the likelihood of each asset when spawning. 
+
+    Range: 
+        Asset names must exist in our asset registry
+
+    Required:
+        No, if not specified we use the list generated from debris_asset_tag
+
+    Extra notes:
+        If specified, debris_asset_tag and debris_asset_remove_tag are ignored
+    */
+    map<string, float> asset_distribution = 8;
+}
+
+/*
+Description: Places a single pedestrian into the world
+Constraints: Requires ego atomic
+*/
+message PedestrianGeneratorParameters
+{
+    /*
+    Description:
+        Determines where the pedestrian will spawn
+
+    Range: 
+        Any PositionRequest except PathTimeRelativePositionRequest
+
+    Required: 
+        Yes
+    */
+    optional PositionRequest position_request = 1;
+
+    /*
+    Description: 
+        This contains parameters that control pedestrian spawning and movement behavior
+
+    Range: 
+        PedestrianSpawnData 
+
+    Required:
+        No, will use defaults specified in PedestrianSpawnData
+    */
+    optional PedestrianSpawnData ped_spawn_data = 2;
+}
+
+/*
+Description: Places multiple pedestrians (i.e. a crowd) into the world
+Constraints: Requires ego atomic
+*/
+message RandomPedestrianGeneratorParameters
+{
+    /*
+    Description: 
+        Speed of each pedestrian is set randomly within this range
+
+    Range:
+        Min > 0, Max > Min
+
+    Required: 
+        No, if not specified then will use range {0.5, 1.5}
+    */
+    optional MinMaxConfigFloat speed_range = 1;
+
+    /*
+    Description: 
+        Determines the center of where the pedestrians will spawn. Radius controlled by LocationRelativePositionRequest
+    
+    Range: 
+        LocationRelativePositionRequest
+
+    Required: 
+        Yes
+    */
+    optional PositionRequest position_request = 2;
+
+    /*
+    Description:
+        Number of pedestrians to generate is selected randomly within this range.
+        If min_radius_between_pedestrians is high and the determined number of pedestrians can't be placed, scenario will error out.
+    
+    Range:
+        Min > 0, Max > Min
+
+    Required:
+        Yes
+    */
+    optional MinMaxConfigInt num_of_pedestrians_range = 3;
+
+    /*
+    Description:
+        Specifies how much space should be between individual pedestrians.
+        The higher the value, the more spaced out the pedestrians will be from each other.
+
+    Range:
+        Greater than 0
+
+    Required:
+        No, if not specified will use default value
+    */
+    optional float min_radius_between_pedestrians = 4 [default = 2.4];
+
+    /*
+    Description:
+        This contains parameters that control pedestrian/pedestrian related behavior
+
+    Range:
+        PedestrianSpawnData 
+    
+    Required: 
+        No, will use defaults specified in PedestrianSpawnData
+    */
+    optional PedestrianSpawnData ped_spawn_data = 5;
+}
+
+/*
+Description: Not implemented
+*/
+message DroneGeneratorParameters
+{
+    /*
+    Description:
+        Determines where the drone will spawn
+        Note: Will use position request result as the ground end of the flight path
+
+    Range:
+        PositionRequest
+
+    Required:
+        Yes
+
+    */
+    optional PositionRequest position_request = 1;
+
+    /*
+    Description:
+        This contains parameters that control drone/drone related behavior
+
+    Range:
+        DroneSpawnData 
+
+    Required:
+        No, will use defaults specified in DroneSpawnData
+    */
+    optional DroneSpawnData drone_spawn_data = 2;
+}
+
+
+/*****POSITION REQUESTS*****/
+
+/*
+Description: Determines pose of agents, or spawn center for multiple agents
+*/
+message PositionRequest
+{
+    /*
+    Description:
+        Only applied after initial pose is determined by position_type.
+        Determines how much farther ahead along a lane to move the returned pose
+
+    Range:
+        CenterSpreadConfig
+        
+    Required:
+        No, will default to 0
+       
+    */
+    optional CenterSpreadConfig longitudinal_offset = 1;
+    
+    /*
+    Description:
+        Only applied after initial pose is determined by position_type.
+        Determines how much farther to the left (negative for right) we want to move the returned pose
+
+    Range:  
+        CenterSpreadConfig
+    
+    Required: 
+        No, will default to 0
+    */
+    optional CenterSpreadConfig lateral_offset = 2;
+
+    /*
+    Description:
+        Only applied after initial pose is determined by position_type.
+        Determines how much to rotate pose about Z axis (points up in right handed coordinate system)
+        Example: 90 degrees would rotate pose to the left.
+
+    Range:
+        CenterSpreadConfig
+
+    Required:
+        No, will default to 0
+
+    */
+    optional CenterSpreadConfig yaw_offset = 3;
+
+    /*
+    Description:
+        Determines initial pose
+
+    Range:
+        See below
+
+    Required:
+        Yes
+
+    */
+    oneof position_type
+    {  
+        AbsolutePositionRequest absolute_position_request = 4;
+        PathTimeRelativePositionRequest path_time_relative_position_request = 5;
+        LocationRelativePositionRequest location_relative_position_request = 6;
+        LaneSpawnPolicy lane_spawn_policy = 7;
+        RoadPitchPositionRequest road_pitch_position_request = 8;
+    }
+}
+
+message LaneCurvatureSpawnPolicy
+{
+    // curvature min and max bounds used to search for curved sections
+    optional MinMaxConfigFloat curvature_bounds = 1;
+    // the shortest length allowed in resulting curved sections
+    optional float min_section_length = 2;
+}
+
+message JunctionSpawnPolicy
+{
+    optional ContinousUniformDistribution distance_to_junction = 1;
+}
+
+message PositionOfInterestPolicy
+{
+    oneof PositionOfInterestType
+    {
+        LaneCurvatureSpawnPolicy lane_curvature_spawn_policy = 1;
+        JunctionSpawnPolicy junction_spawn_policy = 2;
+    }
+}
+
+/*
+Description: Uses specific coordinates for initial pose
+*/
+message AbsolutePositionRequest
+{
+    /*
+    Description:
+        XYZ Position to spawn at
+        
+    Range:
+        Position existing on map 
+
+    Required:
+        Yes
+    */
+    optional Float3 position = 1;
+
+    /*
+    Description:
+        3x3 Rotation matrix for spawning agent
+
+    Range:
+        Valid rotation matrix in radians
+        
+    Required:
+        No, if not specified will determine the rotation based on the lane and position
+    */
+    optional Float3x3 rotation = 2;
+
+    /*
+    Description: 
+        Lane ID to spawn in (UMD)
+
+    Range: 
+        Lane id of lane specified by position
+
+    Required: 
+        No, if agent is a vehicle. The lane id will be retrieved from the vehicle's position.
+        Yes, if agent is not a vehicle.
+    */
+    optional uint64 lane_id = 3;
+}
+
+/*
+Description:
+    Sets an intersection point that the placed agent and the tagged agent's (i.e. EGO or STAR) will cross, as well
+    as a path for the placed agent
+
+Constraints:
+    Requires tagged agent to be placed first, otherwise will return error. Only works on Drivable lane type,
+    and only works with vehicles relative to other vehicles
+*/
+message PathTimeRelativePositionRequest
+{
+
+    /*
+    Description:
+        Tag of agent to spawn relative to
+
+    Range:
+        SpecialAgentTag
+
+    Required:
+        Yes
+    */
+    repeated SpecialAgentTag agent_tags = 1; 
+
+    /*
+    Description:
+        Time for agent being placed to reach intersection point
+    
+    Range:
+        Distribution must sample from nonzero values
+
+    Required:
+        No, will default to 0 values
+        Note: If both time_to_path and time_along_path are 0 or not specified, 
+            user must specify longitudinal_offset_m and/or lateral_offset_m.
+    */
+    optional ContinousUniformDistribution time_to_path = 2; 
+
+    /*
+    Description:
+        Time for agent specified by agent_tag to reach intersection point
+
+    Range:
+        Distribution must sample from nonzero values
+
+    Required:
+        No, will default to 0 values
+        Note: If both time_to_path and time_along_path are 0 or not specified, 
+            user must specify longitudinal_offset_m and/or lateral_offset_m.
+    */
+    optional ContinousUniformDistribution time_along_path = 3; 
+
+    /*
+    Description: 
+        Angle to cross paths at
+
+    Range: 
+        Valid angle in rad
+
+    Required: 
+        No, if not specified then will intersect at any angle
+    */
+    optional ContinousUniformDistribution incident_angle = 4;
+}
+
+/*
+Description: Gives a location relative to tagged agent (i.e. EGO or STAR) 
+Constraints: Requires tagged agent to be placed first, otherwise will return error
+*/
+message LocationRelativePositionRequest
+{
+    /*
+    Description: 
+        Tag of agent to spawn relative to
+
+    Range: 
+        SpecialAgentTag
+
+    Required: 
+        Yes
+    */
+    repeated SpecialAgentTag agent_tags = 1; 
+
+    /*
+    Description: 
+        The max spawn radius specifies viable spawn locations from the origin, which is the position of tagged agent
+
+    Range: 
+        Must be greater than 0
+
+    Required: 
+        No, will use default value if not specified
+    */
+    optional float max_spawn_radius = 2 [default = 150];
+
+    /*
+    Description: 
+        Specifies lane criteria for viable spawn lanes
+
+    Range: 
+        LaneSpawnPolicy
+
+    Required: 
+        No
+    */
+    optional LaneSpawnPolicy lane_spawn_policy = 3;
+}
+
+/*
+Description: Specifies lanes to spawn at
+*/
+message LaneSpawnPolicy
+{
+    /*
+    Description: 
+        Minimum number of lanes in the same direction as the selected lane
+
+    Range: 
+        Greater than or equal to 0
+
+    Required: 
+        No, will use default 0 value
+    */
+    optional int32 min_num_lanes_in_same_direction = 1;
+
+    /*
+    Description: 
+        Specifies lane types to spawn at and their probabilities
+
+    Range: 
+        LaneType, which includes
+        {
+            "Drivable"     (regular driving lanes/roads), 
+            "NonDrivable"  (driveways), 
+            "Parking"      (parallel parking lanes that run along drivable lanes),
+            "Shoulder"     (highway shoulder lanes),
+            "Biking"       (bike lanes, typically narrower than Drivable), 
+            "Crosswalk"    (crosswalk, pedestrian crossings in junction),
+            "ParkingAisle" (aisle lanes in parking lots),
+            "ParkingSpace" (parking lot perpendicular spaces),
+            "Sidewalk"     (sidewalks, not including pedestrian crossings in junctions)
+        }
+
+    Required: 
+        No
+    */
+    optional EnumDistribution lane_type = 2;
+
+    /*
+    Description: 
+        Minimum number of lanes in the opposite direction as the selected lane
+
+    Range: 
+        Greater than or equal to 0
+
+    Required: 
+        No, will use default value
+    */
+    optional int32 min_num_lanes_in_opposite_direction = 3 [default = 0];
+
+    /*
+    Description: 
+        Lateral offset as a percentage of half lane width.
+        Positive means offset to the right. Negative means offset to the left.
+
+    Range: 
+        -1.0 to 1.0
+
+    Required: 
+        No, will default to 0 values
+    */
+    optional CenterSpreadConfig lateral_offset = 4;
+
+    /*
+    Description: 
+        Specifies if bicycles should only spawn in bike lanes
+
+    Range: 
+        Bool
+
+    Required: 
+        No, will use default value
+    */
+    optional bool bicycles_only_in_bike_lanes = 5 [default = true];
+
+    /*
+    Description: 
+        Option to spawn near map assets
+
+    Range: 
+        NearbyAssetPolicy
+
+    Required: 
+        No
+    */
+    optional NearbyAssetPolicy nearby_asset_policy = 6;
+
+    /*
+    Description: 
+        Specifies road types to spawn at and their probabilities. 
+        Recommended guidance: 
+        If specifying highway scenes, set this paramter to {"Motorway": 1.0}.
+        For other placements, leave empty and use lane_type instead.
+
+    Range: 
+        RoadType, which includes {
+            "Motorway"      (highway roads)
+            "Residential"   (non-highway and non-parking roads)
+            "Trunk"
+            "Primary"
+            "Secondary"
+            "Tertiary"
+            "Unclassified"
+            "Motorway_Link"
+            "Truck_Link"
+            "Primary_Link"
+            "Secondary_Link"
+            "Tertiary_Link"
+            "Service"
+            "Driveway"
+            "Parking_Aisle"
+            "Driveway_Parking_Entry"
+        }
+
+    Required: 
+        No, if not specified will spawn on any valid road type depending on agent type
+    */
+    optional EnumDistribution road_type = 7;
+
+    repeated PositionOfInterestPolicy position_of_interest_policy = 8;
+
+    /*
+    Description: 
+        Specifies a map of desired minimum path lengths based on lane type. 
+        The length is from the beginning of the lane.
+
+    Range: 
+        map
+
+    Required: 
+        No, will default to 0
+    */
+    map<string, CenterSpreadConfig> min_path_length = 9;
+
+    /*
+    Description: 
+        Specifies a map of desired minimum path lengths behind the agent based on lane type. 
+        The length is the distance behind the agent's location to the world edge.
+
+    Range: 
+        map
+
+    Required: 
+        No, will default to 0
+    */
+    map<string, CenterSpreadConfig> min_length_behind = 10;
+}
+
+/*
+Description: Gives a position based on desired road pitch angle to spawn at
+*/
+message RoadPitchPositionRequest
+{
+    // range of pitch angle to look for on map
+    optional ContinousUniformDistribution road_pitch = 1;
+    optional LaneSpawnPolicy lane_spawn_policy = 2;
+    // put trailer angles in bins before sampling
+    optional bool bin_pitch_points = 3 [default = true];
+    // width of each bin, default 0.5 degrees
+    optional float bin_width = 4 [default = 0.0087];
+}
+
+message NearbyAssetPolicy
+{
+    // spawn within this radius of asset
+    optional CenterSpreadConfig search_radius = 1;
+    // amount of assets in radius. if none provided, treated as 1 to infinity
+    optional MinMaxConfigInt num_assets = 2;
+    // tags of assets we want to spawn near
+    repeated string asset_tags = 3;
+}
+
+/*****SPAWN DATA FOR ATOMICS*****/
+
+/*
+Description: Controls the vehicle's spawning characteristics and movement behavior
+*/
+message VehicleSpawnData
+{
+    /*
+    Description: 
+        Specifies parameters that control vehicle behavior (i.e. lane change, speed, etc.)
+
+    Range: 
+        VehicleBehavior
+
+    Required: 
+        No
+    */
+    optional VehicleBehavior vehicle_behavior = 1;
+
+    /*
+    Description: 
+        Specifies that control vehicle peripheral behavior (i.e. accessory data, color, occupants, etc.)
+
+    Range: 
+        VehiclePeripheral
+
+    Required: 
+        No
+    */
+    optional VehiclePeripheral vehicle_peripheral = 2;
+
+    /*
+    Description: 
+        Specifies spawn data that applies across agent types
+
+    Range: 
+        AgentSpawnData
+
+    Required: 
+        No
+    */
+    optional AgentSpawnData agent_spawn_data = 3;
+
+    /*
+    Description: 
+        Specified if vehicle should be prevented from spawning in a junction lane that has a red light at the start of scenario
+
+    Range: 
+        Bool
+
+    Required: 
+        No, will use default value
+    */
+    optional bool prevent_spawn_in_redlight = 4 [default = false];
+}
+
+/*
+Description: This contains parameters that control vehicle behavior (i.e. lane change, speed, etc.)
+*/
+message VehicleBehavior
+{
+    /*
+    Description: 
+        Specifies start speed of vehicle
+
+    Range: 
+        Greater than or equal to 0
+
+    Required: 
+        No, will use default 0 values
+    */
+    optional ContinousUniformDistribution start_speed = 1;
+
+    /*
+    Description: 
+        Specifies target speed of vehicle (i.e. speed vehicle tries to achieve while scenario is running).
+        Note: If there is a speed limit, speed will not go greater than it, unless specified by ignore_speed_limit
+
+    Range: 
+        Greater than to equal to 0
+
+    Required: 
+        No, will use default 0 values
+    */
+    optional ContinousUniformDistribution target_speed = 2;
+
+    /*
+    Description: 
+        Specifies whether vehicle should ignore the speed limit specified on roads. 
+        If true, then vehicle will use the target_speed specified even if it over the speed limit
+
+    Range: 
+        Bool
+
+    Required: 
+        No, will use default value
+    */
+    optional bool ignore_speed_limit = 3 [default = false];
+
+    /*
+    Description: 
+        Specifies lane offset in percentage of lane width in vehicle's motion plan, relative to lane center line.
+        Positive means offset to the right. Negative means offset to the left.
+
+    Range: 
+        -1.0 to 1.0
+
+    Required: 
+        No, will use default 0 values
+    */
+    optional ContinousUniformDistribution lane_offset = 4;
+
+    /*
+    Description: 
+        Note: The slight weaving of vehicles within their lanes is modelled as a perlin noise driven wave that has an amplitude and frequency.
+        Tunes the frequency of the motion line/perlin noise wave. 
+        Larger values result in lower frequency
+
+    Range: 
+        No specified range
+
+    Required: 
+        No, will use default 0 values
+    */
+    optional ContinousUniformDistribution lane_drift_scale = 5;
+
+    /*
+    Description: 
+        Note: The slight weaving of vehicles within their lanes is modelled as a perlin noise driven wave that has an amplitude and frequency.
+        Tunes the amplitude of the motion line/perlin noise wave. 
+
+    Range: 
+        No specified range
+        Note: large values are not recommended as it would look unrealistic
+
+    Required: 
+        No, will use default 0 values
+    */
+    optional ContinousUniformDistribution lane_drift_amplitude = 6;
+
+    /*
+    Description: 
+        Specifies probability of making a lane change
+
+    Range: 
+        0.0 to 1.0
+
+    Required: 
+        No, will use default 0 values
+    */
+    optional ContinousUniformDistribution lane_change_probability = 7;
+
+    /*
+    Description: 
+        Specifies how long we don't want to consider a lane change for
+
+    Range: 
+        Greater than or equal to 0
+
+    Required: 
+        No, will use default 0 values
+    */
+    optional ContinousUniformDistribution lane_change_cooldown = 8;
+
+    /*
+    Description: 
+        If true, randomly selects lanes to spawn in during sim. 
+        If false, randomly selects lanes to spawn in during scenario generation. 
+
+    Range: 
+        Bool
+
+    Required: 
+        No, will use default value
+    */
+    optional bool enable_dynamic_lane_selection = 9 [default = false];
+
+    /*
+    Description: 
+        Specifies what to set the vehicle's gear to
+
+    Range: 
+        Gear
+
+    Required: 
+        No, will use default value
+    */
+    optional Gear start_gear = 10 [default = DRIVE];
+
+    /*
+    Description: 
+        Used to calculate lane spacing when spawning vehicles. 
+
+    Range: 
+        Greater than or equal to 0
+
+    Required: 
+        No, will use default 0 values
+    */
+    optional ContinousUniformDistribution start_separation_time = 11;
+
+    /*
+    Description: 
+        Used to calculate longitudinal distance vehicles try to maintain between each other
+
+    Range: 
+        Greater than or equal to 0
+
+    Required: 
+        No, will use default 0 values
+    */
+    optional ContinousUniformDistribution target_separation_time = 12;
+
+    /*
+    Description: 
+        Specifies how aggressive vehicle should be (i.e. aggressive lane changes, turns).
+        Specifically, this is the amount the target speed is increased by. 
+
+    Range: 
+        Greater than or equal to 0
+
+    Required: 
+        No, will use default 0 values
+    */
+    optional ContinousUniformDistribution vehicle_aggression = 13;
+
+    /*
+    Description: 
+        Specifies whether vehicle should ignore obstacle types
+
+    Range: 
+        ObstanceType
+
+    Required: 
+        No, if not specified will not ignore any obstacles
+    */
+    repeated ObstacleType ignore_obstacle_types = 14;
+
+    optional VehicleBehaviorType vehicle_behavior_type = 15 [default = DEFAULT];
+}
+
+/*
+Description: This contains parameters that control vehicle peripheral behavior (i.e. accessory data, color, occupants, etc.)
+*/
+message VehiclePeripheral
+{
+    // [0-1] chance of spawning with articulated trailer attached
+    optional float spawn_trailer_probability = 1 [default = 0];
+    // trailer angle when spawned, in radians
+    optional ContinousUniformDistribution trailer_initial_yaw = 2;
+
+    optional bool disable_occupants = 3 [default = false];
+    
+    // not implemented yet
+    optional bool disable_accessories = 4 [default = false];
+
+    // toggle for blueprint feature to randomize color based on agent id
+    optional bool randomize_vehicle_parts = 5 [default = true];
+
+    // chance of turning on emergency lights for police/service vehicles
+    // ignored if the vehicle has no emergency lights
+    optional float emergency_light_probability = 6 [default = 0.5];
+}
+
+/*
+Description: This contains the different obstacle types
+*/
+enum ObstacleType
+{
+    ROUTE_LENGTH = 0;
+    REVERSE_DISTANCE = 1;
+    PATH_END = 2;        // Parking path end, unique from route length.
+    FORWARD_AGENT = 3;   // Agent with positive dot product of velocity with current agent
+    ONCOMING_AGENT = 4;  // Agent with negative dot product of velocity with current agent
+    END_OF_LANE = 5;
+    BLOCKED_LANE = 6;    // Legacy stop sign/stop light obstacle type. Used for older maps or maps not yet encoding stop lines.
+    MERGE = 7;
+    LINEAR_MOVER = 8;
+    LANE_CLOSURE = 9;
+    CROSSTRAFFIC = 10;
+    STOP_LINE = 11;       // Stop line. Position is encoded in the lane segment.
+}
+
+/*
+Description: This contains the different types of gears for vehicles
+*/
+enum Gear
+{
+    PARKED = 1;
+    REVERSE = 2;
+    NEUTRAL = 3;
+    DRIVE = 4;
+}
+
+// enum to drive vehicle behavior
+enum VehicleBehaviorType
+{
+    // normal behavior of lane following
+    DEFAULT = 1;
+    // stopped, engine off, lights off
+    OFF = 2;
+    // will try to park if spawned in appropriate location for parking
+    PARKING = 3; 
+}
+
+/*
+Description: This contains parameters that control pedestrian/pedestrian related behavior
+*/
+message PedestrianSpawnData
+{
+    /*
+    Description: 
+        Specifies probability of overriding color of pedestrian's clothes to RGB color specified by pedestrian_color_override_rgb
+
+    Range: 
+        Greater than or equal to 0
+
+    Required: 
+        No, will default to 0 values
+    */
+    optional CenterSpreadConfig pedestrian_color_override_probability = 1;
+
+    /*
+    Description: 
+        Specifies color to override pedestrian's clothes with if determining an override should happen
+
+    Range: 
+        Valid RGB color
+
+    Required: 
+        No, will use default 0 values if this field is required 
+    */
+    optional Float3 pedestrian_color_override_rgb = 2;
+
+    /*
+    Description: 
+        Specifies whether pedestrian should use dynamic pathing or not. 
+        If true, determines path to take during sim and can change depending on location. 
+        If false, uses a predetermined path to take during scenario generation. 
+
+    Range: 
+        Bool
+        
+    Required: 
+        No, will use default value
+    */
+    optional bool pedestrians_dynamic_pathing = 3 [default = true];
+
+    /*
+    Description: 
+        Specifies whether pedestrian should face the direction of movement
+
+    Range: 
+        Bool
+
+    Required: 
+        No, will use default value
+    */
+    optional bool orient_to_velocity = 4 [default = true];
+
+    /*
+    Description: 
+        Specifies whether or not we check if the area we are trying to spawn in is occupied. 
+
+    Range: 
+        Bool
+
+    Required: 
+        No, will use default value
+    */
+    optional bool check_occupancy = 5 [default = true];
+
+    /*
+    Description: 
+        Specifies how far ahead the jaywalker should be from the tagged vehicle.
+        If ped_behavior is not set to JAYWALKING, this field will be ignored.
+
+    Range: 
+        Greater than or equal to 0
+
+    Required: 
+        No, will use default value
+    */
+    optional float jaywalker_ego_fwd_offset = 6 [default = 20.0];
+
+    /*
+    Description: 
+        Specifies spawn data that applies across agent types
+
+    Range: 
+        AgentSpawnData
+
+    Required: 
+        No
+    */
+    optional AgentSpawnData agent_spawn_data = 7;
+
+    /*
+    Description: 
+        Specifies desired behavior of pedestrian
+
+    Range: 
+        PedestrianBehavior
+
+    Required: 
+        No, will default to NORMAL for PedestrianBehavior
+    */
+    optional PedestrianBehavior ped_behavior = 8;
+
+    /*
+    Description: 
+        Asset name of pedestrian
+
+    Range: 
+        Existing asset in asset registry 
+
+    Required: 
+        Yes
+    */
+    optional string asset_name = 9 [default = "char_hannah_001"];
+
+    /*
+    Description: 
+        Speed of pedestrian
+
+    Range: 
+        Greater than or equal to 0
+
+    Required: 
+        No, will use default value
+    */
+    optional float speed = 10 [default = 1.0];
+}
+
+/*
+Description: This contains parameters that control pedestrian behavior
+*/
+enum PedestrianBehavior
+{
+    /*
+    Description: Walks on sidewalks/crosswalks and only crosses roads at crosswalks
+    */
+	NORMAL = 1;
+
+    /*
+    Description: Stays in place
+    */
+    STATIC = 2;
+
+    /*
+    Description: Jaywalking behavior (e.g. crosses the road at a non-crosswalk)
+    */
+    JAYWALKER = 3;
+}
+
+/*
+Description: This contains parameters that control drone/drone related behavior
+*/
+message DroneSpawnData
+{
+    // ascend or descend
+    optional float ascend_probability = 1 [default = 0.5];
+    // probability of having a ground asset at flight path ground end
+    optional float ground_asset_probability = 2 [default = 0.5];
+    // list of ground assets to choose from
+    repeated string ground_assets = 3;
+    // directory where flight path csv is stored
+    optional string flight_path_dir = 4;
+    // common spawn data across agent types
+    optional AgentSpawnData agent_spawn_data = 5;
+    // how far up to offset flight path bottom from ground/top of asset
+    optional ContinousUniformDistribution height_offset = 6;
+    // height offset for the ground asset itself. used to address z fighting
+    optional ContinousUniformDistribution ground_asset_height_offset = 7;
+}
+
+/*
+Description: This contains spawn data that applies across agent types
+*/
+message AgentSpawnData
+{
+    // tags we want to apply to this agent
+    repeated SpecialAgentTag tags = 1;
+}
+
+// Agent tag is already defined in pd_scenario.proto, so
+// we instead call these our SpecialAgentTags.
+enum SpecialAgentTag
+{
+    EGO = 0;
+    STAR = 1;
+}
+
+
+/*****OTHER SPECIFICATIONS FOR ATOMICS*****/
+
+
+message SignalLightDistribution
+{
+    optional float green = 1 [default = 0.3333];
+    optional float red = 2 [default = 0.3333];
+    optional float yellow = 3 [default = 0.3333];
+}
+
+message TurnTypeDistribution
+{
+    optional float straight = 1 [default = 0.3333];
+    optional float left = 2 [default = 0.3333];
+    optional float right = 3 [default = 0.3333];
+}
+
+message ParkingTypeDistribution
+{
+    optional float forward = 1 [default = 0.5];
+    optional float reverse = 2 [default = 0.5];
+    optional float parallel = 3 [default = 0.0];
+}
+
+message CenterSpreadProbabilityConfig
+{
+    optional float probability = 1 [default = 0.0];
+    optional float center = 2 [default = 0.0];
+    optional float spread = 3 [default = 0.0];
+}
+message CenterSpreadConfig
+{
+    optional float center = 1 [default = 0.0];
+    optional float spread = 2 [default = 0.0];
+}
+message CenterSpreadConfigInt
+{
+    optional int32 center = 1 [default = 0];
+    optional int32 spread = 2 [default = 0];
+}
+message MinMaxConfigFloat
+{
+    optional float min = 1 [default = 0.0];
+    optional float max = 2 [default = 0.0];
+}
+
+message MinMaxConfigInt
+{
+    optional int32 min = 1 [default = 0];
+    optional int32 max = 2 [default = 0];
+}
+

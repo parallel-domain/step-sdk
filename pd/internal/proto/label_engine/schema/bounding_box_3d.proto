@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "options.proto";
+import "geometry.proto";
+
+message Cuboid3dMetadata {
+    uint32 instance_id = 1;
+    uint32 semantic_id = 2;
+}
+
+message GenerateBoundingBox3DConfig
+{
+    string input_instance_map = 1 [(type)=eMeshIDMap, (stream)=eInput];
+    string input_semantic_map = 2 [(type)=eMeshIDMap, (stream)=eInput];
+    string output_path = 3 [(type)=eAnnotation, (stream)=eOutput];
+};

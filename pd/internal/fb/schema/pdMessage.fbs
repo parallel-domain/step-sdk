@@ -1,0 +1,451 @@
+include "introspection.fbs";
+
+// Native type: tropo::float3
+struct pdFloat3
+{
+    x: float;
+    y: float;
+    z: float;
+}
+
+// Native type: tropo::quat
+struct pdQuat
+{
+    w: float;
+    x: float;
+    y: float;
+    z: float;    
+}
+
+
+table pdLoadLocation
+{
+    location_name : string;
+    time_of_day : string;
+}
+
+table pdSetGlobalParams
+{
+    use_zmq_stream : bool;
+    
+    // Support for setting performance mode
+    //  HighFidelityMode = 0,
+    //  PerformanceMode = 1,
+    performance_feature : uint8 = 1;
+}
+
+table pdQuit
+{
+}
+
+table pdSubscribe
+{
+    annotation2d : bool = false;
+    annotation3d : bool = false;
+}
+
+table pdUpdateState
+{
+    timestamp : double (deprecated);
+    sim_state : [uint8];
+    step_mode : bool = false;
+    subscribe : pdSubscribe;
+}
+
+enum pdResponseCode : uint8
+{
+OK,
+CONFIG_ERROR,
+SERVER_ERROR,
+UNHANDLED_MESSAGE_TYPE,
+}
+
+table pdAck
+{
+    message_type : uint32;
+    response : string;
+    code : pdResponseCode = 0;
+}
+
+enum pdBufferType : uint8
+{
+    Buffer_RGB,
+    Buffer_Depth,
+    Buffer_Normals,
+    Buffer_Segmentation,
+    Buffer_Instances,
+    Buffer_MotionVectors
+}
+
+enum pdAnnotationType : uint8
+{
+    Annotation_2D,
+    Annotation_3D
+}
+
+table pdQuerySensorHeader
+{
+}
+
+table pdSensorInfo
+{
+    agent_id : uint64;
+    sensor_name : string;
+    width : uint32;
+    height : uint32;
+    buffer_type : pdBufferType;
+
+    stream_url : string;
+}
+
+table pdReturnSensorHeader
+{
+    sensor_info : [pdSensorInfo];
+}
+
+table pdQuerySensorData
+{
+    agent_id : uint64;
+    sensor_name : string;
+    buffer_type : pdBufferType;
+}
+
+table pdReturnSensorData
+{
+    width : uint32;
+    height : uint32;
+    channel : uint32;
+    data : [uint8];
+}
+
+table pdQueryAnnotationData
+{
+    agent_id : uint64;
+    sensor_name : string;
+    annotation_type : pdAnnotationType;
+}
+
+table pdAnnotation2DData
+{
+    instance_id : uint64;
+    left : uint32;
+    top : uint32;
+    right : uint32;
+    bottom : uint32;
+    visibility : float;
+    truncation : float;
+}
+
+table pdReturnAnnotation2DData
+{
+    num : uint32;
+    annotation2d : [pdAnnotation2DData];
+}
+
+table pdAnnotation3DData
+{
+    instance_id : uint64;
+    size : pdFloat3;
+    position : pdFloat3;
+    orientation : pdQuat;
+    visible_sensors : [uint64];
+}
+
+table pdReturnAnnotation3DData
+{
+    num : uint32;
+    annotation3d : [pdAnnotation3DData];
+}
+
+table pdReturnLidarSensorData
+{
+    // Total number of points in the point cloud
+    num_points : uint32;
+    // Total size in bytes of each point element
+    point_size : uint32;
+    // Buffer containing raw point data
+    data : [uint8];
+}
+
+table pdStartDatasetCapture
+{
+    // Name of the dataset
+    dataset_name : string;
+    // Name of the scenario
+    scenario_name : string;
+    // Short description of the dataset
+    desc : string;
+    // Version number
+    version : string;
+    // Creator
+    creator : string;
+    // Starting timestamp for sequence in unix timestamp format
+    timestamp : uint64 = 0;
+
+    state_data_path : string;
+    output_path  : string;
+
+    // How many frames to wait at start of capture for frame to settle
+    num_settle_frames : uint32 = 20;
+    // How many frames to trim to sync GPU and CPU streams
+    num_trim_frames : uint32 = 3;
+    // How many frames excess to render to allow for syncing
+    num_sync_frames : uint32 = 20;
+
+    // Select whether to output 3d annotation records for instances not present in any sensor output
+    // Useful for tracking trajectories even when instances aren't visible
+    output_truncated_3d_annotations : bool = false;
+
+    // Select whether to override bounding box 3d semantic ids with a secondary ontology
+    // Used for TRI-ML, needs a proper system
+    override_bounding_box_3d_ids : bool = false;
+
+    // Select whether to output depth buffer point clouds 
+    output_depth_point_clouds : bool = false;
+
+    // Select whether to use SceneDataset dgp format
+    output_scene_dataset : bool = true;
+
+    // Select whether to calculate instance bound via the point cache
+    use_point_cache_bounds : bool = false;
+
+    // Select whether to enable storage of scene level metadata
+    output_scene_metadata : bool = false;
+    
+    // Ouptut physical ground truth annotations - all 2d and 3d bounds will be output 
+    // for every instance, irrespective of visibility, provided it is within the provided range
+    physical_ground_truth : bool = false;
+    physical_ground_truth_range : float = 250.0;
+
+    // Support for overriding the default traffic signal bulb shapes and colors
+    //	eBulbRed = 0,
+    //	eBulbYellow = 1,
+    //	eBulbGreen = 2
+    //
+    //	eBulbUnknown = 0,
+    //	eBulbCircle = 1,
+    //	eBulbRightArrow = 2,
+    //	eBulbRightDiagonal = 3,
+    //	eBulbLeftArrow = 4,
+    //	eBulbLeftDiagonal = 5,
+    //  eBulbUTurn = 6
+    //
+    //  eDirectionHorizontal = 0
+    //  eDirectionVertical = 1
+    //
+    force_signal_bulb_shape : int32 = -1;
+    force_signal_bulb_color : int32 = -1;
+    force_signal_mount_direction : int32 = -1;
+
+    // Select whether to retain the virtual camera data used in lidar simulation
+    retain_lidar_camera_data : bool = false;
+
+    // Select whether to merge bikes and riders for 3d annotations
+    merge_bikes_riders_3d : bool = false;
+
+    // Select whether to output instance point cache data
+    output_instance_point_caches : bool = false;
+
+    // Select whether to keep glass transparent in annotation for cameras (would not affect LiDARs)
+    keep_glass_transparent : bool = false;
+
+    // Select whether to only bound visible pixels
+    bbox2d_only_visible_pixels : bool = false;
+
+    // Select whether to include wing mirrors in 2d bbox annotations and instance segmentation
+    annotate_wing_mirrors : bool = true;
+
+    // Select whether to include wing mirrors in 3d bbox annotations
+    annotate_wing_mirrors_3d : bool = true;
+
+    // Select whether to render the ego vehicle
+    render_ego_vehicle : bool = false;
+
+    // Select whether to hide all volumetrics
+    hide_all_volumetrics : bool = true;
+    // Global scale for density in all volumetrics
+    volumetric_density_scale : float = 1.0;
+
+    // Switch car glass to opaque, 1 means a fully rough glass, 2 means a reflective opaque glass
+    use_opaque_glass : int32 = 0;
+
+    // Vehicle color offset, 0 means no offset (use the color set in the scenario), 1-6 is using different colors for any vehicle that have multiple colors in the asset database
+    vehicle_color_offset : int32 = 0;
+
+    // Hide the crosswalk segmentation meshes for showing the road surface id between the crosswalk lines in the segmentation 
+    hide_crosswalk_segmentation_mesh : bool = false;
+
+    // Select whether to keep the raw lidar data without noise and detection limit
+    keep_raw_lidar_data : bool = true;
+
+    // Select whether to include accessories in 2d bbox annotations and instance segmentation
+    annotate_accessories_2d : bool = false;
+
+    // Select whether to include accessories in 3d bbox annotations
+    annotate_accessories_3d : bool = false;
+
+    // Disable reflection on the material surface
+    disable_reflection : bool = false;
+
+    // Disable specular (highlighting) on the material surface
+    disable_specular : bool = false;
+
+    // Allow 2d bounding box includes non-visible pixels of the signal bulbs
+    box_non_visible_signal_bulbs : bool = false;
+
+    // Select whether to use instance point cache to process annotation 3d
+    use_instance_point_caches : bool = true;
+
+    // Activate new data pipeline
+    new_data_pipeline : bool = false;
+}
+
+table pdSetCaptureParameters
+{
+    agent_id : uint64;
+    sensor_name : string;
+
+    frame_rate : int32;
+    bit_rate : uint16;
+}
+
+table pdEnableStateStream
+{
+    address : string;
+}
+
+table pdVideoPacket
+{
+    // this is the client side simulation time included in the encoded state frame 
+    client_frame_state_time : double;
+    // this is the server side time when the message with the encoded state frame represented by this video frame was received
+    server_frame_receive_time : uint64;
+    // this is the server side time when the video frame contained in this packet was sent to the encoder
+    server_frame_encode_time : uint64;
+    // this is the server side time when the video frame contained in this packet was sent via zeromq
+    server_frame_send_time : uint64;
+
+    // encoded H265 binary data for this frame
+    data : [uint8];
+}
+
+enum pdStateSyncMode : uint8
+{
+    // Grab the very latest state packet, no interpolation/extrapolation
+    Mode_Latest,
+    // Continually adjust server/client sync such that server is displaying the most recent
+    // complete frame of state data.     
+    Mode_SyncToLastFullFrame,
+    // Continually adjust server/client sync such that server is displaying the state packet
+    // for the most recently updated agent
+    Mode_SyncToLastAgent
+}
+
+table pdSetStateParameters
+{
+    // See enum description above
+    mode : pdStateSyncMode = Mode_SyncToLastFullFrame;
+
+    // This value adjusts the client/server sync point forwards and backwards in time (in seconds)
+    // Positive values will result in reducing the gap between the clocks, which will have a net effect
+    // of reducing latency in the rendered data, at the cost of increased use of extrapolation
+    // Negative values will result in increasing the gap between the clocks, which will have a net effect
+    // of increasing latency in the rendered data, but also improving the overally stability and resilience of the stream
+    latency_offset : double = 0.015;
+
+    // When adjusting our server/client sync, this value controls how quickly we blend towards the new value
+    // Low values will result in a smooth blend as clocks fluctuate
+    // Higher values will result in a sharper transition
+    // Range [0->1]
+    latency_blend : double = 0.01;
+
+    // This value specifies the maximum drift of the server/client sync before we hard reset the sync point
+    // Specified in units of seconds
+    clock_reset_time : double = 1.0;
+
+    // This value specifies how long the state management system will retain state packets
+    // This should be set greater than the longest expected dropout of incoming data, and an agent
+    // will be no longer considered valid if it has not been updated since this time
+    state_retention_time : double = 5.0;
+}
+
+table pdSubmitScenarioConfig
+{
+    // scenario_config contains a serialized json dump of a scenario config
+    // file that is used to start the process of state generation in the 
+    // sim_state_step pipeline
+    scenario_config : string;
+}
+
+table pdSubmitScenarioGenConfig
+{
+    // build_sim_state contains a serialized json dump of a keystone
+    // BuildSimState message that is used to kick off the scenario
+    // generation process in the sim_state_step pipeline
+    build_sim_state : string;
+
+    // location_index is used to select from the locations in the BuildSimState message
+    location_index : int;
+}
+
+table pdReturnScenarioData
+{
+    // we return the location name and the ego agent id from the generated scenario
+    // so this information is available in the step scripts driving the process
+    location_name : string;
+    ego_id : int;
+}
+
+table pdQueryStateData
+{
+}
+
+table pdReturnStateData
+{
+    // This is a binary SimStateFB message packed into a simple byte array for transmission
+    state_data: [uint8];
+}
+
+union pdMessageType
+{
+    pdLoadLocation,
+    pdQuit,
+    pdUpdateState,
+    pdAck,
+    pdQuerySensorHeader,
+    pdReturnSensorHeader,
+    pdQuerySensorData,
+    pdReturnSensorData,
+    pdQueryAnnotationData,
+    pdReturnAnnotation2DData,
+    pdReturnAnnotation3DData,
+    pdStartDatasetCapture,
+    pdSetCaptureParameters,
+    pdEnableStateStream,
+    pdSetGlobalParams,
+    pdVideoPacket,
+    pdSetStateParameters,
+    pdReturnLidarSensorData,
+
+    // Introspection
+    pdQuerySystemInfo,
+    pdReturnSystemInfo,
+    pdQueryRuntimeInfo,
+    pdReturnRuntimeInfo,
+
+    // Step State Processing
+    pdSubmitScenarioConfig,
+    pdSubmitScenarioGenConfig,
+    pdReturnScenarioData,
+    pdQueryStateData,
+    pdReturnStateData,
+}
+
+table pdMessage
+{
+    message : pdMessageType;
+}
+
+root_type pdMessage;
+
+

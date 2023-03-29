@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "options.proto";
+
+message PythonEngineConfig
+{
+    // Path to Python script
+    string script_filepath = 1;
+
+    // Entry function in Python script
+    string function_name = 2;
+
+    // Dimensions over which to create output records and tasks
+    StreamDimensions output_dims = 3;
+
+    // Output stream type
+    DataType output_type = 4;
+
+    // Output stream name
+    string output_path = 5 [(stream)=eOutput];
+
+    // Input stream names
+    repeated string input_paths = 6 [(stream)=eInput];
+
+    // Input stream dimensions, in same order as stream names
+    // TODO: streams should explicitly track this information (PD-22096)
+    repeated StreamDimensions input_dims = 7;
+};

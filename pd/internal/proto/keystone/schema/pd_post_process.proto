@@ -1,0 +1,114 @@
+syntax = "proto3";
+
+package keystone;
+
+
+message QAProcessor
+{
+    // Artifact key provided by the user during submission from webapp UI
+    string artifact_key = 1;
+
+    // Input artifact uid for the post process
+    string input_artifact_uid = 2;
+
+    // Output artifact uid for the post process
+    string output_artifact_uid = 3;
+
+    // Batch size specified for bundling scenes (execute serially on a pod)
+    uint32 batch_size = 4;
+}
+
+message FieldEncoder
+{
+    // Artifact key provided by the user during submission from webapp UI
+    string artifact_key = 1;
+
+    // Input artifact uid for the field encoder script
+    string input_artifact_uid = 2;
+
+    // Output artifact uid for the field encoder script
+    string output_artifact_uid = 3;
+
+    // Batch size specified for bundling scenes (execute serially on a pod)
+    uint32 batch_size = 4;
+
+    // Field script to run for scene conversion
+    string encoder_script = 5;
+    string finalize_script = 6;
+
+    // Container to deploy for processing
+    string field_container = 7;
+
+    // options to pass to encoder
+    string options = 8;
+
+    // Enable GPU support on nodes for this encoder
+    bool enable_gpu_node = 9;
+
+    // Flag to check if this is a LEC encoding
+    bool is_lec_encoder = 10;
+}
+
+message LEEncoder
+{
+    // Artifact key provided by the user during submission from webapp UI
+    string artifact_key = 1;
+
+    // Input artifact uid for the field encoder script
+    string input_artifact_uid = 2;
+
+    // Output artifact uid for the field encoder script
+    string output_artifact_uid = 3;
+
+    // Batch size specified for bundling scenes (execute serially on a pod)
+    uint32 batch_size = 4;
+
+    // Field script to run for scene conversion
+    string encoder_script = 5;
+    string finalize_script = 6;
+
+    // Container to deploy for processing
+    string le_container = 7;
+
+    // options to pass to encoder
+    string options = 8;
+
+    // Enable GPU support on nodes for this encoder
+    bool enable_gpu_node = 9;
+}
+
+message AgentFilter
+{
+    // Artifact key provided by the user during submission from webapp UI
+    string artifact_key = 1;
+
+    // Input artifact uid for the field encoder script
+    string input_artifact_uid = 2;
+
+    // Output artifact uid for the field encoder script
+    string output_artifact_uid = 3;
+
+    // Batch size specified for bundling scenes (execute serially on a pod)
+    uint32 batch_size = 4;
+}
+
+message ExtractAgentData
+{
+    // Artifact key provided by the user during submission from webapp UI
+    string artifact_key = 1;
+
+    // Input artifact uid for the ground truth dataset
+    string ground_truth_artifact_uid = 2;
+
+    // Input artifact uid for the filtered dataset
+    string filtered_artifact_uid = 3;
+
+    // Input artifact uid for the filtering info
+    string filter_info_artifact_uid = 4;
+
+    // Output artifact uid for the field encoder script
+    string output_artifact_uid = 5;
+
+    // Batch size specified for bundling scenes (execute serially on a pod)
+    uint32 batch_size = 6;
+}

@@ -1,0 +1,28 @@
+include "types.fbs";
+
+table TrajectoryPointFB
+{
+    position : float3_t;
+    heading  : float3_t;
+
+    // Distance from the start of the plan
+    distance_m : float;
+
+    // Longitudinal constraints
+    speed_mps : float;
+    accel_min_mps2 : float;
+    accel_max_mps2 : float;
+    jerk_min_mps3 : float;
+    jerk_max_mps3 : float;
+    
+    // Gear at this point
+    gear : Gear;
+
+    // Time since start of the plan in seconds
+    time_s : float;
+}
+
+table TrajectoryOutputFB
+{
+    points : [TrajectoryPointFB];
+}

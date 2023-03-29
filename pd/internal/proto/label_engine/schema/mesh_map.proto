@@ -1,0 +1,168 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "options.proto";
+import "geometry.proto";
+
+message Mesh
+{
+    uint32 mesh_id = 1;
+    string asset_name = 2;
+
+    Vector3 min = 3;
+    Vector3 max = 4;
+};
+
+message Agent
+{
+    uint32 agent_id = 1;
+    repeated uint32 mesh_ids = 2;
+};
+
+message Actor
+{
+    uint32 actor_id = 1;
+    string actor_name = 2;
+    uint32 parent_actor = 3;
+    repeated uint32 actor_ids = 4;
+    repeated uint32 mesh_ids = 5;
+};
+
+enum RelationshipType
+{
+    eIsRiding = 0;
+    eIsDriving = 1;
+};
+
+message Relationship
+{
+    uint32 first_actor = 1;
+    uint32 second_actor = 2;
+    RelationshipType type = 3;
+}
+
+message MeshMap
+{
+    map<uint32, Mesh> mesh_map = 1;
+    map<uint32, Actor> actor_map = 2;
+    
+    map<uint64, uint32> agent_map = 3; // Not used
+    repeated Relationship relationships = 4 [deprecated=true]; // Deprecated as relationships to be defined by semantic ids
+};
+
+message PrefixSemanticMap
+{
+    string prefix = 1;
+    uint32 semantic_id = 2;
+};
+
+// This is used to remap a mesh based on the semantic id two instances
+// The code will check if that current mesh is part of an instance with a semantic id that matches either the child or parent
+// If this is the case the code then check if the actor that instance is part of has a child / parent actor that contains a
+// instance with a corresponding mes"
+// All relationships are defined in terms of their semantic ids
+// Example use cases:
+// "car" <-> "wheel" instances. Remap the wheel instance -> "car wheel"
+// "pedestrian" <-> "moterbike" -> remap the pedestrian to a "motercyclist"
+message SemanticRelationshipRemap
+{
+    uint32 parent_semantic_id = 1;
+    uint32 child_semantic_id = 2;
+    uint32 parent_final_semantic_id = 3;
+    uint32 child_final_semantic_id = 4;
+};
+
+enum LabelMatchMode
+{
+    eAny = 0;
+    eAll = 1;
+};
+
+message MeshSemanticMergeInfo
+{
+    uint32 semantic_id = 1;
+    LabelMatchMode match_mode = 2;
+    repeated uint32 exclude_ids = 3;
+};
+
+message RelationshipMergeInfo
+{
+    repeated RelationshipType types = 1;
+    repeated uint32 merge_semantic_ids = 2;
+
+    // 0 = first actor, 1 = second actor
+    uint32 merge_instance_id = 3;
+};
+
+message RelationshipOverrides
+{
+    RelationshipType type = 1;
+    uint32 semantic_id = 2;
+    bool override_first = 3;
+    bool override_second = 4;
+
+    repeated uint32 first_semantic_ids = 5;
+    repeated uint32 second_semantic_ids = 6;
+}
+
+message AssetSemanticMap
+{
+    map<string, uint32> asset_semantic_map = 1;
+    repeated PrefixSemanticMap prefix_semantic_maps = 2;
+};
+
+message CustomOntologyMap
+{
+    map<uint32, uint32> pd_to_custom_ontology = 1;
+    map<string, uint32> asset_to_custom_ontology = 2;
+    repeated PrefixSemanticMap asset_to_custom_ontology_by_prefix = 3;
+    repeated string ignored_assets = 4;
+    repeated string ignored_assets_by_prefix = 5;
+    repeated SemanticRelationshipRemap instance_remapped_by_relationship = 6;
+};
+
+message MeshIDMap
+{
+    map<uint32, uint32> mesh_id_map = 1;
+};
+
+message Color
+{
+    uint32 red = 1;
+    uint32 green = 2;
+    uint32 blue = 3;
+};
+
+message SemanticLabelInfo
+{
+    uint32 id = 1;
+    string label = 2;
+    bool is_thing = 3;
+    Color color = 4;
+};
+
+message SemanticLabelMap
+{
+    map<uint32, SemanticLabelInfo> semantic_label_map = 1;
+};
+
+message GenerateMeshSemanticMapConfig
+{
+    string asset_semantic_map_filepath = 1 [(type)=eConfiguration];
+    string output_path = 2 [(type)=eMeshIDMap, (stream)=eOutput];
+};
+
+message GenerateCustomMeshSemanticMapConfig
+{
+    string custom_semantic_config_filepath = 1 [(type)=eConfiguration];
+    string base_semantic_map = 2 [(type)=eMeshIDMap, (stream)=eInput];
+    string input_instance_map = 3 [(type)=eMeshIDMap, (stream)=eInput];
+    string output_path = 4 [(type)=eMeshIDMap, (stream)=eOutput];
+};
+
+message GenerateSemanticMaskConfig
+{
+    string input_semantic_map = 1 [(type)=eMeshIDMap, (stream)=eInput];
+    string output_path = 2 [(type)=eImage, (stream)=eOutput];
+};

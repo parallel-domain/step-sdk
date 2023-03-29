@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package keystone;
+
+message WorldBuildInfo
+{
+    string artifact_key = 1;
+    string output_artifact_uid = 2;
+    string code_build_artifact_uid = 3;
+    string base_changelist = 5;
+    string unshelve_changelist = 6;
+    bool qa_render = 7;
+    string image_generator_core_artifact_uid = 8;
+    string world_preview_uid = 9;
+
+    message Location
+    {
+        string artifact_key = 1 [deprecated = true];
+        string location_output_artifact_uid = 2;
+        string worldgen_output_artifact_uid = 3 [deprecated = true];
+        string imported_level_output_artifact_uid = 4 [deprecated = true];
+        string image_gen_level_artifact_uid = 5 [deprecated = true];
+        string location_name = 6;
+        string parameters_path = 7;
+        string input_file_path = 8;
+        string geojson_path = 9 [deprecated = true];
+    }
+    repeated Location location_list = 4;
+
+}
+// next idx 10

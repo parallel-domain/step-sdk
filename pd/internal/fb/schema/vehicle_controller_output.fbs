@@ -1,0 +1,16 @@
+include "types.fbs";
+include "control.fbs";
+
+table VehicleControllerOutputFB
+{
+    gear : Gear;
+
+    // Unitless, range -1 to 1 for PhysX range of steering.
+    steering : float;
+
+    // Unitless, range 0 to 1 for PhysX range of analog accelerator control.
+    throttle : float;
+
+    // Unitless, range 0 to 1 for PhysX range of analog brake control.
+    brake : float;
+}

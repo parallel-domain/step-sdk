@@ -1,0 +1,48 @@
+{
+    "sensor_configs": 
+    [
+        {
+            "display_name": "Front",
+            "camera_intrinsic":
+            {
+
+                "width": 1920,
+                "height": 1080,
+                "fov": 65,
+
+                "lut": "Texture2D'/Game/pd/Textures/LUT/LUT_PD_DashCamMedia.LUT_PD_DashCamMedia'",
+                "lut_weight": 0.5,
+                "post_process": [
+                    { 
+                        "material": "MaterialInstanceConstant'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens'", 
+                        "weight": 1.0 
+                    }
+                ],
+
+                "capture_rgb": true,
+                "capture_depth": true,
+                "capture_normals": true,
+                "capture_segmentation": true,
+                "capture_instance": true,
+                "capture_detections": true,
+                "capture_motionvectors": true,
+
+                "noise_params": {
+                    "enable_bayer": true,
+                    "enable_gauss_noise": true,
+                    "enable_poisson_noise": true,
+                    "enable_denoise": true
+                }
+            },
+            "sensor_extrinsic":
+            {
+                "yaw": 0.0,
+                "pitch": 0.0,
+                "roll": 0.0,
+                "x": 0.0, 
+                "y": 0.0, 
+                "z": 2.0
+            }
+        }
+    ]
+}

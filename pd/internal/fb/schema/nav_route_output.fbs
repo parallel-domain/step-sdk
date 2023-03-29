@@ -1,0 +1,67 @@
+include "types.fbs";
+
+enum ManeuverFB : byte
+{
+  NONE,
+  LEFT_LANE_CHANGE,
+  RIGHT_LANE_CHANGE,
+  THREE_POINT_TURN,
+  PARK,
+  UNPARK,
+  PULLOVER,
+  PARALLEL_PARK,
+  PARALLEL_UNPARK
+}
+
+table NavRouteSegmentFB
+{
+  // Start offset along the first segment in lane_segments. This value must
+  // be in the range of [0, length(lane_segments[0])], where length() is the
+  // distance in meters of the lane segment.
+  start_distance_m : float;
+
+  // Heading offset from the lane position in radians. Range is [-pi,pi], with 0
+  // meaning aligned to the lane direction.
+  start_heading_offset_rad : float;
+
+  // End offset along the last segment in lane_segments. This value must be
+  // in the range of [0, length(lane_segments[lane_segments.size()-1])]] or inf,
+  // where length() is the length of the lane segment in meters. inf is
+  // treated as the equivalent of length(lane_segments[lane_segments.size()-1]),
+  // and will allow the nav route planner to extend the route rather than stop the agent
+  // at the end of the plan.
+  end_distance_m : float;
+
+  // Heading offset from the lane position in radians. Range is [-pi,pi], with 0
+  // meaning aligned to the lane direction.
+  end_heading_offset_rad : float;
+  
+  /// lane segments in this route segment. 
+  lane_segments : [uint64];
+  
+  /// Set to true to use the target speed
+  use_target_speed : bool = false;
+
+  /// target speed along this segment
+  target_speed_mps : float;
+
+  /// Maneuver to perform at the start of this segment.
+  start_maneuver : ManeuverFB;
+
+  /// start lateral offset in meters.
+  start_lateral_offset_m : float = 0;
+
+  /// end lateral offset in meters.
+  end_lateral_offset_m : float = 0;
+}
+
+table NavRouteOutputFB
+{
+    // Current lane the agent is in. 
+    // At the beginning of sim this is the desired start lane.
+    // During sim this is the localized lane. The current_lane should always
+    // be in the first segment in segments.
+    current_lane : LanePoseFB;
+
+    segments : [NavRouteSegmentFB];
+}

@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "options.proto";
+
+
+message InstancePoseMetadata
+{
+    uint32 instance_id = 1;
+}
+
+// Config message for Instance Pose annotation data
+message InstancePoseAnnotatorConfig
+{
+    string input_instance_map = 1  [(type)=eMeshIDMap, (stream)=eInput];
+    string output_path = 2         [(type)=eAnnotation, (stream)=eOutput];
+}

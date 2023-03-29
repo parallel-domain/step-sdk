@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "options.proto";
+import "geometry.proto";
+
+// Config message for Generate2DBoundingBoxes
+message BoundingBox2DConfig
+{
+    string input_instance_mask = 1  [(type)=eImage, (stream)=eInput];
+    string input_instance_map = 2   [(type)=eMeshIDMap, (stream)=eInput];
+    string input_semantic_map = 4 [(type)=eMeshIDMap, (stream)=eInput];
+    string output_path = 3          [(type)=eAnnotation, (stream)=eOutput];
+}
+
+enum VisibilitySampleType
+{
+    eInstanceSample = 0;
+    eMeshSample = 1;
+    eSubmeshSample = 2;
+}
+
+message VisibilitySampleMetadata
+{
+    VisibilitySampleType type = 1;
+    string label = 2;
+    uint32 instance_id = 3;
+    uint32 semantic_id = 13;
+    uint32 mesh_id = 4;
+    uint32 submesh_index = 5;
+
+    Box2D bounds = 6;
+    Box2D visible_bounds = 7;
+    float visibility = 8;
+    float truncation = 9;
+
+    uint32 num_total_points = 10;
+    uint32 num_visible_points = 11;
+    uint32 num_on_screen_points = 12;
+}

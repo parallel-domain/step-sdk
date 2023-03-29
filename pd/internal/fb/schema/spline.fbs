@@ -1,0 +1,15 @@
+include "types.fbs";
+
+table SplineFB
+{
+	id : uint64 (key);
+	name : string;
+    spline	: [float4x4_t];
+    timestamps : [float];
+}
+
+table SplineInfoFB
+{
+    splines : [SplineFB];
+}
+

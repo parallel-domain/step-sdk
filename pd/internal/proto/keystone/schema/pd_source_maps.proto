@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package keystone;
+
+message SourceMaps
+{
+    string artifact_key = 1;
+    string output_artifact_uid = 2;
+
+    message MapSector
+    {
+        string map_sector_key = 1;
+        string map_sector_uid = 2;
+    }
+    MapSector map_sector = 3;
+
+    string code_build_artifact_uid = 4;
+    string osm_branch = 5;
+    string osm_feature_search = 6;
+    int32 zoom_level = 7;
+    int32 total_maps = 8;
+    string parent_region = 9;
+    bool avoid_overlap_production_locations = 10;
+    bool restrict_to_elevation_data = 11;
+    int32 source_location_seed = 12;
+    string osmcell_uid = 13;
+}
+// next idx 14

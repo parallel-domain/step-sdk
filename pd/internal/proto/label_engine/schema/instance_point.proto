@@ -1,0 +1,129 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "options.proto";
+
+// Config message for Instance Point 3D annotation data
+message InstancePoint3DAnnotatorConfig
+{
+  string input_instance_map = 1  [(type)=eMeshIDMap, (stream)=eInput];
+  string output_path = 2         [(type)=eAnnotation, (stream)=eOutput];
+}
+
+message InstancePoint3DMetadata
+{
+    uint32 instance_id = 1;
+
+    oneof data {
+        TrailerPointData trailer_point_data = 2;
+        VehiclePointData vehicle_point_data = 3;
+        ParkingPointData parking_point_data = 4;
+        PedestrianPointData pedestrian_point_data = 5;
+        WheelPointData wheel_point_data = 6;
+    }
+}
+
+// Config message for Instance Point 2D annotation data
+message InstancePoint2DAnnotatorConfig
+{
+  string input_instance_map = 1  [(type)=eMeshIDMap, (stream)=eInput];
+  string output_path = 2         [(type)=eAnnotation, (stream)=eOutput];
+}
+
+message InstancePoint2DMetadata
+{
+    uint32 instance_id = 1;
+
+    oneof data {
+        TrailerPointData trailer_point_data = 2;
+        VehiclePointData vehicle_point_data = 3;
+        ParkingPointData parking_point_data = 4;
+        PedestrianPointData pedestrian_point_data = 5;
+        WheelPointData wheel_point_data = 6;
+    }
+
+    bool visibility = 7;
+}
+
+message TrailerPointData
+{
+    enum TrailerPointType
+    {
+        HITCH_BALL = 0;
+        BOTTOM_LEFT = 1;
+        BOTTOM_CENTER = 2;
+        BOTTOM_RIGHT = 3;
+        TOP_LEFT = 4;
+        TOP_RIGHT = 5;
+        DRAWBAR_TRIANGLE_LEFT = 6;
+        DRAWBAR_TRIANGLE_RIGHT = 7;
+        DRAWBAR_NECK = 8;
+    }
+    TrailerPointType type = 1;
+}
+
+message ParkingPointData
+{
+    enum ParkingPointType
+    {
+        CORNER_1 = 0;
+        CORNER_2 = 1;
+        CORNER_3 = 2;
+        CORNER_4 = 3;
+    }
+    ParkingPointType type = 1;
+}
+
+message VehiclePointData
+{
+    enum VehiclePointType
+    {
+        FRONT_LEFT = 0;
+        FRONT_RIGHT = 1;
+        REAR_LEFT = 2;
+        REAR_RIGHT = 3;
+    }
+    VehiclePointType type = 1;
+}
+
+message WheelPointData
+{
+    enum WheelPointType
+    {
+        FRONT_LEFT = 0;
+        FRONT_RIGHT = 1;
+        REAR_LEFT = 2;
+        REAR_RIGHT = 3;
+        FRONT = 4;
+        BACK = 5;
+    }
+    WheelPointType type = 1;
+}
+
+message PedestrianPointData
+{
+    enum PedestrianPointType
+    {
+        ROOT = 0;
+		NECK = 1;
+		NOSE = 2;
+		LEFT_EYE = 3;
+		RIGHT_EYE = 4;
+		LEFT_EAR = 5;
+		RIGHT_EAR = 6;
+		LEFT_SHOULDER = 7;
+		RIGHT_SHOULDER = 8;
+		LEFT_ELBOW = 9;
+		RIGHT_ELBOW = 10;
+		LEFT_WRIST = 11;
+		RIGHT_WRIST = 12;
+		LEFT_HIP = 13;
+		RIGHT_HIP = 14;
+		LEFT_KNEE = 15;
+		RIGHT_KNEE = 16;
+		LEFT_ANKLE = 17;
+		RIGHT_ANKLE = 18;
+    }
+    PedestrianPointType type = 1;
+}

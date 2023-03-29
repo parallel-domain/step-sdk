@@ -1,0 +1,50 @@
+include "speed_request.fbs";
+include "types.fbs";
+
+enum RoleTypeFB : byte
+{
+  NOT_RELEVANT,
+  CLOSEST_IN_PATH_VEHICLE,
+  LATERAL,
+  LONGITUDINAL,
+}
+
+table LateralOffsetRequestFB
+{
+    tmp : uint64;
+}
+
+table RoleFB
+{
+  // The other agent's id
+  agent_id : uint64;
+  
+  role_type : RoleTypeFB;
+  
+  /// Time and distance when the agent enters this role's agent's path. 
+  /// For cases where the other agent is travelling along this agent's path, the arrival time may be
+  /// 0 and the departure time (and distance) may be inf. arrival_distance_m will be the initial distance.
+  arrival_time_s : float;
+  arrival_distance_m : float;
+  departure_time_s : float;
+  departure_distance_m : float;
+  
+  /// Velocity and accel projected onto the heading when the other agent arrives into this agent's path.
+  along_path_velocity_mps : float;
+  along_path_accel_mps2 : float;
+  
+  /// Cross path velocity and accel is positive left.
+  cross_path_velocity_mps : float;
+  cross_path_accel_mps2 : float;
+  
+  /// Speed request target. This includes stop requests. Will be null if there's no request.
+  speed_request : SpeedRequestFB;
+  
+  /// Lateral offsetting targets. Will be null if there's no request.
+  lateral_offset_request : LateralOffsetRequestFB;
+}
+
+table RoleOutputFB
+{
+    roles : [RoleFB];
+}

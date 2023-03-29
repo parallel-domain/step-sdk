@@ -1,0 +1,637 @@
+syntax = "proto2";
+
+import "pd_distributions.proto";
+import "pd_unified_generator.proto";
+
+package keystone;
+
+// -------------------------- OLD GENERATOR MESSAGES -------------------------
+// do not use
+
+// Default scenario generator
+// Spawn the ego vehicle on a random lane on the map
+// Spawn all other agents around the ego vehicle
+message RandomScenarioGenerator
+{
+
+}
+
+// Generate scenarios that around junctions
+message JunctionScenarioGenerator
+{
+    optional float min_distance_to_junction = 1;
+    optional float max_distance_to_junction = 2;
+    optional float crowd_density = 3;
+    optional SignalLightDistribution signal_light_distribution = 4;
+    optional TurnTypeDistribution turn_type_distribution = 5;
+
+    // use a list of junction ids instead of just 1
+    // leaving the junction_id field in for compatibility with old spawn configs
+    optional uint64 junction_id = 6;
+    repeated uint64 junction_ids = 7;
+}
+
+// Generate scenarios in which
+message VehicleOfInterestGenerator
+{
+	// A list of vehicle model names which are samples and spawned around the ego vehicle
+	repeated string vehicle_list = 1;
+	// Maximum distance of a special vehicle in front of the ego vehicle
+	optional float max_distance_front = 2;
+	// Maximum distance of a special vehicle behind the ego vehicle
+	optional float max_distance_back = 3;
+    // Minimum number of vehicles that are placed per scenario
+    optional int32 min_number_of_vehicles = 4;
+    // Maximum number of vehicles that are placed per scenario
+    optional int32 max_number_of_vehicles = 5;
+    // Spawn vehicles on opposite lanes if available
+    optional bool include_opposite_lanes = 6;
+}
+
+// Generate kitti-like scenarios
+message KittiScenarioGenerator
+{
+    optional float min_distance_to_junction = 1;
+    optional float max_distance_to_junction = 2;
+    optional TurnTypeDistribution turn_type_distribution = 4;
+}
+
+message PositionGenerator
+{
+    optional float radius_to_star_min = 1;
+    optional float radius_to_star_max = 2;
+    repeated string star_vehicles = 3;
+    repeated uint64 junction_ids = 4;
+    optional bool face_same_direction = 5;
+    optional bool ego_behind_star = 6;
+}
+
+// -------------------------- END OF OLD GENERATOR MESSAGES -------------------------
+
+
+message AgentStateProbabilityConfig
+{
+	optional string  stateName = 1 [default = ""];
+    optional float probability = 2 [default = 0];
+    optional float probabilitySpread = 3 [default = 0];
+    optional float time = 4 [default = 0];
+    optional float timeSpread = 5 [default = 0];
+    // Default value of max int32 for max per scene so it has no effect by default.
+    optional int32 maxPerScene = 6 [default = 2147483647];
+	optional float allowedAfter = 7 [default = 0];
+}
+
+message SpawnConfigPreset
+{
+    enum RoadType
+    {
+        MOTORWAY        = 0;
+        TRUNK           = 1;
+        PRIMARY         = 2;
+        SECONDARY       = 3;
+        TERTIARY        = 4;
+        UNCLASSIFIED    = 5;
+        RESIDENTIAL     = 6;
+        MOTORWAY_LINK   = 7;
+        TRUNK_LINK      = 8;
+        PRIMARY_LINK    = 9;
+        SECONDARY_LINK  = 10;
+        TERTIARY_LINK   = 11;
+        SERVICE         = 12;
+        DRIVEWAY        = 13;
+        PARKING_AISLE   = 14;
+    }
+
+	oneof generator {
+		RandomScenarioGenerator random_generator = 31;
+		JunctionScenarioGenerator junction_generator = 32;
+		VehicleOfInterestGenerator voi_generator = 33;
+        KittiScenarioGenerator kitti_generator = 34;
+        PositionGenerator position_generator = 36;
+	}
+
+    optional float searchRadius = 1 [default = 150.0];
+    optional float startVelocity = 2 [default = 20.0];
+    optional float startVelocitySpread = 3 [default = 2.0];
+    optional float startSeparation = 4 [default = 10.0,deprecated=true];
+    optional float startSeparationSpread = 5 [default = 3.0,deprecated=true];
+    optional float targetVelocity = 6 [default = 25.0];
+    optional float targetVelocitySpread = 7 [default = 2.0];
+    optional float targetSeparation = 8 [default = 10.0,deprecated=true];
+    optional float targetSeparationSpread = 9 [default = 3.0,deprecated=true];
+    optional float vehicleDensityModifier = 26 [default = 0.8];
+    optional float aggression = 10 [default = 0.5];
+    optional float aggressionSpread = 11 [default = 0.2];
+    optional float laneOffset = 12 [default = 0.0];
+    optional float laneOffsetSpread = 13 [default = 0.25];
+    optional float laneDriftAmp = 14 [default = 0.75];
+    optional float laneDriftAmpSpread = 15 [default = 0.25];
+    optional float laneDriftScale = 16 [default = 100.0];
+    optional float laneDriftScaleSpread = 17 [default = 20.0];
+    optional float pedestrianSpawnRadius = 25 [default = 75.0];
+    optional float pedestrianVelocity = 18 [default = 1.1];
+    optional float pedestrianVelocitySpread = 19 [default = 0.5];
+    optional int32 numberOfPedestrians = 20 [default = 100];
+    optional int32 numberOfAnimals = 27 [default = 2];
+    optional bool enableCrosswalkPlacement = 22 [default = false];
+    optional bool enableDynamicLaneSelection = 24 [default = true];
+    optional bool enableJunctionPlacement = 28 [default = false];
+    repeated RoadType egoRoadTypes = 29;
+    repeated RoadType vehicleRoadTypes = 30;
+    optional bool bicyclesOnlyInBikeLanes = 35 [default = true];
+    optional float egoLaneChangeChance = 37 [default = 0.005];
+    optional float egoLaneChangeChanceSpread = 38 [default = 0.0];
+    optional float egoLaneChangeCooldown = 39 [default = 10.0];
+    optional float egoLaneChangeCooldownSpread = 40 [default = 0.0];
+    optional bool egoPedestrians = 41 [default = false];
+    optional bool spawnPedestriansOnRoad = 43 [default = false];
+    optional float pedestrianIdleProbability = 44 [deprecated=true];
+    optional float pedestrianIdleProbabilitySpread = 45 [deprecated=true];
+    optional float egoPedestrianExclusionRadius = 47 [default = 5.0];
+    optional float egoPedestrianExclusionRadiusSpread = 48 [default = 0.0];
+    optional bool disableAccessories = 42 [default = false];
+    optional bool disableOccupants = 46 [default = false];
+    optional bool alignEgoPedestrianToLane = 49 [default = true];
+    optional float emergencyLightsOnProbability = 50 [default = 0.2];
+    optional float emergencyLightsOnProbabilitySpread = 51 [default = 0.0];
+    optional ParkingTypeDistribution parkingTypeDistribution = 52;
+
+    optional float parkedVehicleSpawnProbability = 53 [default = 0.4];
+    optional float parkedVehicleSpawnProbabilitySpread = 54 [default = 0.1];
+    optional float parkedVehicleSpawnRadius = 64 [default = 50.0];
+
+    optional float egoMinDistToEdge = 55 [default = 100.0];
+    optional float egoMinDistToEdgeSpread = 56 [default = 0.0];
+    optional float egoMinPathLength = 57 [default = 200.0];
+    optional float egoMinPathLengthSpread = 58 [default = 0.0];
+
+    optional bool egoForceMinLengthBehind = 59 [default = false];
+
+    optional float laneChangeChance = 60 [default = 0.005];
+    optional float laneChangeChanceSpread = 61 [default = 0.0];
+    optional float laneChangeCooldown = 62 [default = 10.0];
+    optional float laneChangeCooldownSpread = 63 [default = 0.0];
+
+    optional string egoVehicleModel = 65 [default = "suv_medium_02"];
+
+    optional float pedestrianColorOverrideChance = 66 [default = 0.0];
+    optional float pedestrianColorOverrideChanceSpread = 67 [default = 0.0];
+    repeated float pedestrianColorOverrideRGB = 68;
+
+    map<string, VehicleCategoryWeight> vehicleDistribution = 23;
+
+    optional CenterSpreadProbabilityConfig rollingStop = 69;
+    optional CenterSpreadProbabilityConfig stopLineOffset = 70;
+    
+    optional float proceedOutOfTurnProbability = 71 [default = 0.0];
+	
+	repeated AgentStateProbabilityConfig agentStateProbabilities = 76;
+	
+	optional float pedestrianJaywalkLookAhead = 77 [default = 10.0];
+    optional float pedestrianJaywalkRadius = 78 [default = 15.0];
+    optional float pedestrianJaywalkAngle = 79[default = 35.0];
+    optional float pedestrianSpawnTightness = 80[default = 2.4];
+    optional float pedestrianSpawnMinEdgeDistance = 81 [default = 0.0];
+    
+    optional bool enableDrivewayPlacement = 82 [default = false];
+
+    optional EnumDistribution turnTypeDistribution = 83;
+
+    map<string, CenterSpreadConfig> startSeparationTime = 84;
+    map<string, CenterSpreadConfig> targetSeparationTime = 85;
+
+    optional CenterSpreadConfigInt egoMinLaneCountDist = 86;
+    optional CenterSpreadConfig laneStartOffset = 87;
+
+    optional bool applyRollingStopToEgo = 88 [default = true];
+    optional bool applyStopLineOffsetToEgo = 89 [default = true];
+    optional bool applyProceedOutOfTurnProbabilityToEgo = 90 [default = true];
+
+    optional CenterSpreadConfig signDensity = 91;
+    optional CenterSpreadConfig crosswalkSignDensity = 92;
+
+    repeated string egoIgnoreObstacleTypes = 93;
+
+    map<string, RoadMarkingData> markerDataMap = 94;
+
+    optional bool randomizeVehicleParts = 95 [default = true];
+    
+    optional bool instanceParallelParkingSpaces = 96 [default = true];
+    optional bool instanceParallelParkingMarkers = 97 [default = true];
+
+    optional string region = 98 [default = "None"];
+
+    map<string, float> spawnTrailerProbabilities = 99;
+    optional float spawnTrailerOnEgoProbability = 100 [default = 0];
+    optional int32 minNumberOfPedestrians = 101 [default = 0];
+    optional bool pedestriansSpawnInParkingLot = 102 [default = false];
+
+    optional CenterSpreadConfig lightFlashingPeriod = 103;
+    optional CenterSpreadConfig lightIlluminatedPercentage = 104;
+	
+    optional bool pedestriansDynamicPathing = 105 [default = true];
+
+
+    optional bool useStaticTrailers = 106 [default = false];
+	optional int32 minNumberOfAnimals = 107 [default = 0];
+	optional string animalSpeciesAllowed = 108 [default = "dog,cat,rabbit,raccoon,squirrel"];
+
+    optional bool restrictLargeVehicleLaneCurvature = 109 [default = true];
+    optional float largeVehicleTurnRadiusMultiple = 110 [default = 3];
+}
+
+message SpawnConfig
+{
+    optional CategoricalDistribution preset_distribution = 1;
+    repeated SpawnConfigPreset presets = 2;
+}
+
+
+// Below are schemas for new generator configs
+
+message RandomLaneScenarioGeneratorInfo
+{
+
+}
+
+// Generate scenarios that around junctions
+message JunctionScenarioGeneratorInfo
+{
+    optional float min_distance_to_junction = 1 [default = 2.0];
+    optional float max_distance_to_junction = 2 [default = 10.0];
+    optional SignalLightDistribution signal_light_distribution = 3;
+    optional TurnTypeDistribution turn_type_distribution = 4;
+    optional uint64 junction_id = 5;
+    repeated uint64 junction_ids = 6;
+    optional float crowd_density = 7 [default = 0.5];
+
+    optional bool force_cross_traffic = 8 [default = false];
+    optional EnumDistribution control_type_distribution = 9;
+    optional EnumDistribution geometry_type_distribution = 10;
+    optional EnumDistribution road_type_distribution = 11;
+
+    optional bool allow_crossing_peds = 12;
+    optional bool enable_vehicle_occlusions = 13 [default = false];
+    optional bool enable_prop_occlusions = 14 [default = false];
+
+    optional CenterSpreadConfig prop_occlusion_spacing_dist = 15;
+    optional CenterSpreadConfigInt prop_occlusion_count_dist = 16;
+
+    optional CenterSpreadConfig occlusion_offset_dist = 17;
+
+    optional bool use_cross_road_speed_limit = 18 [default = false];
+    optional MinMaxConfigFloat cross_road_speed_limit_mps = 19;
+
+    optional bool use_only_cross_roads_with_straight_turn_type = 20 [default = false];
+
+    optional bool ego_stopped_at_junction = 21 [default = false];
+
+    optional float cone_placement_freq = 22 [default = 0.0];
+    optional float cone_placement_max_dist = 23 [default = 200.0];
+}
+
+// Generate scenarios in which vehicle model names are sampled and spawned around the ego vehicle
+message VehicleOfInterestScenarioGeneratorInfo
+{
+	// A list of vehicle model names which are samples and spawned around the ego vehicle
+	repeated string vehicle_list = 1;
+	// Maximum distance of a special vehicle in front of the ego vehicle
+	optional float max_distance_front = 2 [default = 50.0];
+	// Maximum distance of a special vehicle behind the ego vehicle
+	optional float max_distance_back = 3 [default = 50.0];
+    // Minimum number of vehicles that are placed per scenario
+    optional int32 min_number_of_vehicles = 4 [default = 1];
+    // Maximum number of vehicles that are placed per scenario
+    optional int32 max_number_of_vehicles = 5 [default = 4];
+    // Spawn vehicles on opposite lanes if available
+    optional bool include_opposite_lanes = 6 [default = true];
+}
+
+// Generate kitti-like scenarios
+message KittiScenarioGeneratorInfo
+{
+    optional float min_distance_to_junction = 1 [default = 2.0];
+    optional float max_distance_to_junction = 2 [default = 10.0];
+    optional TurnTypeDistribution turn_type_distribution = 4;
+}
+
+// Generate scenarios with vehicle placement requirements
+message VehiclePositionScenarioGeneratorInfo
+{
+    optional float radius_to_star_min = 1 [default = 10.0];
+    optional float radius_to_star_max = 2 [default = 50.0];
+    repeated string star_vehicles = 3;
+    repeated uint64 junction_ids = 4;
+    optional bool face_same_direction = 5 [default = false];
+    optional bool ego_behind_star = 6 [default = false];
+    optional bool place_on_shoulder = 7 [default = false];
+    optional bool peds_around_star_vehicle = 8 [default = false];
+    optional uint32 num_stars_in_scene_min = 9 [default = 1];
+    optional uint32 num_stars_in_scene_max = 10 [default = 1];
+    optional bool star_on_same_road = 11 [default = false];
+    optional bool ego_in_star_adjacent_lane = 13 [default = false];
+    optional float star_vehicle_peds_min_distance = 14 [default = 2.0];
+    optional float star_vehicle_peds_max_distance = 15 [default = 5.0];
+    optional float star_vehicle_peds_social_distancing = 16 [default = 2.0];
+    optional bool star_vehicle_peds_place_between_ego_and_star = 18 [default = true];
+    optional float star_vehicle_peds_max_distance_from_driveable_lane = 19 [default = 2.5];
+
+    optional float shoulder_peds_max_distance_from_ref = 17 [default = 4.0];
+
+    optional int32 min_peds_per_star = 20 [default = 1];
+    optional int32 max_peds_per_star = 21 [default = 2];
+
+    optional int32 min_peds_no_stars = 22 [default = 1];
+    optional int32 max_peds_no_stars = 23 [default = 5];
+
+    optional int32 max_attempts_to_place_each_ped = 24 [default = 100];
+    optional int32 max_attempts_to_place_each_star = 25 [default = 10];
+    optional int32 max_lane_recursions_to_check_ego_adjacency = 26 [default = 30];
+
+    optional float scenario_fov_cull_limit = 27 [default = 0.0];
+    optional bool scenario_los_cull = 28 [default = true];
+
+    optional float reduce_spawn_to_zero_at_star_range = 29 [default = 500.0];
+
+    optional CategoricalDistribution ped_pose_distribution = 12;
+
+    optional CenterSpreadConfig emergency_vehicle_spawn_behind_star_probability = 30;
+    optional float emergency_vehicle_distance_behind_star = 31 [default = 5.0];
+    optional uint32 min_emergency_vehicles_per_star = 32 [default = 0];
+    optional uint32 max_emergency_vehicles_per_star = 33 [default = 3];
+    optional string emergency_vehicle_asset_tag = 34 [default = "police_vehicle,fire_truck,ambulance"];
+    optional string emergency_vehicle_country_tag = 35 [default = ""];
+}
+
+// Generate scenarios with certain lane types
+message LaneTypeScenarioGeneratorInfo
+{
+    // umd lane type enum converted to int
+    optional int32 lane_type = 1 [default = 1]; // 1 = enum value for drivable lane
+
+    // dead zone before end of a parking aisle lane 
+    optional float dead_zone = 2 [default = 10.0];
+    optional float dead_zone_spread = 3 [default = 0.0];
+
+    optional string asset_tags = 4;
+    optional CenterSpreadConfig asset_search_radius = 5;
+    optional MinMaxConfigInt num_instances = 6;
+}
+
+message StaticCamScenarioGeneratorInfo
+{
+    // Distance from junction to spawn sensors
+    optional float distance_from_junction = 1 [default = 10.0];
+    optional float distance_from_junction_spread = 2 [default = 5.0];
+
+    // Elevation above road to spawn sensors
+    optional float elevation = 3 [default = 5.0];
+    optional float elevation_spread = 4 [default = 2.0];
+}
+
+message JaywalkingScenarioGeneratorInfo
+{
+	optional float jaywalkerMaxDistance = 1 [default = 50.0];
+	optional float jaywalkerMinDistance = 2 [default = 10.0];
+	optional float jaywalkerConeAngle = 3 [default = 45.0];
+	optional float jaywalkerEgoCarlengths = 4 [default = 3.0];
+	optional float jaywalkerFinalRadiusSpread = 5 [default = 3.0];
+	optional int32 jaywalkerNumber = 6 [default = 1];
+	optional float jaywalkerRoadDistanceMax = 7 [default = 1.0];
+	optional float jaywalkerRoadDistanceMin = 8 [default = 0.0];
+	optional bool generateOccluders = 9 [default = false];
+	optional bool placeCarOccluders = 10 [default = false];
+	optional bool placePropOccluders = 11 [default = false];
+	optional float animalProbability = 12 [default = 0.0];
+    optional float coneDensity = 13 [default = 0.0];
+    optional float vehicleOccluderPreference = 14 [default = 0.5];
+    optional SignalLightDistribution signal_light_distribution = 15;
+}
+
+message PropScenarioGeneratorInfo
+{
+    // generator for placing static objects in the scene
+    optional float propMaxDistance = 1 [default = 15.0];
+    optional float propMinDistance = 2 [default = 20.0];
+
+    optional bool placeMessageBoard = 3 [default = true];
+    optional string initialMessageBoardAssetTag = 4 [default = ""];
+    optional string initialMessageBoardRightAssetTag = 31 [default = ""];
+
+    optional bool placeIntermediateMessageBoards = 5 [default = false];
+    optional float placeIntermediateMessageBoardsProbability = 43 [default = 0.3];
+    optional string intermediateMessageBoardAssetTag = 6 [default = ""];
+    optional string intermediateMessageBoardRightAssetTag = 32 [default = ""];
+    optional float intermediateMessageBoardAngleVariation = 7 [default = 0.1];
+
+    optional CenterSpreadConfig coneSpacing = 8;
+    optional float maxConeSpacingDeviationPercent = 9 [default = 0.25];
+    optional float maxLateralTaperConeSpacingDeviation = 33 [default = 0.1];
+    optional float maxLateralClosureConeSpacingDeviation = 34 [default = 0.05];
+    optional float maxLateralLeadConeSpacingDeviation = 35 [default = 0.05];
+    optional float maxConeAngleDeviation = 10 [default = 0.2];
+    optional string coneAssetTag = 11 [default = "cone_lane_closure"];
+
+    optional float taperLowerSpeedThreshold = 12 [default = 40.0];
+    optional float taperUpperSpeedThreshold = 13 [default = 45.0];
+    optional float taperSlowFormulaDemoninator = 14 [default = 60.0];
+    optional float minTaperLength = 15 [default = 30.0];
+    optional float taperLengthSpeedSpreadPercent = 16 [default = 0.1];
+    optional float taperLengthScaleFactor = 17 [default = 0.7];
+
+    optional int32 minLanesToClose = 18 [default = 1];
+    optional int32 maxLanesToClose = 19 [default = 2];
+
+    optional bool placeLeadCones = 20 [default = true];
+    optional CenterSpreadConfig leadConeLength = 21;    // Used for multi lane closures
+    optional CenterSpreadConfig leadConeLengthForSingleLaneClosure = 29;
+
+    optional bool placeClosureCones = 22 [default = true];
+    optional CenterSpreadConfig closureConeLength = 23; // Used for multi lane closures
+    optional CenterSpreadConfig closureConeLengthForSingleLaneClosure = 30;
+
+    optional float rightSideClosureProbability = 24 [default = 0.5];
+
+    optional string propVehicleTag = 25 [default = "construction_vehicle"];
+    optional string propTag = 26 [default = "lane_closure_vignette"];
+    optional CenterSpreadConfig leadConeSpacing = 27;
+    optional CenterSpreadConfig closureConeSpacing = 28;
+
+    optional bool scenario_cull_on_bad_cone_los = 36 [default = true];
+    optional float scenario_cull_on_bad_cone_fov = 37 [default = 0.0];
+
+    optional float reduce_spawn_to_zero_at_construction_range = 38 [default = 500.0];
+
+    optional float missing_cone_chance = 39 [default = 0.05];
+    optional CenterSpreadConfig num_fallen_cone_groups = 40;
+    optional CenterSpreadConfig size_fallen_cone_groups = 41;
+    optional string suffix_fallen_cone_assets = 42 [default = "_fallen_over"];
+
+    optional float vehiclePlacementProbability = 46 [default = 0.5];
+}
+
+message DebrisScenarioGeneratorInfo
+{
+    // generator for placing debris objects in the scene
+    optional float smallDebrisDensity = 1 [default = 0.01];
+    optional float largeDebrisDensity = 2 [default = 0.01];
+    optional float foliageDensity = 3 [default = 0.01];
+    optional float smallDebrisCenterBias = 4 [default = 0.0];
+    optional float largeDebrisCenterBias = 5 [default = 0.0];
+    optional float foliageCenterBias = 6 [default = 0.0];
+    optional float minFoliageDistance = 7 [default = 0.0];
+    optional float maxFoliageDistance = 8 [default = 50.0];
+    optional float minLargeDebrisDistance = 9 [default = 0.0];
+    optional float maxLargeDebrisDistance = 10 [default = 50.0];
+    optional float minSmallDebrisDistance = 11 [default = 0.0];
+    optional float maxSmallDebrisDistance = 12 [default = 50.0];
+    optional string smallDebrisAssetTag = 13 [default = ""];
+    optional string largeDebrisAssetTag = 14 [default = ""];
+    optional string foliageDebrisAssetTag = 15 [default = ""];
+    optional string smallDebrisAssetRemoveTag = 16 [default = ""];
+    optional string largeDebrisAssetRemoveTag = 17 [default = ""];
+    optional string foliageDebrisAssetRemoveTag = 18 [default = ""];
+
+    optional float minHeightDebrisToPlaceAtLaneEdges = 19 [default = 0.10];
+    optional float minDistanceFromLaneEdgeForShortDebris = 20 [default = 0.2];
+}
+
+message DrivewayScenarioGeneratorInfo
+{
+    // generator for placing vehicles in driveways and driving by as they pull out.
+    optional float minDrivewayLongitudinalOffsetPercentage = 1 [default = 0.0];
+    optional float maxDrivewayLongitudinalOffsetPercentage = 2 [default = 1.0];
+    optional float minDrivewayLateralOffsetPercentage = 3 [default = 0.5];
+    optional float maxDrivewayLateralOffsetPercentage = 4 [default = 0.5];
+    optional float vehicleDepartsDrivewayProbability = 5 [default = 0.0];
+    optional float minEgoSpawnDistFromDriveway = 6 [default = 0.0];
+    optional float maxEgoSpawnDistFromDriveway = 7 [default = 20.0];
+    optional float drivewayVehiclesFacingRoadProbability = 8 [default = 1.0];
+    
+    optional bool enableVehicleOcclusions = 9 [default = false];
+    optional bool enablePropOcclusions = 10 [default = false];
+
+    optional CenterSpreadConfig propOcclusionSpacingDist = 11;
+    optional CenterSpreadConfigInt propOcclusionCountDist = 12;
+
+    optional CenterSpreadConfig occlusionOffsetDist = 13;
+
+    optional EnumDistribution egoSpawnLocationProbability = 14;
+
+    optional bool excludeDrivewayRoadType = 15;
+    optional bool excludeDrivewayParkingEntryRoadType = 16;
+
+    optional bool placeEgoOnClosestCrossRoadLane = 17 [default = true];
+
+    optional bool useBrakeUntilEgoTimeToAgent = 18 [default = true];
+    optional CenterSpreadConfig brakeUntilEgoTimeToAgentS = 19;
+}
+
+message AllVehicleTestScenarioGeneratorInfo
+{
+    optional bool leftOfEgo = 1 [default = true];
+    optional bool rightOfEgo = 5 [default = true];
+    optional bool renderVehiclesBehindEgo = 6 [default = true];
+    optional float egoSpeed = 3 [default = 15.0];
+    optional float egoStart_t = 7 [default = 1.0];
+    optional float testVehiclesSpeed = 2 [default = 2.0];
+    optional float startSeparationS = 4 [default = 0.0];
+    repeated string vehicleExclusionList = 8;
+    optional int32 includeOnlyVehiclesInExclusionList = 9 [default = 0];
+    optional int32 scenarioType = 10 [default = 0];
+    repeated string assetIncludeList = 11;
+    repeated string assetExcludeList = 12;
+    optional bool excludeStaticVehicles = 13 [default = false];
+    optional bool excludeMovingVehicles = 14 [default = false];
+
+    // option to render all articulated trailers specified by the include/exclude options
+    // trailers will spawn attached to ego vehicle model specified in spawn config
+    // setting this to true will prevent spawning of moving non trailers and non towing vehicles
+    // excludeMovingVehicles needs to be false
+    optional bool articulatedTrailerTest = 15 [default = false];
+}
+
+enum VehicleType
+{
+    UNDEFINED = 0;
+    MIDSIZE = 1;
+    COMPACT = 2;
+    BUS = 3;
+    TRUCK = 4;
+    SUV = 5;
+    VAN = 6;
+    BICYCLE = 7;
+    MOTORCYCLE = 8;
+    CARAVAN = 9;
+    FULLSIZE = 10;
+    TRAILER = 11;
+    TRAIN = 12;
+}
+
+message CurveScenarioGeneratorInfo
+{
+    optional float minCurvature = 1 [default = 0.001];
+    optional float maxCurvature = 2 [default = 0.1];
+
+    optional float minSectionLength = 3 [default = 5.0];
+    optional float minLongitudinalOffset = 4 [default = -50.0];
+    optional float maxLongitudinalOffset = 5 [default = -20.0];
+
+    optional bool placeOccluders = 6 [default = true];
+    optional VehicleType occludedVehicleType = 7 [default = UNDEFINED];
+}
+
+message ParkingScenarioGeneratorInfo
+{
+    optional EnumDistribution parkingTypeDistribution = 1;
+    optional CenterSpreadConfig egoParkPerturbationAngle = 2;
+    optional CenterSpreadConfig egoParkPerturbationLongitudinalOffset = 3;
+    optional CenterSpreadConfig egoParkPerturbationLateralOffset = 4;
+    optional float pullOutProbability = 5;
+    optional float noseInProbability = 6;
+    optional CenterSpreadConfig timeToParkingSpace = 7;
+    optional CenterSpreadConfig parkingSpacePedestrianDensity = 8;
+    optional int32 maxPedsInParkingSpaces = 9 [default = 50];
+    optional CenterSpreadConfig aisleLateralOffsetNoseIn = 10;
+    optional CenterSpreadConfig aisleLateralOffsetBackIn = 11;
+    optional bool exitAfterParking = 12 [default = false];
+    optional bool exitStraight = 13 [default = false];
+    optional bool placeVehicleInFrontOfParallelSpot = 14 [default = false];
+}
+
+message DroneFlightScenarioGeneratorInfo
+{
+	optional float maxRadiusFromTarget = 1;
+	optional string descentPathName = 2;
+}
+
+// Config wrapper
+message GeneratorConfigPreset
+{
+	oneof generator {
+		RandomLaneScenarioGeneratorInfo random_generator = 1;
+		JunctionScenarioGeneratorInfo junction_generator = 2;
+		VehicleOfInterestScenarioGeneratorInfo voi_generator = 3;
+        KittiScenarioGeneratorInfo kitti_generator = 4;
+        VehiclePositionScenarioGeneratorInfo position_generator = 5;
+        LaneTypeScenarioGeneratorInfo lane_generator = 6;
+        StaticCamScenarioGeneratorInfo static_cam_generator = 7;
+		JaywalkingScenarioGeneratorInfo jaywalking_generator = 8;
+        PropScenarioGeneratorInfo prop_generator = 9;
+        DebrisScenarioGeneratorInfo debris_generator = 10;
+        DrivewayScenarioGeneratorInfo driveway_generator = 11;
+        AllVehicleTestScenarioGeneratorInfo all_vehicle_test_generator = 12;
+        CurveScenarioGeneratorInfo curve_generator = 13;
+        ParkingScenarioGeneratorInfo parking_generator = 14;
+		DroneFlightScenarioGeneratorInfo drone_generator = 15;
+        UnifiedGeneratorParameters unified_generator = 16;
+	}
+}
+
+// Root generator message, stores weights and presets
+message GeneratorConfig
+{
+    optional CategoricalDistribution preset_distribution = 1;
+    repeated GeneratorConfigPreset presets = 2;
+}
+

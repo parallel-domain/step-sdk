@@ -1,0 +1,85 @@
+{
+  "sensor_configs":
+  [
+    {
+      "display_name": "BEV",
+      "camera_intrinsic": {
+       "width": 2000,
+       "height": 2000,
+       "supersample": 1,
+       "capture_rgb": true,
+       "capture_depth": true,
+       "capture_normals": false,
+       "capture_segmentation": true,
+       "capture_instance": true,
+       "capture_detections": true,
+       "capture_motionvectors": false,
+       "lut": "Texture2D'/Game/pd/Textures/LUT/T_LUT_Aladdin_overcast_01.T_LUT_Aladdin_overcast_01'",
+       "lut_weight": 0.0,
+       "post_process": [
+        {
+         "material": "MaterialInstanceConstant'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens'",
+         "weight": 1
+        }
+       ],
+       "distortion_params": {
+        "k1": 0,
+        "k2": 0,
+        "k3": 0,
+        "k4": 0,
+        "k5": 0,
+        "k6": 0,
+        "p1": -200,
+        "p2": 30,
+        "skew": 0,
+        "fx": 20,
+        "fy": 20,
+        "cx": 1000,
+        "cy": 1000,
+        "fisheye_model": 6,
+        "is_fisheye": false
+       },
+       "noise_params": {
+        "enable_bayer": false,
+        "enable_gauss_noise": false,
+        "enable_poisson_noise": false,
+        "enable_denoise": false,
+        "iso_level": 200,
+        "gauss_noise_sigma": 0.025,
+        "poisson_noise_lambda": 1000,
+        "denoise_filter": "MEDIAN_FILTER",
+        "denoise_filter_size": 3,
+        "bilateral_sigma_d": 3,
+        "bilateral_sigma_r": 20,
+        "enable_auto_noise": true,
+        "signal_amount": 5223,
+        "pre_amplifier_noise": 7.63,
+        "post_amplifier_noise": 247.5,
+        "is_using_iso": true,
+        "enable_auto_iso": false,
+        "fstop": 1,
+        "max_exposure_time": 0.033,
+        "quantum_efficiency": 0.7
+       },
+       "fov": 0,
+       "enable_streaming": false,
+       "transmit_gray": false,
+       "distortion_lookup_table": "",
+       "capture_basecolor": false,
+       "capture_properties": false,
+       "time_offset": 0
+      },
+      "sensor_extrinsic": {
+       "yaw": 0,
+       "pitch": -90,
+       "roll": 0,
+       "x": 0,
+       "y": 0,
+       "z": 20,
+       "lock_to_yaw": false,
+       "attach_socket": "",
+       "follow_rotation": false
+      }
+    }
+  ]
+}

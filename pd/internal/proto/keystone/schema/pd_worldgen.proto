@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package keystone;
+
+message WorldGenInfo
+{
+    string artifact_key = 1;
+    string output_artifact_uid = 2;
+
+    message Location
+    {
+        string artifact_key = 1;
+        string code_build_artifact_uid = 2;
+        string worldgen_output_artifact_uid = 3;
+        string imported_level_output_artifact_uid = 4;
+        string location_name = 5;
+        string parameters_path = 6;
+        string input_file_path = 7;
+        string geojson_path = 8;
+    }
+    repeated Location location_list = 3;
+
+}

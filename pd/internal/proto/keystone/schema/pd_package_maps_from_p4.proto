@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package keystone;
+
+message PackageMapsFromP4
+{
+    string artifact_key = 1;
+    string output_artifact_uid = 2;
+    string code_build_artifact_uid = 3;
+    string base_changelist = 4;
+    string unshelve_changelist = 5;
+
+    message Map
+    {
+        string map_output_artifact_uid = 1;
+        string map_name = 2;
+        string parameters_path = 3;
+        string input_file_path = 4;
+        string geojson_path = 5 [deprecated = true];
+        string elevation_path = 6;
+    }
+    repeated Map map_list = 6;
+
+}
+// next idx 7

@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package keystone;
+
+message WorldCookFromP4Info
+{
+    string artifact_key = 1;
+    string output_artifact_uid = 2;
+
+    message Location
+    {
+      string location_output_artifact_uid = 1;
+      string location_name = 2;
+    }
+    repeated Location location_list = 3;
+
+    string code_build_artifact_uid = 4;
+    string base_changelist = 5;
+    string unshelve_changelist = 6;
+}

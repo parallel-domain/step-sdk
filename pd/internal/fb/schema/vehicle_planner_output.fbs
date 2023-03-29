@@ -1,0 +1,102 @@
+include "types.fbs";
+
+table PlanPointFB
+{
+    position : float3_t;
+    heading  : float3_t;
+
+    // Distance from the start of the plan
+    distance_m : float;
+
+    // Maximum speed at this point (target_speed or road speed limit)
+    max_speed_mps : float;
+    accel_min_mps2 : float;
+    accel_max_mps2 : float;
+    jerk_min_mps3 : float;
+    jerk_max_mps3 : float;
+    
+    // Lateral constraints
+    left_obstacle_distance_m : float;
+    right_obstacle_distance_m : float;
+
+    // Gear at this point
+    gear : Gear;
+  
+    // Lane position of this point
+    lane_pose : LanePoseFB;
+
+    // Speed request - for speeds lower than the scenario target_speed or road speed limit.
+    speed_requests : [SpeedRequestFB];
+}
+
+table VehiclePlannerOutputFB
+{
+    points : [PlanPointFB];
+}
+
+//////////////////////////////////////////////////////////////
+// Parking Planner output
+//
+// This should not be used except for internal sim purposes.
+// Backwards compatibility is not guaranteed or enforced.
+//////////////////////////////////////////////////////////////
+
+// For basewords
+// C - curve (left or right)
+// G - gear/direction change
+// S - straight
+enum ReedSheppsBaseWordFB : short
+{
+    INVALID,
+    CGCGC,
+    CCGC,
+    CGCC,
+    CSC,
+    CCuGCuC,
+    CGCuCuGC,
+    CGC90SC90GC,
+    CGC90SC,
+    CSC90GC
+}
+
+enum MotionPrimitiveFB : short
+{
+    STRAIGHT_FORWARD,
+    STRAIGHT_REVERSE,
+    LEFT_FORWARD,
+    LEFT_REVERSE,
+    RIGHT_FORWARD,
+    RIGHT_REVERSE
+}
+
+// This table mirrors the reed_shepps::Step definition in reed_shepps_curves.h
+table ReedSheppsStepFB
+{
+    primitive : MotionPrimitiveFB;
+
+    duration : float;
+
+    length_m : float;
+
+    startPosition : float2_t;
+    startHeading : float2_t;
+    endPosition : float2_t;
+    endHeading : float2_t;
+}
+
+// This table mirrors the reed_shepps::Path definition in reed_shepps_curves.h
+table ReedSheppsCurveFB
+{
+    baseWord : ReedSheppsBaseWordFB;
+
+    steps : [ReedSheppsStepFB];
+
+    turn_radius_m : float;
+
+    length_m : float;
+}
+
+table ParkingPlannerOutputFB
+{
+    curves : [ReedSheppsCurveFB];
+}

@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "google/protobuf/any.proto";
+import "geometry.proto";
+
+
+message GeometryAnnotation
+{
+    // Geoemtric element
+    oneof geometry_oneof {
+        Vector2 point_2d = 1;
+        Line2D line_2d = 2;
+        PolyLine2D poly_line_2d = 3;
+        Polygon2D polygon_2d = 4;
+        Box2D box_2d = 5;
+        Vector3 point_3d = 6;
+        Line3D line_3d = 7;
+        PolyLine3D poly_line_3d = 8;
+        Polygon3D polygon_3d = 9;
+        Cuboid3D cuboid_3d = 10;
+        Transform transform = 11;
+    }
+
+    // Metadata 
+    google.protobuf.Any metadata = 13;
+};
+
+message GeometryCollection
+{
+    // A collection of geometric elements and metadata
+    repeated GeometryAnnotation primitives = 1;
+};
+
+message AnnotationMask
+{
+};
+
+message Annotation
+{
+    // Top level oneof specifying which type of annotation data is stored
+    // in this message
+
+    oneof annotation {
+        GeometryCollection geometry = 1;
+        AnnotationMask mask = 2;
+    }
+};

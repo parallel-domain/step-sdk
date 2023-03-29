@@ -1,0 +1,24 @@
+table SimpleModuleTableAFB
+{
+    a : float;
+    v : [float3_t];
+}
+
+table SimpleModuleTableBFB
+{
+    b : [float];
+    c : float;
+    d : float3_t;
+}
+
+table SimpleModuleConfigFB
+{
+    speed : float;
+}
+
+table SimpleModuleOutputFB
+{
+    distance : float;
+    table_a : [SimpleModuleTableAFB];
+    table_b : SimpleModuleTableBFB;
+}

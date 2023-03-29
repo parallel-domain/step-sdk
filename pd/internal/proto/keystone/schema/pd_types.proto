@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package keystone;
+
+message Float3
+{
+    // Elements of the vector. Not using repeated fields to force correct dimensions.
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
+
+message Float3x3
+{
+    // Rows in the 3x3 matrix. Not using repeated fields to force correct dimensions.
+    Float3 r0 = 1;
+    Float3 r1 = 2;
+    Float3 r2 = 3;
+}
+
+message Pose
+{
+    Float3 position = 1;
+    Float3x3 orientation = 2;
+}

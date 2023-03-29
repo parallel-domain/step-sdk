@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "options.proto";
+
+message IGMetadata
+{
+    map<string, string> metadata_map = 1;
+};
+

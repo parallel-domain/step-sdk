@@ -1,0 +1,40 @@
+include "types.fbs";
+
+table ModelConfigFB
+{
+    asset_name: string;
+
+    lock_to_ground : bool = false;
+    ground_offset : float = 0.0;   
+
+    use_color_rgb: bool;
+    color_rgb: float3_t;
+
+    asset_tags: [string];
+    
+    is_obstacle : bool = false;
+}
+
+table PlacementPolyLineFB
+{
+    polyline    : PolyLineFB;
+    user_data   : string;
+}
+
+union PlacementType
+{
+    // can be expanded with other placement types
+    // polygon, etc
+    PlacementPolyLineFB
+}
+
+table PlacementObjectFB
+{
+    id          : uint64 (key);
+    placement   : PlacementType;
+}
+
+table AssetPlacementFB
+{
+    assets : [PlacementObjectFB];
+}

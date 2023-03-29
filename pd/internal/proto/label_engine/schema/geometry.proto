@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package pd.data;
+
+message Vector2
+{
+    float x = 1;
+    float y = 2;
+};
+
+message Vector3
+{
+    float x = 1;
+    float y = 2;
+    float z = 3;
+};
+
+message Quaternion
+{
+    float w = 1;
+    float x = 2;
+    float y = 3;
+    float z = 4;
+};
+
+message Transform
+{
+    Vector3 scale = 1;
+    Quaternion orientation = 2;
+    Vector3 translation = 3;
+}
+
+message Line2D
+{
+    Vector2 start = 1;
+    Vector2 end = 2;
+};
+
+message PolyLine2D
+{
+    repeated Vector2 vertices = 1;
+};
+
+message Polygon2D
+{
+    repeated Vector2 vertices = 1;
+};
+
+message Box2D
+{
+    Vector2 min = 1;
+    Vector2 max = 2;
+}
+
+message Line3D
+{
+    Vector3 start = 1;
+    Vector3 end = 2;
+};
+
+message PolyLine3D
+{
+    repeated Vector3 vertices = 1;
+};
+
+message Polygon3D
+{
+    repeated Vector3 vertices = 1;
+};
+
+message Cuboid3D
+{
+    Vector3 translation = 1;
+    Vector3 scale = 2;
+    Quaternion rotation = 3;
+};

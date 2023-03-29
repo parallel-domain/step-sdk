@@ -1,0 +1,17 @@
+include "types.fbs";
+
+table EventFB
+{
+	eventType : uint64;
+	source : uint64;
+	destination : uint64;
+	frameIndex : uint64;
+	priority : ushort;
+	payloadType : uint64;
+	payload : string;
+}
+
+table AgentEventsFB
+{
+     events : [EventFB];
+}

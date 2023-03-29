@@ -1,0 +1,128 @@
+// Native type: tropo::float2
+struct float2_t
+{
+    x: float;
+    y: float;
+}
+
+// Native type: tropo::float3
+struct float3_t
+{
+    x: float;
+    y: float;
+    z: float;
+}
+
+// Native type: tropo::quat
+struct quat_t
+{
+    w: float;
+    x: float;
+    y: float;
+    z: float;    
+}
+
+// Native type: tropo::matrix<float, 3, 3>
+struct float3x3_t
+{
+    m00: float;
+    m01: float;
+    m02: float;
+    m03: float;
+
+    m10: float;
+    m11: float;
+    m12: float;
+    m13: float;
+
+    m20: float;
+    m21: float;
+    m22: float;
+    m23: float;
+}
+
+// Native type: tropo::matrix<float, 4, 4>
+struct float4x4_t
+{
+    m00: float;
+    m01: float;
+    m02: float;
+    m03: float;
+
+    m10: float;
+    m11: float;
+    m12: float;
+    m13: float;
+
+    m20: float;
+    m21: float;
+    m22: float;
+    m23: float;
+
+    m30: float;
+    m31: float;
+    m32: float;
+    m33: float;
+}
+
+table PolyLineFB
+{
+    length: float;
+    points: [float3_t];
+}
+
+enum pdPerformanceFeature : uint8
+{
+    HighFidelityMode,
+    PerformanceMode
+}
+
+table AgentTags
+{
+	id : uint64 (key);
+	tags : [string];
+}
+
+table AgentMetadata
+{
+	agent_tags : [AgentTags];
+}
+
+table WorldInfoFB
+{
+    name        : string;
+    time_of_day : string;
+
+    wetness         : float = 0.0;
+    rain_intensity  : float = 0.0;
+    street_lights   : float = 0.0;
+    fog_intensity   : float = 0.0;
+
+    enable_headlights : bool = false;
+
+    performance_feature : pdPerformanceFeature = HighFidelityMode;
+    anti_aliasing : int = 4;
+
+    // For internal use
+    scenario_seed : uint64;
+	
+	// Scenario and special agent info
+	agent_metadata : AgentMetadata;
+}
+
+enum IndicatorState : int { None = 0, Left = 1, Right = 2, Hazards = 3 }
+
+enum Gear : byte
+{
+    PARKED = -2,
+	REVERSE = -1,
+	NEUTRAL = 0,
+	DRIVE = 1
+}
+
+table LanePoseFB
+{
+    lane_id : uint64;
+    frenet_position : float2_t;
+}
+
