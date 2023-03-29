@@ -22,15 +22,15 @@ for detailed documentation.
 You can install the SDK as a library directly from Github:
 
 ```shell
-pip install git+ssh://git@github.com/parallel-domain/pd-api-py.git
+pip install git+ssh://git@github.com/parallel-domain/step-sdk.git
 ```
 
 ### From Source
 
 To run or modify the examples, clone this repo and install from source:
 ```shell
-git clone git@github.com:parallel-domain/pd-api-py.git
-cd pd-api-py
+git clone git@github.com:parallel-domain/step-sdk.git
+cd step-sdk
 pip install .
 ```
 
@@ -44,11 +44,11 @@ pip install .[visualization]
 You can also run the examples via the included docker environment.
 To build the docker image, run:
 ```shell
-docker build -t pd-api-py .
+docker build -t step-sdk .
 ```
 The source code will be available in `/app` inside the container. Run examples like so:
 ```shell
-docker run --rm -it --net host pd-api-py python /app/examples/step/hello_world.py
+docker run --rm -it --net host step-sdk python /app/examples/step/hello_world.py
 ```
 
 ### Requirements

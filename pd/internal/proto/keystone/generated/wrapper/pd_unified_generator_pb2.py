@@ -6,6 +6,30 @@ from pd.internal.proto.keystone.generated.wrapper import pd_distributions_pb2 as
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.AbsolutePositionRequest)
 class AbsolutePositionRequest(ProtoMessageClass):
+    """
+    Description: Uses specific coordinates for initial pose
+
+    Args:
+        position:
+              Description:
+                  XYZ Position to spawn at.
+              Range:
+                  Position existing on map
+              Required:
+                  Yes
+        rotation:
+              Description:
+                  3x3 Rotation matrix for spawning agent.
+              Required:
+                  No, if not specified will determine the rotation based on the lane and position
+        lane_id:
+              Description:
+                  Lane ID to spawn in (UMD)
+              Range:
+                  Lane id of lane specified by position
+              Required:
+                  No, if agent is a vehicle. The lane id will be retrieved from the vehicle's position. Yes, if agent is not a vehicle.
+"""
     _proto_message = pd_unified_generator_pb2.AbsolutePositionRequest
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.AbsolutePositionRequest]=None, lane_id: Optional[int]=None, position: Optional[_pd_types_pb2.Float3]=None, rotation: Optional[_pd_types_pb2.Float3x3]=None):
@@ -47,6 +71,13 @@ class AbsolutePositionRequest(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.AgentSpawnData)
 class AgentSpawnData(ProtoMessageClass):
+    """
+    Contains spawn data that applies across agent types
+
+    Args:
+        tags:
+              Tags we want to apply to this agent
+"""
     _proto_message = pd_unified_generator_pb2.AgentSpawnData
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.AgentSpawnData]=None, tags: Optional[List[SpecialAgentTag]]=None):
@@ -69,6 +100,11 @@ class AgentSpawnData(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.AtomicGeneratorParameters)
 class AtomicGeneratorParameters(ProtoMessageClass):
+    """
+    Description: Parent type for each atomic.
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.AtomicGeneratorParameters
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.AtomicGeneratorParameters]=None, debris: Optional[DebrisGeneratorParameters]=None, drone: Optional[DroneGeneratorParameters]=None, ego_agent: Optional[EgoAgentGeneratorParameters]=None, parked_vehicles: Optional[ParkedVehicleGeneratorParameters]=None, pedestrian: Optional[PedestrianGeneratorParameters]=None, random_pedestrian: Optional[RandomPedestrianGeneratorParameters]=None, static_agent: Optional[StaticAgentGeneratorParameters]=None, traffic: Optional[TrafficGeneratorParameters]=None, vehicle: Optional[VehicleGeneratorParameters]=None):
@@ -274,6 +310,64 @@ class CenterSpreadProbabilityConfig(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.DebrisGeneratorParameters)
 class DebrisGeneratorParameters(AtomicGeneratorMessage):
+    """
+    Description: Places debris into the world. Requires ego atomic.
+
+    Args:
+        spawn_probability:
+              Description:
+                  For every possible spawn location, use the probability to determine if object actually spawns. (i.e controls density)
+              Range:
+                  `0.0` to `1.0`, where `1.0` is the most dense
+              Required:
+                  No, will use default value if not specified
+        debris_center_bias:
+              Description:
+                  Determines where in the lane we want to spawn on
+              Range:
+                  `-1.0` to `1.0`, where `1.0` is spawning toward center of lane, `-1.0` is spawning towards edges of lane, `0.0` is evenly spaced.
+              Required:
+                  No, uses `0.0` if not specified
+        min_debris_distance:
+              Description:
+                  Minimum spawning distance from ego
+              Range:
+                  Greater than or equal to `0.0`
+              Required:
+                  No, uses `0.0` if not specified
+        max_debris_distance:
+              Description:
+                  Maximum spawning distance
+              Range:
+                  Must be greater than `min_debris_distance`
+              Required:
+                  No, uses default value if not specified
+        debris_asset_tag:
+              Description:
+                  Comma separated list of asset names from asset registry to spawn with this generator.
+                  Example: "trash_bottle_tall_01,trash_box_amazon_01"
+                  Each asset has an equal chance of being spawned.
+              Required:
+                  No, uses default value if not specified
+        debris_asset_remove_tag:
+              Description:
+                  Removes any assets present in `debris_asset_tag`
+              Required:
+                  No
+        position_request:
+              Description:
+                  Determines the spawn radius of debris (see `LocationRelativePositionRequest`)
+              Range:
+                  Only works with `LocationRelativePositionRequest`
+              Required:
+                  Yes
+        asset_distribution:
+              Description:
+                  Specifies the likelihood of each asset when spawning. Asset names must exist in asset registry.
+                  If specified, `debris_asset_tag` and `debris_asset_remove_tag` are ignored
+              Required:
+                  No, if not specified we use the list generated from `debris_asset_tag`
+"""
     _proto_message = pd_unified_generator_pb2.DebrisGeneratorParameters
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.DebrisGeneratorParameters]=None, asset_distribution: Optional[Dict[str, float]]=None, debris_asset_remove_tag: Optional[str]=None, debris_asset_tag: Optional[str]=None, debris_center_bias: Optional[float]=None, max_debris_distance: Optional[float]=None, min_debris_distance: Optional[float]=None, position_request: Optional[PositionRequest]=None, spawn_probability: Optional[float]=None):
@@ -366,6 +460,16 @@ class DebrisGeneratorParameters(AtomicGeneratorMessage):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.DefaultAtomicGeneratorParameters)
 class DefaultAtomicGeneratorParameters(ProtoMessageClass):
+    """
+    Description: Contains parameters applied to all atomics within UnifiedGeneratorParameters
+
+    Args:
+        vehicle_distribution:
+              Description:
+                  Default vehicle distribution. If the vehicle distribution is not set for an atomic, it will fall back to this distribution.
+              Required:
+                  No. If not specified, will fall back to atomic-specific default
+"""
     _proto_message = pd_unified_generator_pb2.DefaultAtomicGeneratorParameters
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.DefaultAtomicGeneratorParameters]=None, vehicle_distribution: Optional[Dict[str, _pd_distributions_pb2.VehicleCategoryWeight]]=None):
@@ -387,6 +491,21 @@ class DefaultAtomicGeneratorParameters(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.DroneGeneratorParameters)
 class DroneGeneratorParameters(AtomicGeneratorMessage):
+    """
+    Description: Not implemented
+
+    Args:
+        position_request:
+              Description:
+                  Determines where the drone will spawn. Note: Will use position request result as the ground end of the flight path
+              Required:
+                  Yes
+        drone_spawn_data:
+              Description:
+                  This contains parameters that control drone/drone related behavior
+              Required:
+                  No, will use defaults specified in `DroneSpawnData`
+"""
     _proto_message = pd_unified_generator_pb2.DroneGeneratorParameters
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.DroneGeneratorParameters]=None, drone_spawn_data: Optional[DroneSpawnData]=None, position_request: Optional[PositionRequest]=None):
@@ -418,6 +537,25 @@ class DroneGeneratorParameters(AtomicGeneratorMessage):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.DroneSpawnData)
 class DroneSpawnData(ProtoMessageClass):
+    """
+    Description: This contains parameters that control drone/drone related behavior
+
+    Args:
+        ascend_probability:
+              Ascend or descend
+        ground_asset_probability:
+              Probability of having a ground asset at flight path ground end
+        ground_assets:
+              List of ground assets to choose from
+        flight_path_dir:
+              Directory where flight path csv is stored
+        agent_spawn_data:
+              Common spawn data across agent types
+        height_offset:
+              How far up to offset flight path bottom from ground/top of asset
+        ground_asset_height_offset:
+              Height offset for the ground asset itself. used to address z fighting
+"""
     _proto_message = pd_unified_generator_pb2.DroneSpawnData
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.DroneSpawnData]=None, agent_spawn_data: Optional[AgentSpawnData]=None, ascend_probability: Optional[float]=None, flight_path_dir: Optional[str]=None, ground_asset_height_offset: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, ground_asset_probability: Optional[float]=None, ground_assets: Optional[List[str]]=None, height_offset: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None):
@@ -503,6 +641,41 @@ class DroneSpawnData(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.EgoAgentGeneratorParameters)
 class EgoAgentGeneratorParameters(AtomicGeneratorMessage):
+    """
+    Description: Places an ego sensor in the world. Required for every scenario. Only works with VEHICLE agent_type, other agent types not implemented yet
+
+    Args:
+        agent_type:
+              Description:
+                  Determines what the ego sensor is attached to
+              Required:
+                  No, will default to `AgentType.VEHICLE`
+        ego_model:
+              Description:
+                  If AgentType is VEHICLE, determines what vehicle type the ego sensor attaches to. Must be a vehicle model from asset registry.
+              Required:
+                  No, will default to `suv_medium_02`.
+        position_request:
+              Description:
+                  Determines where the ego vehicle will spawn
+              Required:
+                  Yes
+        vehicle_spawn_data:
+              Description:
+                  Used if `agent_type` is `AgentType.VEHICLE`
+              Required:
+                  No, will use defaults specified in `VehicleSpawnData`
+        pedestrian_spawn_data:
+              Description:
+                  Used if `agent_type` is `AgentType.PEDESTRIAN`
+              Required:
+                  No, will use defaults specified in `PedestrianSpawnData`
+        drone_spawn_data:
+              Description:
+                  Used if `agent_type` is `AgentType.DRONE`
+              Required:
+                  No, will use defaults specified in `DroneSpawnData`
+"""
     _proto_message = pd_unified_generator_pb2.EgoAgentGeneratorParameters
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.EgoAgentGeneratorParameters]=None, agent_type: Optional[AgentType]=None, drone_spawn_data: Optional[DroneSpawnData]=None, ego_model: Optional[str]=None, pedestrian_spawn_data: Optional[PedestrianSpawnData]=None, position_request: Optional[PositionRequest]=None, vehicle_spawn_data: Optional[VehicleSpawnData]=None):
@@ -576,6 +749,76 @@ class EgoAgentGeneratorParameters(AtomicGeneratorMessage):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.EnvironmentParameters)
 class EnvironmentParameters(ProtoMessageClass):
+    """
+    Description: Contains parameters that modify map
+
+    Args:
+        sign_spawn_probability:
+              Description:
+                  Specifies the spawn probability of spawning in an available spot for signs. (i.e. controls density)
+                  Only affects maps that begin with "SIGNAGE_".
+              Range:
+                  `0.0` to `1.0`
+              Required:
+                  No, will use default 0 values
+        crosswalk_sign_spawn_probability:
+              Description:
+                  Probability of spawning crosswalk signs in crosswalk signs slots
+                  Crosswalk signs are placed in or near crosswalks on the road for extra indication of the crosswalk
+                  to vehicles.
+                  Only affects maps that begin with "SIGNAGE_".
+              Range:
+                  `0.0` to `1.0`
+              Required:
+                  No, will use default 0 values
+        marker_data_map:
+              Description:
+                  Specifies road markings (e.g. parallel/perpendicular parking space lines, parking space texture, etc.)
+              Required:
+                  No, uses default values for the RoadMarkingData types specified below::
+
+                    "parking_spot_config"     {marker_type = MI_pavement_01, rgb = {1.0f, 1.0f, 1.0f}, wear = 0.0f}
+                    "parking_lot_marker"      {marker_type = "DOUBLE_SQUARE", rgb = {1.0f, 1.0f, 1.0f}, wear = 0.0f}
+                    "parallel_parking_marker" {rgb = {1.0f, 1.0f, 1.0f}, wear = 0.0f}
+        region:
+              Description:
+                  Specifies what country signs are from.
+                  Only affects ISA maps::
+
+                    {
+                        "Belgium"
+                        "Bulgaria"
+                        "Czechia"
+                        "Denmark"
+                        "Germany"
+                        "Estonia"
+                        "Ireland"
+                        "Greece"
+                        "Spain"
+                        "France"
+                        "Croatia"
+                        "Italy"
+                        "Cyprus"
+                        "Latvia"
+                        "Lithuania"
+                        "Luxembourg"
+                        "Hungary"
+                        "Malta"
+                        "Netherlands"
+                        "Austria"
+                        "Poland"
+                        "Portugal"
+                        "Romania"
+                        "Slovenia"
+                        "Slovakia"
+                        "Finland"
+                        "Sweden"
+                        "Norway"
+                        "Switzerland"
+                    }
+              Required:
+                  No
+"""
     _proto_message = pd_unified_generator_pb2.EnvironmentParameters
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.EnvironmentParameters]=None, crosswalk_sign_spawn_probability: Optional[CenterSpreadConfig]=None, marker_data_map: Optional[Dict[str, RoadMarkingData]]=None, region: Optional[_pd_distributions_pb2.EnumDistribution]=None, sign_spawn_probability: Optional[CenterSpreadConfig]=None):
@@ -630,6 +873,11 @@ class EnvironmentParameters(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.FloatArray)
 class FloatArray(ProtoMessageClass):
+    """
+    Description: Used to describe RGB value in RoadMarkingData
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.FloatArray
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.FloatArray]=None, data: Optional[List[float]]=None):
@@ -702,6 +950,103 @@ class LaneCurvatureSpawnPolicy(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.LaneSpawnPolicy)
 class LaneSpawnPolicy(ProtoMessageClass):
+    """
+    Description: Specifies lanes to spawn at
+
+    Args:
+        min_num_lanes_in_same_direction:
+              Description:
+                  Minimum number of lanes in the same direction as the selected lane
+              Range:
+                  Greater than to equal to `0.0`
+              Required:
+                  No, will use default 0 values
+        lane_type:
+              Description:
+                  Specifies lane types to spawn at and their probabilities
+              Range:
+                  LaneType, which includes::
+
+                    {
+                        "Drivable"     (regular driving lanes/roads),
+                        "NonDrivable"  (driveways),
+                        "Parking"      (parallel parking lanes that run along drivable lanes),
+                        "Shoulder"     (highway shoulder lanes),
+                        "Biking"       (bike lanes, typically narrower than Drivable),
+                        "Crosswalk"    (crosswalk, pedestrian crossings in junction),
+                        "ParkingAisle" (aisle lanes in parking lots),
+                        "ParkingSpace" (parking lot perpendicular spaces),
+                        "Sidewalk"     (sidewalks, not including pedestrian crossings in junctions)
+                    }
+              Required:
+                  No
+        min_num_lanes_in_opposite_direction:
+              Description:
+                  Minimum number of lanes in the opposite direction as the selected lane
+              Range:
+                  Greater than or equal to `0`
+              Required:
+                  No, will use default value
+        lateral_offset:
+              Description:
+                  Lateral offset as a percentage of half lane width.
+                  Positive means offset to the right. Negative means offset to the left.
+              Range:
+                  `-1.0` to `1.0`
+              Required:
+                  No, will default to 0 values
+        bicycles_only_in_bike_lanes:
+              Description:
+                  Specifies if bicycles should only spawn in bike lanes
+              Required:
+                  No, will use default value
+        nearby_asset_policy:
+              Description:
+                  Option to spawn near map assets
+              Required:
+                  No
+        road_type:
+              Description:
+                  Specifies road types to spawn at and their probabilities.
+                  Recommended guidance:
+                  If specifying highway scenes, set this parameter to `{"Motorway": 1.0}`.
+                  For other placements, leave empty and use lane_type instead.
+              Range:
+                  RoadType, which includes::
+
+                    {
+                        "Motorway"      (highway roads)
+                        "Residential"   (non-highway and non-parking roads)
+                        "Trunk"
+                        "Primary"
+                        "Secondary"
+                        "Tertiary"
+                        "Unclassified"
+                        "Motorway_Link"
+                        "Truck_Link"
+                        "Primary_Link"
+                        "Secondary_Link"
+                        "Tertiary_Link"
+                        "Service"
+                        "Driveway"
+                        "Parking_Aisle"
+                        "Driveway_Parking_Entry"
+                    }
+              Required:
+                  No, if not specified will spawn on any valid road type depending on agent type
+        min_path_length:
+              Description:
+                  Specifies a map of desired minimum path lengths based on lane type.
+                  The length is from the beginning of the lane.
+              Required:
+                  No, will default to 0
+        min_length_behind:
+              Description:
+                  Specifies a map of desired minimum path lengths behind the agent based on lane type.
+                  The length is the distance behind the agent's location to the world edge.
+              Required:
+                  No, will default to 0
+"""
     _proto_message = pd_unified_generator_pb2.LaneSpawnPolicy
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.LaneSpawnPolicy]=None, bicycles_only_in_bike_lanes: Optional[bool]=None, lane_type: Optional[_pd_distributions_pb2.EnumDistribution]=None, lateral_offset: Optional[CenterSpreadConfig]=None, min_length_behind: Optional[Dict[str, CenterSpreadConfig]]=None, min_num_lanes_in_opposite_direction: Optional[int]=None, min_num_lanes_in_same_direction: Optional[int]=None, min_path_length: Optional[Dict[str, CenterSpreadConfig]]=None, nearby_asset_policy: Optional[NearbyAssetPolicy]=None, position_of_interest_policy: Optional[List[PositionOfInterestPolicy]]=None, road_type: Optional[_pd_distributions_pb2.EnumDistribution]=None):
@@ -822,6 +1167,28 @@ class LaneSpawnPolicy(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.LocationRelativePositionRequest)
 class LocationRelativePositionRequest(ProtoMessageClass):
+    """
+    Description: Gives a location relative to tagged agent (i.e. EGO or STAR). Requires tagged agent to be placed first, otherwise will return error.
+
+    Args:
+        agent_tags:
+              Description:
+                  Tag of agent to spawn relative to
+              Required:
+                  Yes
+        max_spawn_radius:
+              Description:
+                  The max spawn radius specifies viable spawn locations from the origin, which is the position of tagged agent
+              Range:
+                  Must be greater than `0.0`
+              Required:
+                  No, will use default value if not specified
+        lane_spawn_policy:
+              Description:
+                  Specifies lane criteria for viable spawn lanes
+              Required:
+                  No
+"""
     _proto_message = pd_unified_generator_pb2.LocationRelativePositionRequest
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.LocationRelativePositionRequest]=None, agent_tags: Optional[List[SpecialAgentTag]]=None, lane_spawn_policy: Optional[LaneSpawnPolicy]=None, max_spawn_radius: Optional[float]=None):
@@ -967,6 +1334,40 @@ class NearbyAssetPolicy(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.ParkedVehicleGeneratorParameters)
 class ParkedVehicleGeneratorParameters(AtomicGeneratorMessage):
+    """
+    Description: Places a parked vehicle into the world. Requires ego atomic.
+
+    Args:
+        position_request:
+              Description:
+                  Determines the spawn radius of parked vehicles (see `LocationRelativePositionRequest`)
+              Range:
+                  Only works with `LocationRelativePositionRequest`
+              Required:
+                  Yes
+        spawn_probability:
+              Description:
+                  For every available parking space within the spawn radius, the generator will use this probability to determine if a
+                  parked vehicle should spawn there, (i.e. controls density)
+              Required:
+                  No, if not specified will use default probability: `{center=0.5, spread=0}`
+        vehicle_distribution:
+              Description:
+                  Likelihood of vehicle types spawning
+              Required:
+                  No, if not specified, will use these defaults::
+
+                    MIDSIZE	    0.181
+                    COMPACT	    0.177
+                    BUS	        0.019
+                    TRUCK	    0.038
+                    SUV	        0.197
+                    VAN     	0.066
+                    BICYCLE	    0.061
+                    MOTORCYCLE	0.068
+                    CARAVAN/RV	0.009
+                    FULLSIZE	0.184
+"""
     _proto_message = pd_unified_generator_pb2.ParkedVehicleGeneratorParameters
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.ParkedVehicleGeneratorParameters]=None, position_request: Optional[PositionRequest]=None, spawn_probability: Optional[CenterSpreadConfig]=None, vehicle_distribution: Optional[Dict[str, _pd_distributions_pb2.VehicleCategoryWeight]]=None):
@@ -1049,6 +1450,40 @@ class ParkingTypeDistribution(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.PathTimeRelativePositionRequest)
 class PathTimeRelativePositionRequest(ProtoMessageClass):
+    """
+    Description:
+        Sets an intersection point that the placed agent and the tagged agent's (i.e. EGO or STAR) will cross, as well
+        as a path for the placed agent. Requires tagged agent to be placed first, otherwise will return error.
+        Only works on Drivable lane type, and only works with vehicles relative to other vehicles
+
+    Args:
+        agent_tags:
+              Description:
+                  Tag of agent to spawn relative to
+              Required:
+                  Yes
+        time_to_path:
+              Description:
+                  Time for agent being placed to reach intersection point
+              Range:
+                  Distribution must sample from nonzero values
+              Required:
+                  No, will default to 0 values. Note: If both time_to_path and time_along_path are 0 or not specified, user must specify longitudinal_offset_m and/or lateral_offset_m.
+        time_along_path:
+              Description:
+                  Time for agent specified by agent_tag to reach intersection point
+              Range:
+                  Distribution must sample from nonzero values
+              Required:
+                  No, will default to 0 values. Note: If both time_to_path and time_along_path are 0 or not specified, user must specify longitudinal_offset_m and/or lateral_offset_m.
+        incident_angle:
+              Description:
+                  Angle to cross paths at
+              Range:
+                  Valid angle in rad
+              Required:
+                  No, if not specified then will intersect at any angle
+"""
     _proto_message = pd_unified_generator_pb2.PathTimeRelativePositionRequest
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.PathTimeRelativePositionRequest]=None, agent_tags: Optional[List[SpecialAgentTag]]=None, incident_angle: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, time_along_path: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, time_to_path: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None):
@@ -1104,6 +1539,23 @@ class PathTimeRelativePositionRequest(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.PedestrianGeneratorParameters)
 class PedestrianGeneratorParameters(AtomicGeneratorMessage):
+    """
+    Description: Places a single pedestrian into the world. Requires ego atomic.
+
+    Args:
+        position_request:
+              Description:
+                  Determines where the pedestrian will spawn
+              Range:
+                  Any `PositionRequest` except `PathTimeRelativePositionRequest`
+              Required:
+                  Yes
+        ped_spawn_data:
+              Description:
+                  This contains parameters that control pedestrian spawning and movement behavior
+              Required:
+                  No, will use defaults specified in `PedestrianSpawnData`
+"""
     _proto_message = pd_unified_generator_pb2.PedestrianGeneratorParameters
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.PedestrianGeneratorParameters]=None, ped_spawn_data: Optional[PedestrianSpawnData]=None, position_request: Optional[PositionRequest]=None):
@@ -1135,6 +1587,72 @@ class PedestrianGeneratorParameters(AtomicGeneratorMessage):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.PedestrianSpawnData)
 class PedestrianSpawnData(ProtoMessageClass):
+    """
+    Description: This contains parameters that control pedestrian/pedestrian related behavior
+
+    Args:
+        pedestrian_color_override_probability:
+              Description:
+                  Specifies probability of overriding color of pedestrian's clothes to RGB color specified by pedestrian_color_override_rgb
+              Range:
+                  Greater than or equal to 0
+              Required:
+                  No, will default to 0 values
+        pedestrian_color_override_rgb:
+              Description:
+                  Specifies color to override pedestrian's clothes with if determining an override should happen
+              Range:
+                  Valid RGB color
+              Required:
+                  No, will use default 0 values if this field is required
+        pedestrians_dynamic_pathing:
+              Description:
+                  Specifies whether pedestrian should use dynamic pathing or not.
+                  If true, determines path to take during sim and can change depending on location.
+                  If false, uses a predetermined path to take during scenario generation.
+              Required:
+                  No, will use default value
+        orient_to_velocity:
+              Description:
+                  Specifies whether pedestrian should face the direction of movement
+              Required:
+                  No, will use default value
+        check_occupancy:
+              Description:
+                  Specifies whether or not we check if the area we are trying to spawn in is occupied.
+              Required:
+                  No, will use default value
+        jaywalker_ego_fwd_offset:
+              Description:
+                  Specifies how far ahead the jaywalker should be from the tagged vehicle.
+                  If ped_behavior is not set to JAYWALKING, this field will be ignored.
+              Range:
+                  Greater than or equal to 0
+              Required:
+                  No, will use default value
+        agent_spawn_data:
+              Description:
+                  Specifies spawn data that applies across agent types
+              Required:
+                  No
+        ped_behavior:
+              Description:
+                  Specifies desired behavior of pedestrian
+              Required:
+                  No, will default to NORMAL for PedestrianBehavior
+        asset_name:
+              Description:
+                  Asset name of pedestrian, must be an asset from asset registry.
+              Required:
+                  Yes
+        speed:
+              Description:
+                  Speed of pedestrian
+              Range:
+                  Greater than or equal to 0
+              Required:
+                  No, will use default value
+"""
     _proto_message = pd_unified_generator_pb2.PedestrianSpawnData
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.PedestrianSpawnData]=None, agent_spawn_data: Optional[AgentSpawnData]=None, asset_name: Optional[str]=None, check_occupancy: Optional[bool]=None, jaywalker_ego_fwd_offset: Optional[float]=None, orient_to_velocity: Optional[bool]=None, ped_behavior: Optional[PedestrianBehavior]=None, pedestrian_color_override_probability: Optional[CenterSpreadConfig]=None, pedestrian_color_override_rgb: Optional[_pd_types_pb2.Float3]=None, pedestrians_dynamic_pathing: Optional[bool]=None, speed: Optional[float]=None):
@@ -1278,6 +1796,35 @@ class PositionOfInterestPolicy(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.PositionRequest)
 class PositionRequest(ProtoMessageClass):
+    """
+    Description: Determines pose of agents, or spawn center for multiple agents
+
+    Args:
+        longitudinal_offset:
+              Description:
+                  Only applied after initial pose is determined by position_type.
+                  Determines how much farther ahead along a lane to move the returned pose
+              Required:
+                  No, will default to `0.0`
+        lateral_offset:
+              Description:
+                  Only applied after initial pose is determined by position_type.
+                  Determines how much farther to the left (negative for right) we want to move the returned pose
+              Required:
+                  No, will default to `0.0`
+        yaw_offset:
+              Description:
+                  Only applied after initial pose is determined by position_type.
+                  Determines how much to rotate pose about Z axis (points up in right handed coordinate system)
+                  Example: 90 degrees would rotate pose to the left.
+              Required:
+                  No, will default to `0.0`
+        position_type:
+              Description:
+                  Determines initial pose
+              Required:
+                  Yes
+"""
     _proto_message = pd_unified_generator_pb2.PositionRequest
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.PositionRequest]=None, absolute_position_request: Optional[AbsolutePositionRequest]=None, lane_spawn_policy: Optional[LaneSpawnPolicy]=None, lateral_offset: Optional[CenterSpreadConfig]=None, location_relative_position_request: Optional[LocationRelativePositionRequest]=None, longitudinal_offset: Optional[CenterSpreadConfig]=None, path_time_relative_position_request: Optional[PathTimeRelativePositionRequest]=None, road_pitch_position_request: Optional[RoadPitchPositionRequest]=None, yaw_offset: Optional[CenterSpreadConfig]=None):
@@ -1375,6 +1922,44 @@ class PositionRequest(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.RandomPedestrianGeneratorParameters)
 class RandomPedestrianGeneratorParameters(AtomicGeneratorMessage):
+    """
+    Description: Places multiple pedestrians (i.e. a crowd) into the world. Requires ego atomic.
+
+    Args:
+        speed_range:
+              Description:
+                  Speed of each pedestrian is set randomly within this range
+              Range:
+                  Min > `0`, Max > Min
+              Required:
+                  No, if not specified then will use range `{0.5, 1.5}`
+        position_request:
+              Description:
+                  Determines the center of where the pedestrians will spawn. Radius controlled by `LocationRelativePositionRequest`
+              Required:
+                  Yes
+        num_of_pedestrians_range:
+              Description:
+                  Number of pedestrians to generate is selected randomly within this range.
+                  If `min_radius_between_pedestrians` is high and the determined number of pedestrians can't be placed, scenario generation will fail.
+              Range:
+                  Min > `0`, Max > Min
+              Required:
+                  Yes
+        min_radius_between_pedestrians:
+              Description:
+                  Specifies how much space should be between individual pedestrians.
+                  The higher the value, the more spaced out the pedestrians will be from each other.
+              Range:
+                  Greater than `0.0`
+              Required:
+                  No, if not specified will use default value
+        ped_spawn_data:
+              Description:
+                  This contains parameters that control pedestrian and pedestrian related behavior
+              Required:
+                  No, will use defaults specified in `PedestrianSpawnData`
+"""
     _proto_message = pd_unified_generator_pb2.RandomPedestrianGeneratorParameters
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.RandomPedestrianGeneratorParameters]=None, min_radius_between_pedestrians: Optional[float]=None, num_of_pedestrians_range: Optional[MinMaxConfigInt]=None, ped_spawn_data: Optional[PedestrianSpawnData]=None, position_request: Optional[PositionRequest]=None, speed_range: Optional[MinMaxConfigFloat]=None):
@@ -1438,6 +2023,69 @@ class RandomPedestrianGeneratorParameters(AtomicGeneratorMessage):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.RoadMarkingData)
 class RoadMarkingData(ProtoMessageClass):
+    """
+    Description: This contains parameters that control appearance of road markings
+
+    Args:
+        use_preset:
+              Description:
+                  Not implemented yet.
+                  Specifies whether to use RGB values from asset registry.
+              Required:
+                  No, will use default value
+        override_colors:
+              Description:
+                  Specifies RGB color to override with
+              Range:
+                  3 dimensional array with values from `0-1`, i.e. `[0.2, 0.2, 0.2]`
+              Required:
+                  No, will use default values specified in marker_data_map
+        preset_colors:
+              Description:
+                  Not implemented yet. Colors specified in asset registry to use for road markings used if `use_preset` is set to `True`.
+              Required:
+                  No
+        marker_types:
+              Description:
+                  Specifies a marker name.
+                  The available options are specific to which key it is under in marker_data_map.
+              Range:
+                  Parking space markers include::
+
+                    {
+                        "Single",
+                        "Dashed",
+                        "Double Open",      (parallel lines)
+                        "Double Squared",   (parallel lines closed at the end with a line, resembling long rectangles)
+                        "Double Round",     (parallel lines closed at the end with a semi-circle)
+                        "T"
+                    }
+                  Parking surface markers include::
+
+                    {
+                        "MI_pavement_01"
+                        "MI_ParkingTiles_BrickBasket_01"
+                        "MI_ParkingTiles_BrickHerring_01"
+                        "MI_ParkingTiles_BrickHex_01"
+                        "MI_ParkingTiles_BrickOrnate_01"
+                        "MI_ParkingTiles_CobbleStone_01"
+                        "MI_ParkingTiles_CobbleStone_02"
+                        "MI_ParkingTiles_ConcreteBrick_01"
+                        "MI_ParkingTiles_ConcreteBrick_02"
+                        "MI_ParkingTiles_ConcreteBrick_03"
+                        "MI_ParkingTiles_ConcretePavers_01"
+                        "MI_ParkingTiles_StoneFlag_01"
+                    }
+              Required:
+                  No, will use default values specified in marker_data_map
+        wear:
+              Description:
+                  Determines how "worn down" the markings are. `1.0` is most worn down, `0.0` is no wear
+              Range:
+                  `0.0` to `1.0`
+              Required:
+                  No, will use default 0 values
+"""
     _proto_message = pd_unified_generator_pb2.RoadMarkingData
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.RoadMarkingData]=None, marker_types: Optional[List[str]]=None, override_colors: Optional[List[FloatArray]]=None, preset_colors: Optional[List[str]]=None, use_preset: Optional[bool]=None, wear: Optional[CenterSpreadConfig]=None):
@@ -1507,6 +2155,11 @@ class RoadMarkingData(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.RoadPitchPositionRequest)
 class RoadPitchPositionRequest(ProtoMessageClass):
+    """
+    Description: Gives a position based on desired road pitch angle to spawn at
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.RoadPitchPositionRequest
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.RoadPitchPositionRequest]=None, bin_pitch_points: Optional[bool]=None, bin_width: Optional[float]=None, lane_spawn_policy: Optional[LaneSpawnPolicy]=None, road_pitch: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None):
@@ -1597,6 +2250,21 @@ class SignalLightDistribution(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.StaticAgentGeneratorParameters)
 class StaticAgentGeneratorParameters(AtomicGeneratorMessage):
+    """
+    Description: Places a static agent into the world. Requires ego atomic.
+
+    Args:
+        position_request:
+              Description:
+                  Determines where the static agent will spawn
+              Required:
+                  Yes
+        model:
+              Description:
+                  The asset name of the static agent we want to place
+              Required:
+                  Yes
+"""
     _proto_message = pd_unified_generator_pb2.StaticAgentGeneratorParameters
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.StaticAgentGeneratorParameters]=None, model: Optional[str]=None, position_request: Optional[PositionRequest]=None):
@@ -1627,6 +2295,66 @@ class StaticAgentGeneratorParameters(AtomicGeneratorMessage):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.TrafficGeneratorParameters)
 class TrafficGeneratorParameters(AtomicGeneratorMessage):
+    """
+    Description: Places multiple vehicles into the world. Requires ego atomic.
+
+    Args:
+        position_request:
+              Description:
+                  Determines the spawn radius of vehicles (see `LocationRelativePositionRequest`)
+              Range:
+                  Only works with `LocationRelativePositionRequest`
+              Required:
+                  Yes
+        spawn_probability:
+              Description:
+                  Within spawn radius, probability that a vehicle will spawn in an available spot. (i.e. controls density)
+              Range:
+                  `0.0` to `1.0`, with `1.0` being the most dense. Recommended to use `0.8` for high density.
+              Required:
+                  No, will use default value if not specified
+        vehicle_spawn_data:
+              Description:
+                  This contains parameters that control vehicle and vehicle related behavior
+              Required:
+                  No, will use defaults specified in `VehicleSpawnData`
+        vehicle_distribution:
+              Description:
+                  Likelihood of vehicles spawning
+              Required:
+                  No. If not specified, will default to::
+
+                    MIDSIZE 0.181
+                    COMPACT 0.177
+                    BUS 0.019
+                    TRUCK 0.038
+                    SUV 0.197
+                    VAN 0.066
+                    BICYCLE 0.061
+                    MOTORCYCLE  0.068
+                    CARAVAN/RV  0.009
+                    FULLSIZE  0.184
+        start_separation_time_map:
+              Description:
+                  Recommended to leave as default. Map of vehicle type to their start separation time distributions.
+                  Uses initial speed * separation time to determine distance between vehicles.
+              Required:
+                  No, if not specified will use defaults, see map below::
+
+                    {"bicycle", {0.7f, 1.7f}},
+                    {"heavy", {2.5f, 3.5f}},
+                    {"heavy_nondriven", {2.5f, 3.5f}},
+                    {"light", {0.7f, 1.7f}},
+                    {"light_nondriven", {0.7f, 1.7f}},
+                    {"medium", {1.5f, 2.5f}},
+                    {"medium_nondriven", {1.5f, 2.5f}},
+                    {"motorcycle", {0.7f, 1.7f}}
+        target_separation_time_map:
+              Description:
+                  Map of vehicle type to their target separation time distributions
+              Required:
+                  No, if not specified it will use the values provided in `start_separation_time_map`.
+"""
     _proto_message = pd_unified_generator_pb2.TrafficGeneratorParameters
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.TrafficGeneratorParameters]=None, position_request: Optional[PositionRequest]=None, spawn_probability: Optional[float]=None, start_separation_time_map: Optional[Dict[str, _pd_distributions_pb2.ContinousUniformDistribution]]=None, target_separation_time_map: Optional[Dict[str, _pd_distributions_pb2.ContinousUniformDistribution]]=None, vehicle_distribution: Optional[Dict[str, _pd_distributions_pb2.VehicleCategoryWeight]]=None, vehicle_spawn_data: Optional[VehicleSpawnData]=None):
@@ -1743,6 +2471,32 @@ class TurnTypeDistribution(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.UnifiedGeneratorParameters)
 class UnifiedGeneratorParameters(ProtoMessageClass):
+    """
+    Description:
+        Wrapper for all scenario parameters. Applied once per location specified in scenario generation. 
+
+    Args:
+        atomics:
+              Description:
+                  Determines which atomic generators are used for the scenario.
+              Required:
+                  Yes, if none, nothing will be generated.
+        use_merge_batches:
+              Description:
+                  Combines multiple scenes into a single scene for rendering efficiency
+              Required:
+                  No, will use default value.
+        default_params:
+              Description:
+                  Contains parameters that apply to all atomic generators
+              Required:
+                  No, if not specified it will use atomic-specific defaults
+        environment_params:
+              Description:
+                  Contains parameters that modify the map
+              Required:
+                  No, if not specified, will use what comes by default with each map
+"""
     _proto_message = pd_unified_generator_pb2.UnifiedGeneratorParameters
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.UnifiedGeneratorParameters]=None, atomics: Optional[List[AtomicGeneratorParameters]]=None, default_params: Optional[DefaultAtomicGeneratorParameters]=None, environment_params: Optional[EnvironmentParameters]=None, use_merge_batches: Optional[bool]=None):
@@ -1797,6 +2551,106 @@ class UnifiedGeneratorParameters(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.VehicleBehavior)
 class VehicleBehavior(ProtoMessageClass):
+    """
+    Description: This contains parameters that control vehicle behavior (i.e. lane change, speed, etc.)
+
+    Args:
+        start_speed:
+              Description:
+                  Specifies start speed of vehicle
+              Range:
+                  Greater than or equal to `0.0`
+              Required:
+                  No, will use default 0 values
+        target_speed:
+              Description:
+                  Specifies target speed of vehicle (i.e. speed vehicle tries to achieve while scenario is running). Note: If there is a speed limit, speed will not go greater than it, unless specified by ignore_speed_limit
+              Range:
+                  Greater than to equal to `0.0`
+              Required:
+                  No, will use default 0 values
+        ignore_speed_limit:
+              Description:
+                  Specifies whether vehicle should ignore the speed limit specified on roads.
+                  If true, then vehicle will use the target_speed specified even if it over the speed limit
+              Required:
+                  No, will use default value
+        lane_offset:
+              Description:
+                  Specifies lane offset in percentage of lane width in vehicle's motion plan, relative to lane center line.
+                  Positive means offset to the right. Negative means offset to the left.
+              Range:
+                  `-1.0` to `1.0`
+              Required:
+                  No, will use default 0 values
+        lane_drift_scale:
+              Description:
+                  The slight weaving of vehicles within their lanes is modelled as a perlin noise driven wave that has an amplitude and frequency.
+                  Tunes the frequency of the motion line/perlin noise wave.
+                  Larger values result in lower frequency.
+              Required:
+                  No, will use default 0 values
+        lane_drift_amplitude:
+              Description:
+                  The slight weaving of vehicles within their lanes is modelled as a perlin noise driven wave that has an amplitude and frequency.
+                  Tunes the amplitude of the motion line/perlin noise wave.
+              Range:
+                  No specified range. Note: large values are not recommended as it would look unrealistic
+              Required:
+                  No, will use default 0 values
+        lane_change_probability:
+              Description:
+                  Specifies probability of making a lane change
+              Range:
+                  `0.0` to `1.0`
+              Required:
+                  No, will use default 0 values
+        lane_change_cooldown:
+              Description:
+                  Specifies how long we don't want to consider a lane change for
+              Range:
+                  Greater than or equal to `0.0`
+              Required:
+                  No, will use default 0 values
+        enable_dynamic_lane_selection:
+              Description:
+                  If true, randomly selects lanes to spawn in during simulation.
+                  If false, randomly selects lanes to spawn in during scenario generation.
+              Required:
+                  No, will use default value
+        start_gear:
+              Description:
+                  Specifies what to set the vehicle's gear to
+              Required:
+                  No, will use default value
+        start_separation_time:
+              Description:
+                  Used to calculate lane spacing when spawning vehicles.
+              Range:
+                  Greater than or equal to `0.0`
+              Required:
+                  No, will use default 0 values
+        target_separation_time:
+              Description:
+                  Used to calculate longitudinal distance vehicles try to maintain between each other
+              Range:
+                  Greater than or equal to 0
+              Required:
+                  No, will use default 0 values
+        vehicle_aggression:
+              Description:
+                  Specifies how aggressive vehicle should be (i.e. aggressive lane changes, turns).
+                  Specifically, this is the amount the target speed is increased by.
+              Range:
+                  Greater than or equal to 0
+              Required:
+                  No, will use default 0 values
+        ignore_obstacle_types:
+              Description:
+                  Specifies whether vehicle should ignore obstacle types
+              Required:
+                  No, if not specified will not ignore any obstacles
+"""
     _proto_message = pd_unified_generator_pb2.VehicleBehavior
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.VehicleBehavior]=None, enable_dynamic_lane_selection: Optional[bool]=None, ignore_obstacle_types: Optional[List[ObstacleType]]=None, ignore_speed_limit: Optional[bool]=None, lane_change_cooldown: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, lane_change_probability: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, lane_drift_amplitude: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, lane_drift_scale: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, lane_offset: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, start_gear: Optional[Gear]=None, start_separation_time: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, start_speed: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, target_separation_time: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, target_speed: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, vehicle_aggression: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, vehicle_behavior_type: Optional[VehicleBehaviorType]=None):
@@ -1969,6 +2823,26 @@ class VehicleBehavior(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.VehicleGeneratorParameters)
 class VehicleGeneratorParameters(AtomicGeneratorMessage):
+    """
+    Description: Places a single vehicle into the world. Requires ego atomic.
+
+    Args:
+        model:
+              Description:
+                  Vehicle asset name we want to spawn. Vehicle model must be in asset registry.
+              Required:
+                  Yes
+        position_request:
+              Description:
+                  Determines where the vehicle will spawn
+              Required:
+                  Yes
+        vehicle_spawn_data:
+              Description:
+                  Controls the single vehicle's spawning characteristics and movement behavior
+              Required:
+                  No, will use defaults specified in `VehicleSpawnData`
+"""
     _proto_message = pd_unified_generator_pb2.VehicleGeneratorParameters
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.VehicleGeneratorParameters]=None, model: Optional[str]=None, position_request: Optional[PositionRequest]=None, vehicle_spawn_data: Optional[VehicleSpawnData]=None):
@@ -2010,6 +2884,24 @@ class VehicleGeneratorParameters(AtomicGeneratorMessage):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.VehiclePeripheral)
 class VehiclePeripheral(ProtoMessageClass):
+    """
+    Description: This contains parameters that control vehicle peripheral behavior (i.e. accessory data, color, occupants, etc.)
+
+    Args:
+        spawn_trailer_probability:
+              `[0.0-1.0]` chance of spawning with articulated trailer attached
+        trailer_initial_yaw:
+              Trailer angle when spawned, in radians
+        disable_occupants:
+              Disables occupants in vehicles
+        disable_accessories:
+              Not implemented yet
+        randomize_vehicle_parts:
+              Toggle for blueprint feature to randomize color based on agent id
+        emergency_light_probability:
+              Chance of turning on emergency lights for police/service vehicles
+              Ignored if the vehicle has no emergency lights
+"""
     _proto_message = pd_unified_generator_pb2.VehiclePeripheral
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.VehiclePeripheral]=None, disable_accessories: Optional[bool]=None, disable_occupants: Optional[bool]=None, emergency_light_probability: Optional[float]=None, randomize_vehicle_parts: Optional[bool]=None, spawn_trailer_probability: Optional[float]=None, trailer_initial_yaw: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None):
@@ -2080,6 +2972,31 @@ class VehiclePeripheral(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.VehicleSpawnData)
 class VehicleSpawnData(ProtoMessageClass):
+    """
+    Description: Controls the vehicle's spawning characteristics and movement behavior
+
+    Args:
+        vehicle_behavior:
+              Description:
+                  Specifies parameters that control vehicle behavior (i.e. lane change, speed, etc.)
+              Required:
+                  No
+        vehicle_peripheral:
+              Description:
+                  Specifies that control vehicle peripheral behavior (i.e. accessory data, color, occupants, etc.)
+              Required:
+                  No
+        agent_spawn_data:
+              Description:
+                  Specifies spawn data that applies across agent types
+              Required:
+                  No
+        prevent_spawn_in_redlight:
+              Description:
+                  Specified if vehicle should be prevented from spawning in a junction lane that has a red light at the start of scenario
+              Required:
+                  No, will use default value
+"""
     _proto_message = pd_unified_generator_pb2.VehicleSpawnData
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.VehicleSpawnData]=None, agent_spawn_data: Optional[AgentSpawnData]=None, prevent_spawn_in_redlight: Optional[bool]=None, vehicle_behavior: Optional[VehicleBehavior]=None, vehicle_peripheral: Optional[VehiclePeripheral]=None):
@@ -2144,6 +3061,11 @@ class AgentType(ProtoEnumClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.ObstacleType)
 class ObstacleType(ProtoEnumClass):
+    """
+    Description: This contains the different obstacle types
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.ObstacleType
     BLOCKED_LANE: pd_unified_generator_pb2.ObstacleType = pd_unified_generator_pb2.ObstacleType.BLOCKED_LANE
     CROSSTRAFFIC: pd_unified_generator_pb2.ObstacleType = pd_unified_generator_pb2.ObstacleType.CROSSTRAFFIC
@@ -2160,6 +3082,11 @@ class ObstacleType(ProtoEnumClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.Gear)
 class Gear(ProtoEnumClass):
+    """
+    Description: This contains the different types of gears for vehicles
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.Gear
     DRIVE: pd_unified_generator_pb2.Gear = pd_unified_generator_pb2.Gear.DRIVE
     NEUTRAL: pd_unified_generator_pb2.Gear = pd_unified_generator_pb2.Gear.NEUTRAL
@@ -2168,6 +3095,17 @@ class Gear(ProtoEnumClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.VehicleBehaviorType)
 class VehicleBehaviorType(ProtoEnumClass):
+    """
+    Enum to drive vehicle behavior
+
+    Args:
+        DEFAULT:
+              Normal behavior of lane following
+        OFF:
+              Stopped, engine off, lights off
+        PARKING:
+              Will try to park if spawned in appropriate location for parking
+"""
     _proto_message = pd_unified_generator_pb2.VehicleBehaviorType
     DEFAULT: pd_unified_generator_pb2.VehicleBehaviorType = pd_unified_generator_pb2.VehicleBehaviorType.DEFAULT
     OFF: pd_unified_generator_pb2.VehicleBehaviorType = pd_unified_generator_pb2.VehicleBehaviorType.OFF
@@ -2175,6 +3113,17 @@ class VehicleBehaviorType(ProtoEnumClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.PedestrianBehavior)
 class PedestrianBehavior(ProtoEnumClass):
+    """
+    Description: This contains parameters that control pedestrian behavior
+
+    Args:
+        NORMAL:
+              Description: Walks on sidewalks/crosswalks and only crosses roads at crosswalks
+        STATIC:
+              Description: Stays in place
+        JAYWALKER:
+              Description: Jaywalking behavior (e.g. crosses the road at a non-crosswalk)
+"""
     _proto_message = pd_unified_generator_pb2.PedestrianBehavior
     JAYWALKER: pd_unified_generator_pb2.PedestrianBehavior = pd_unified_generator_pb2.PedestrianBehavior.JAYWALKER
     NORMAL: pd_unified_generator_pb2.PedestrianBehavior = pd_unified_generator_pb2.PedestrianBehavior.NORMAL
@@ -2182,6 +3131,11 @@ class PedestrianBehavior(ProtoEnumClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.SpecialAgentTag)
 class SpecialAgentTag(ProtoEnumClass):
+    """
+    Special Tag used in relative position requests.
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.SpecialAgentTag
     EGO: pd_unified_generator_pb2.SpecialAgentTag = pd_unified_generator_pb2.SpecialAgentTag.EGO
     STAR: pd_unified_generator_pb2.SpecialAgentTag = pd_unified_generator_pb2.SpecialAgentTag.STAR

@@ -25,7 +25,7 @@ setup(
     description="Parallel Domain Python Step and Stream SDK",
     author="Parallel Domain",
     author_email="support@paralleldomain.com",
-    url="https://github.com/parallel-domain/pd-api-py",
+    url="https://github.com/parallel-domain/step-sdk",
     setup_requires=[
         'wheel'
     ],
@@ -71,6 +71,6 @@ setup(
     python_requires=">=3.8",
     project_urls={
         "Documentation": "https://docs.paralleldomain.com",
-        "Source Code": "https://github.com/parallel-domain/pd-api-py",
+        "Source Code": "https://github.com/parallel-domain/step-sdk",
     },
 )
