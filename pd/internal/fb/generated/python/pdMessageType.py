@@ -31,4 +31,6 @@ class pdMessageType(object):
     pdReturnScenarioData = 25
     pdQueryStateData = 26
     pdReturnStateData = 27
+    pdRaycastQuery = 28
+    pdRaycastHits = 29
 

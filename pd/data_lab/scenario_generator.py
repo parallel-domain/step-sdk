@@ -8,7 +8,6 @@ import logging
 import random
 from typing import List, Optional, Tuple, Type, TypeVar, Generic
 
-from pd.assets import init_asset_registry_version
 from pd.data_lab.config.location import Location
 from pd.data_lab.constants import TIME_OF_DAY_MAP
 from pd.data_lab.generators.custom_generator import CustomAtomicGenerator, DefaultCustomAtomicGenerator
@@ -35,7 +34,6 @@ class ScenarioGenerator(Generic[TSimState]):
         yield_every_sim_state: bool = False,
         verbose: bool = True,
         sim_state_type: Type[TSimState] = SimState,
-        ig_version: Optional[str] = None,
         **kwargs,
     ):
         self.scenario = scenario
@@ -50,18 +48,6 @@ class ScenarioGenerator(Generic[TSimState]):
             )
         elif isinstance(render_instance, ManagedRenderInstance):
             render_instance.locations = [scenario.location]
-
-        if ig_version is None and render_instance is not None and render_instance.step_ig is not None:
-            ig_version = render_instance.step_ig.ig_version
-        elif ig_version is None and (len(scenario.custom_agents) > 0 or len(scenario.custom_generators) > 0):
-            raise ValueError(
-                "When creating Scenarios with custom generators and without access to a render instance"
-                "a ig_version needs to be provided in order to resolve assets that will match the"
-                "final render instance!"
-            )
-
-        if ig_version is not None:
-            init_asset_registry_version(ig_version=ig_version)
 
         self._render_instance = render_instance
         self._sim_instance = sim_instance
@@ -195,7 +181,9 @@ class ScenarioGenerator(Generic[TSimState]):
             custom_generators.sort(key=lambda a: a.has_ego_agent, reverse=True)
 
             for gen in custom_generators:
-                gen.set_initial_agent_positions(state=self._sim_state, random_seed=scenario.random_seed)
+                gen.set_initial_agent_positions(
+                    state=self._sim_state, random_seed=scenario.random_seed, raycast=self._sim_instance.session.raycast
+                )
 
     def _initialize_generators(self, scenario: Scenario):
         pd_generators = scenario.pd_generators
@@ -230,4 +218,4 @@ class ScenarioGenerator(Generic[TSimState]):
                 time_delta=self.scenario.sim_state.scenario_gen.sim_update_time
             )
         for gen in self._custom_generators:
-            gen.update_state(state=self._sim_state)
+            gen.update_state(state=self._sim_state, raycast=self._sim_instance.session.raycast)

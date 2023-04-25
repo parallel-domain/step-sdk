@@ -4,6 +4,7 @@
 # Use of this file is only permitted if you have entered into a
 # separate written license agreement with Parallel Domain, Inc.
 
+import os
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -11,12 +12,12 @@ from typing import List, Optional, Union
 
 import numpy as np
 
-import pd.management
 import pd.state
 from pd.core import PdError
 from pd.data_lab.generators.simulation_agent import SimulationAgent, SimulationAgentBase
 from pd.state import Pose6D
 from pd.umd import load_umd_map, load_umd_map_from_file
+from pd.data_lab.context import get_datalab_context
 from pd.data_lab.config.location import Location
 from pd.internal.proto.keystone.generated.wrapper.pd_sensor_pb2 import SensorRigConfig as SensorRig
 from pd.internal.proto.umd.generated.wrapper.UMD_pb2 import UniversalMap
@@ -89,7 +90,15 @@ class SimState:
             self.current_state.world_info.location = location.name
 
         # Load Map now that location has been identified
-        if map_file is not None:
+        context = get_datalab_context()
+        if context.is_mode_local:
+            if not map_file:
+                map_file = Path(os.environ.get("PD_ROOT", "")) / 'generated' / 'locations' / \
+                           location.name / f'{location.name}.umd'
+                if not map_file.is_file():
+                    raise PdError(f"Couldn't find local map (Umd) for map {location.name} at {str(map_file)}. "
+                                  "Please download the map artifact or pass a 'map_file' "
+                                  "parameter with the path to the map (Umd) file.")
             self._map = UniversalMap(proto=load_umd_map_from_file(path=Path(map_file)))
         else:
             try:

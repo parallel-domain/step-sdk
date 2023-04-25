@@ -1,0 +1,151 @@
+include "types.fbs";
+
+enum LotParkingDelineationType : int
+{
+    SINGLE = 0,
+    DASHED,
+    DOUBLE_OPEN,
+    DOUBLE_SQUARED,
+    DOUBLE_ROUND,
+    T_SHAPE,
+    NO_LINE,
+    RANDOM
+}
+
+enum StreetParkingDelineationType : int
+{
+    SINGLE = 0,
+    DASHED,
+    DOUBLE,
+    DOUBLE_OPEN,
+    DOUBLE_SQUARED,
+    DOUBLE_ROUND,
+    T_SHAPE,
+    NO_LINE,
+    RANDOM
+}
+
+// this enum is a superset of StreetParkingDelineationType
+// index match between the two up until and including RANDOM
+// this is done to make it easy to cast between the two as this 
+// arg is overridden by the selection for StreetParkingDelineationType
+// if nothing is specified
+enum StreetParkingAngleZeroOverride : int
+{
+    SINGLE = 0,
+    DASHED,
+    DOUBLE,
+    DOUBLE_OPEN,
+    DOUBLE_SQUARED,
+    DOUBLE_ROUND,
+    T_SHAPE,
+    NO_LINE,
+    RANDOM,
+    UNMETERED
+}
+
+enum ParkingSpaceMaterial : int
+{
+    MI_pavement_01 = 0,
+    MI_ParkingTiles_BrickBasket_01,
+    MI_ParkingTiles_BrickHerring_01,
+    MI_ParkingTiles_BrickHex_01,
+    MI_ParkingTiles_BrickOrnate_01,
+    MI_ParkingTiles_CobbleStone_01,
+    MI_ParkingTiles_CobbleStone_02,
+    MI_ParkingTiles_ConcreteBrick_01,
+    MI_ParkingTiles_ConcreteBrick_02,
+    MI_ParkingTiles_ConcreteBrick_03,
+    MI_ParkingTiles_ConcretePavers_01,
+    MI_ParkingTiles_StoneFlag_01
+}
+
+table ParkingConfigFB
+{
+    // angle of parking spaces in degrees
+    angle: int;
+
+    // parking lot line type
+    lot_parking_delineation_type : LotParkingDelineationType = SINGLE;
+
+    // street parking line type
+    street_parking_delineation_type : StreetParkingDelineationType = SINGLE;
+
+    // parallel street parking line type
+    // parallel street spaces have an extra option vs angled street parking, UNMETERED
+    street_parking_angle_zero_override : StreetParkingAngleZeroOverride = SINGLE;
+
+    // parking line color
+    delineation_color : float3_t;
+
+    // parking line wear [0-1]
+    delineation_wear_amount: float;
+
+    // material to show inside parking spaces
+    parking_space_material : ParkingSpaceMaterial = MI_pavement_01;
+
+    // tint applied to material
+    parking_space_tint : float3_t;
+
+    // grunge applied to material [0-1]
+    parking_space_grunge_amount: float;
+}
+
+table DecorationPreset
+{
+  preset_name: string;
+  variant: int;
+}
+
+table Decal
+{
+  asset_name: string;
+}
+
+table Text
+{
+  value: string;
+}
+
+table PaintTexture
+{
+  color_rgb: float3_t;
+  wear: float;
+}
+
+union DecorationData
+{
+  DecorationPreset,
+  Decal,
+  PaintTexture,
+  Text
+}
+
+enum DecorationObjectType : int
+{
+  Lane = 0
+}
+
+table DecorationDataFB
+{
+    id: uint64 (key);
+    decoration_data: DecorationData; 
+}
+
+table ObjectDecorations
+{
+  id: uint64 (key);
+  type: DecorationObjectType;
+  object_id: uint64;
+  decorations: [DecorationDataFB];
+}
+
+table ObjectDecorationsInfoFB
+{
+  object_decorations: [ObjectDecorations];
+}
+
+table EnvironmentConfigFB
+{
+    parking_config: ParkingConfigFB;
+}

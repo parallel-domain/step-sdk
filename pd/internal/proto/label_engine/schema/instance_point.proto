@@ -59,8 +59,10 @@ message TrailerPointData
         DRAWBAR_TRIANGLE_LEFT = 6;
         DRAWBAR_TRIANGLE_RIGHT = 7;
         DRAWBAR_NECK = 8;
+        OTHER = 9;
     }
     TrailerPointType type = 1;
+    string other_name = 2;
 }
 
 message ParkingPointData
@@ -83,6 +85,9 @@ message VehiclePointData
         FRONT_RIGHT = 1;
         REAR_LEFT = 2;
         REAR_RIGHT = 3;
+        EGO_CENTER = 4;
+        EGO_LEFT = 5;
+        EGO_RIGHT = 6;
     }
     VehiclePointType type = 1;
 }

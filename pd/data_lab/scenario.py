@@ -10,6 +10,7 @@ from typing import List, Optional, Union
 import ujson
 from google.protobuf.json_format import MessageToDict, ParseDict, ParseError
 
+from pd.core import PdError
 from pd.data_lab.config.distribution import Bucket, CategoricalDistribution
 from pd.data_lab.config.environment import Environment, TimeOfDays
 from pd.data_lab.config.location import Location
@@ -51,7 +52,9 @@ class Scenario:
             self._sim_state_message.scenario_gen.environment.presets.append(pd_environments_pb2.EnvironmentPreset())
 
         self._location = (
-            None if len(self._sim_state_message.locations) == 0 else Location(name=self._sim_state_message.locations[0].location)
+            None
+            if len(self._sim_state_message.locations) == 0
+            else Location(name=self._sim_state_message.locations[0].location)
         )
 
     @property
@@ -166,27 +169,29 @@ class Scenario:
     @classmethod
     def load_scenario(cls, path: Union[str, Path], sensor_rig: SensorRig = None) -> "Scenario":
         path = Path(path) if isinstance(path, str) else path
+        with path.open("r") as fp:
+            message_json = ujson.load(fp)
         try:
-            with path.open("r") as fp:
-                json_data = ujson.load(fp)
+            if "stages" in message_json:
+                message = next(
+                    stage["build_sim_state"] for stage in message_json["stages"] if "build_sim_state" in stage
+                )
 
-            message = ParseDict(
-                js_dict=json_data,
-                message=pd_sim_state_pb2.BuildSimState().proto,
-                ignore_unknown_fields=False,
-                descriptor_pool=None,
-            )
-        except ParseError:
-            with path.open("r") as fp:
-                message_json = ujson.load(fp)
-            message = next(stage["build_sim_state"] for stage in message_json["stages"] if "build_sim_state" in stage)
-
-            message = ParseDict(
-                js_dict=message,
-                message=pd_sim_state_pb2.BuildSimState().proto,
-                ignore_unknown_fields=False,
-                descriptor_pool=None,
-            )
+                message = ParseDict(
+                    js_dict=message,
+                    message=pd_sim_state_pb2.BuildSimState().proto,
+                    ignore_unknown_fields=False,
+                    descriptor_pool=None,
+                )
+            else:
+                message = ParseDict(
+                    js_dict=message_json,
+                    message=pd_sim_state_pb2.BuildSimState().proto,
+                    ignore_unknown_fields=False,
+                    descriptor_pool=None,
+                )
+        except ParseError as e:
+            raise PdError(f"Couldn't load scenario from file {path}.", "\n".join(e.args))
 
         if sensor_rig is not None:
             message.sensor_rig.MergeFrom(sensor_rig.proto)

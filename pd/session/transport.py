@@ -20,8 +20,9 @@ import logging
 import threading
 
 import zmq
+from zmq.error import ZMQError
 
-import pd.core
+from pd.core import PdError
 
 
 logger = logging.getLogger(__name__)
@@ -212,7 +213,15 @@ class ZmqTransport(IZmqTransport):
 
     def send_request_msg(self, msg_bytes: bytearray) -> bytes:
         self._request_socket.send(msg_bytes)
-        resp = self._request_socket.recv()
+        try:
+            resp = self._request_socket.recv()
+        except ZMQError as e:
+            raise PdError(
+                f"Timed out while waiting for the server to respond. "
+                f"Please check that the server is running and the server address is correct. "
+                f"Please contact support@paralleldomain.com for support. "
+                f"Error: {e.strerror} ({e.errno})"
+            )
         for l in self.listeners:
             l.on_send_request_msg(timestamp=time.time(), data=bytes(msg_bytes))
         return resp
@@ -279,7 +288,7 @@ class TlsProxyForZmqTransport(IZmqTransport):
         try:
             client_port = out_queue.get(timeout=3)
         except queue.Empty:
-            raise pd.core.errors.PdError("Connection error: failed to receive client port from TLS proxy")
+            raise PdError("Connection error: failed to receive client port from TLS proxy")
         logger.debug(f"Tls Zmq transport connecting to proxy on client port {client_port}")
         self._zmq_transport = ZmqTransport(request_addr=f'tcp://127.0.0.1:{client_port}')
         if self.timeout_recv_ms:
@@ -338,6 +347,7 @@ class TlsProxyForZmqTransport(IZmqTransport):
         inputs = [client_socket_handle, server_tls_socket]
         outputs = []
         client_to_server_queue = Queue()
+        client_to_server_retry_queue = Queue(maxsize=1)
         server_to_client_queue = Queue()
         try:
             while True:
@@ -356,13 +366,26 @@ class TlsProxyForZmqTransport(IZmqTransport):
                         try:
                             msg_from_server = readable_s.recv(TlsProxyForZmqTransport.__SOCKET_BUFFER_SIZE)
                             if not msg_from_server:
-                                logger.error("Error: TLS connection failed")
+                                logger.error(
+                                    f"Error: Failed to establish a secure connection to the server. "
+                                    f"Please check that you have the correct server address and that you're "
+                                    f"using the correct credentials file. "
+                                    f"Please contact support@paralleldomain.com for support."
+                                )
                                 server_tls_socket.close()
                                 server_socket.close()
                                 client_socket.close()
+                                # The main thread will wait on a recv() at this point until it times out
+                                # Since Python3.5, there is no way to interrupt it
                                 return
-                        except ssl.SSLWantReadError:
-                            pass
+                        except (ssl.SSLWantReadError, ssl.SSLWantWriteError) as e:
+                            # Retry
+                            logger.debug(f"Suppressed SSL error {e.__class__.__name__} {str(e)}")
+                        except ssl.SSLError as e:
+                            # Retry if handshake suspended
+                            if e.errno != ssl.SSL_ERROR_WANT_X509_LOOKUP:
+                                raise
+                            logger.debug(f"Suppress SSL error {e.__class__.__name__} {str(e)}")
                         else:
                             if not skip_tls:
                                 data_left = server_tls_socket.pending()
@@ -386,13 +409,40 @@ class TlsProxyForZmqTransport(IZmqTransport):
                             logger.debug(f"Sent msg to client (size={len(msg_from_server)})")
 
                     if writable_s is server_tls_socket:
+                        # We might need to retry writes when the TLS socket throws an error
+                        # At this point we have already popped the message from the queue
+                        # There's no way to put it back, and no way to peek before popping either
+                        # So instead we throw it in a retry queue, and prioritize reading from
+                        # the retry queue first
                         try:
-                            msg_from_client = client_to_server_queue.get_nowait()
+                            # Try to get from the retry queue first, then the actual queue
+                            try:
+                                msg_from_client = client_to_server_retry_queue.get_nowait()
+                            except queue.Empty:
+                                msg_from_client = client_to_server_queue.get_nowait()
                         except queue.Empty:
                             outputs.remove(server_tls_socket)
                         else:
-                            server_tls_socket.send(msg_from_client)
-                            logger.debug(f"Sent msg to server (size={len(msg_from_client)})")
+                            if not msg_from_client:
+                                # Client connection must have ended
+                                logger.debug("Received empty message from client. Closing TLS socket")
+                                server_tls_socket.close()
+                                server_socket.close()
+                                client_socket.close()
+                                return
+                            try:
+                                server_tls_socket.send(msg_from_client)
+                                logger.debug(f"Sent msg to server (size={len(msg_from_client)})")
+                            except (ssl.SSLWantReadError, ssl.SSLWantWriteError) as e:
+                                # Retry
+                                logger.debug(f"Suppressed SSL error {e.__class__.__name__} {str(e)}")
+                                client_to_server_retry_queue.put(msg_from_client)
+                            except ssl.SSLError as e:
+                                # Retry if handshake suspended
+                                if e.errno != ssl.SSL_ERROR_WANT_X509_LOOKUP:
+                                    raise
+                                logger.debug(f"Suppress SSL error {e.__class__.__name__} {str(e)}")
+                                client_to_server_retry_queue.put(msg_from_client)
 
                 for exceptional_s in exceptional:
                     if exceptional_s is client_socket_handle:
@@ -404,8 +454,12 @@ class TlsProxyForZmqTransport(IZmqTransport):
                     client_socket.close()
                     return
 
-        except (Exception,):
-            logger.debug("Closing TLS proxy sockets")
+        except (Exception,) as e:
+            logger.error(
+                f"Secure connection with the server was interrupted. "
+                f"Please contact support@paralleldomain.com for support. "
+                f"Error: Closing TLS socket due to {e.__class__.__name__} {str(e)}"
+            )
             server_tls_socket.close()
             server_socket.close()
             client_socket.close()

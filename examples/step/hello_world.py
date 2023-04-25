@@ -187,6 +187,7 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
         time_sec = 0.0
         ego_pose = next(ego_poses)
         ego_velocity = (0.0, 0.0, 0.0)
+        ego_agent_id = pd.state.rand_agent_id()
 
         # Main loop
         while time_sec < MAX_SIM_TIME_SEC:
@@ -196,7 +197,7 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
 
             # Create state for current frame
             ego_agent = pd.state.SensorAgent(
-                id=pd.state.rand_agent_id(),
+                id=ego_agent_id,
                 pose=ego_pose,
                 velocity=ego_velocity,
                 sensors=sensor_list

@@ -5,7 +5,7 @@
 # separate written license agreement with Parallel Domain, Inc.
 
 import abc
-from typing import List, TypeVar, Generic
+from typing import List, TypeVar, Generic, Optional, Callable
 
 from pd.data_lab.generators import BaseGenerator
 from pd.data_lab.generators.custom_simulation_agent import CustomSimulationAgent
@@ -43,14 +43,14 @@ class CustomAtomicGenerator(BaseGenerator, Generic[TSimState]):
 
         self.agents.sort(key=lambda a: len(a.step_agent.sensors) > 0, reverse=True)
 
-    def update_state(self, state: TSimState):
+    def update_state(self, state: TSimState, raycast: Optional[Callable] = None):
         for agent in self.agents:
-            agent.update_state(state)
+            agent.update_state(state, raycast=raycast)
             state.set_agent(agent=agent)
 
-    def set_initial_agent_positions(self, state: TSimState, random_seed: int):
+    def set_initial_agent_positions(self, state: TSimState, random_seed: int, raycast: Optional[Callable] = None):
         for agent in self.agents:
-            agent.set_inital_state(state, random_seed=random_seed)
+            agent.set_inital_state(sim_state=state, random_seed=random_seed, raycast=raycast)
 
 
 class DefaultCustomAtomicGenerator(CustomAtomicGenerator[TSimState]):

@@ -13,15 +13,11 @@ from typing import List, Literal, Optional
 
 import pd.state
 from pd.core import PdError
-from pd.management.ig import Ig, IgQuality, IgStatus, IgVersion
+from pd.management.ig import Ig, IgQuality, IgStatus
 from pd.session import StepSession
 
 from pd.data_lab.config.location import Location
-from pd.data_lab.constants import (
-    PD_CLIENT_CREDENTIALS_PATH_ENV,
-    PD_CLIENT_ORG_ENV,
-    PD_CLIENT_STEP_API_KEY_ENV,
-)
+from pd.data_lab.context import get_datalab_context
 from pd.data_lab.session_reference import TemporalSessionReference
 
 logger = logging.getLogger(__name__)
@@ -36,7 +32,7 @@ class AbstractRenderInstance(abc.ABC):
 
         self.session: Optional[StepSession] = None
         self._location_is_set: bool = False
-        self._loaded_location_name: Optional[str] = None
+        self._loaded_location: Optional[Location] = None
         self._loaded_time_of_day: Optional[str] = None
 
     @abc.abstractmethod
@@ -49,11 +45,6 @@ class AbstractRenderInstance(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def step_ig(self) -> Optional[Ig]:
-        pass
-
-    @property
-    @abc.abstractmethod
     def loaded_location(self) -> Optional[Location]:
         pass
 
@@ -61,14 +52,15 @@ class AbstractRenderInstance(abc.ABC):
         if self.session is not None:
             logger.info(f"Start loading location {location.name} with time of day: {time_of_day}")
             if (
-                self._loaded_location_name is None
-                or self._loaded_location_name != location.name
+                self._loaded_location is None
+                or self._loaded_location.name != location.name
+                or self._loaded_location.version != location.version
                 or self._loaded_time_of_day != time_of_day
             ):
                 # For merge batches we don't want to reload an already loaded map
                 self.session.load_location(location_name=location.name, time_of_day=time_of_day)
             self._location_is_set = True
-            self._loaded_location_name = location.name
+            self._loaded_location = location
             self._loaded_time_of_day = time_of_day
             logger.info(f"Loaded location {location.name} with time of day: {time_of_day}")
         else:
@@ -105,6 +97,10 @@ class AbstractRenderInstance(abc.ABC):
             )
         return self.temporal_session_reference
 
+    @property
+    def loaded_location(self) -> Optional[Location]:
+        return self._loaded_location
+
 
 class ManagedRenderInstance(AbstractRenderInstance):
     def __init__(
@@ -118,14 +114,12 @@ class ManagedRenderInstance(AbstractRenderInstance):
     ):
         super().__init__()
 
-        if PD_CLIENT_CREDENTIALS_PATH_ENV not in os.environ:
-            raise OSError(
-                f"Missing environment variable {PD_CLIENT_CREDENTIALS_PATH_ENV}! "
-                f"This should contain the path to pem certificate file!"
-            )
-        self._client_cert_file = str(os.environ[PD_CLIENT_CREDENTIALS_PATH_ENV])
-
-        self._ig_version = ig_version
+        context = get_datalab_context()
+        if context.is_mode_local:
+            raise PdError("ManagedRenderInstance does not support local mode in Data Lab. "
+                          "Please specify cloud credentials to use a ManagedRenderInstance.")
+        self._client_cert_file = context.client_cert_file
+        self._ig_version = context.version
         self._time_to_live = time_to_live
         self._quality = IgQuality(quality)
         self._keep_instance_running = keep_instance_running or (address is not None)
@@ -133,17 +127,6 @@ class ManagedRenderInstance(AbstractRenderInstance):
 
         self._ig: Optional[Ig] = None
         self._address = address
-
-        self._has_credentials = all(
-            [
-                n in os.environ
-                for n in [
-                    PD_CLIENT_CREDENTIALS_PATH_ENV,
-                    PD_CLIENT_STEP_API_KEY_ENV,
-                    PD_CLIENT_ORG_ENV,
-                ]
-            ]
-        )
 
     def get_status(self) -> Optional[IgStatus]:
         if self._ig is not None:
@@ -160,19 +143,9 @@ class ManagedRenderInstance(AbstractRenderInstance):
                         "No locations have been passed to the Render Instance! "
                         "Those need to be known if you want ot start an instance!"
                     )
-                if PD_CLIENT_STEP_API_KEY_ENV not in os.environ:
-                    raise OSError(
-                        f"Missing environment variable {PD_CLIENT_STEP_API_KEY_ENV}! This should contain the step api key!"
-                    )
-                if PD_CLIENT_ORG_ENV not in os.environ:
-                    raise OSError(
-                        f"Missing environment variable {PD_CLIENT_ORG_ENV}! This should contain the org name!"
-                    )
 
                 logger.info(f"Using locations: {self.locations}")
-                if self._ig_version is None:
-                    self._ig_version = IgVersion.list()[-1].name
-                    logger.info(f"Using IG version {self._ig_version}")
+                logger.info(f"Using IG version {self._ig_version}")
                 # Start new instance
                 self._ig = Ig.create(
                     ig_version=self._ig_version,
@@ -183,14 +156,13 @@ class ManagedRenderInstance(AbstractRenderInstance):
 
                 self._wait_until_instance_started()
             else:
-                if self._has_credentials:
-                    # use running instance if credentials are set to check if its actually running
-                    # otherwise we just assume the url is correct as requested for better user experience
-                    igs = Ig.list()
-                    ig = next(iter([i for i in igs if i.step_url == self._address]), None)
-                    if ig is None:
-                        raise ValueError(f"The step instance {self._address} is not running anymore!")
-                    self._ig = ig
+                # use running instance if credentials are set to check if its actually running
+                # otherwise we just assume the url is correct as requested for better user experience
+                igs = Ig.list()
+                ig = next(iter([i for i in igs if i.step_url == self._address]), None)
+                if ig is None:
+                    raise ValueError(f"The step instance {self._address} is not running anymore!")
+                self._ig = ig
 
     def _wait_until_instance_started(self, max_wait_time: int = 1800):
         started = False
@@ -245,6 +217,7 @@ class ManagedRenderInstance(AbstractRenderInstance):
                     raise RuntimeError("You need to start an instance before you can create a session!")
             else:
                 self.session = StepSession(request_addr=self._ig.step_url, client_cert_file=self._client_cert_file)
+            self.session.transport.timeout_recv_ms = 600_000
             self.session.__enter__()
             version = self.session.system_info.version
             logger.info(
@@ -274,30 +247,28 @@ class ManagedRenderInstance(AbstractRenderInstance):
             if not self._keep_instance_running:
                 self.stop_instance()
 
-    @property
-    def step_ig(self) -> Optional[Ig]:
-        return self._ig
-
-    @property
-    def loaded_location(self) -> Optional[Location]:
-        if (
-            self.step_ig is not None
-            and self._loaded_location_name is not None
-            and self._loaded_location_name in self.step_ig.levelpak
-        ):
-            return Location(name=self._loaded_location_name, version=self.step_ig.levelpak[self._loaded_location_name])
-        return None
-
 
 class RenderInstance(AbstractRenderInstance):
     def __init__(self, address: Optional[str] = None):
         super().__init__()
         self._address = address
-        self._client_cert_file = os.environ.get(PD_CLIENT_CREDENTIALS_PATH_ENV, None)
+        context = get_datalab_context()
+        self._client_cert_file = context.client_cert_file
+        if not context.is_mode_local and context.fail_on_version_mismatch:
+            try:
+                ig_version = next(ig.ig_version for ig in Ig.list() if ig.ig_url == address)
+            except StopIteration:
+                raise PdError(f"Couldn't find a render instance with the address '{address}'. "
+                              "Please verify the render instance address.")
+            if ig_version != context.version:
+                raise PdError(f"There's a mismatch between the selected Data Lab version ({context.version}) "
+                              f"and the version of the render instance ({ig_version}). "
+                              "To disable this check, pass fail_on_version_mismatch=False to setup_datalab().")
 
     def create_session(self):
         if self.session is None:
             self.session = StepSession(request_addr=self._address, client_cert_file=self._client_cert_file)
+            self.session.transport.timeout_recv_ms = 600_000
             self.session.__enter__()
             version = self.session.system_info.version
             logger.info(
@@ -319,24 +290,3 @@ class RenderInstance(AbstractRenderInstance):
 
     def __exit__(self, *args):
         self.end_session()
-
-    @property
-    def step_ig(self) -> Optional[Ig]:
-        try:
-            igs = Ig.list()
-            ig = next(iter([i for i in igs if i.step_url == self._address]), None)
-            return ig
-        except PdError:
-            pass
-        return None
-
-    @property
-    def loaded_location(self) -> Optional[Location]:
-        if (
-            self.step_ig is not None
-            and self._loaded_location_name is not None
-            and self._loaded_location_name in self.step_ig.levelpak
-        ):
-            return Location(name=self._loaded_location_name, version=self.step_ig.levelpak[self._loaded_location_name])
-
-        return None

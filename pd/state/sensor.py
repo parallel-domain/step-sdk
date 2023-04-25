@@ -74,11 +74,11 @@ class PostProcessMaterial:
     weight: float = 0.0
 
 
-class DenoiseFilter(Enum):
-    AverageFilter = auto()
-    MedianFilter = auto()
-    FastMedianFilter = auto()
-    BilateralFilter = auto()
+class DenoiseFilter(IntEnum):
+    AverageFilter = 0
+    MedianFilter = 1
+    FastMedianFilter = 2
+    BilateralFilter = 3
 
 
 @dataclass

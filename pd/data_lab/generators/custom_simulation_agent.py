@@ -6,7 +6,7 @@
 
 import abc
 import random
-from typing import Literal, Optional, Tuple, Union, TypeVar, Generic, List
+from typing import Literal, Optional, Tuple, Union, TypeVar, Generic, List, Callable
 
 import numpy as np
 import pd.state
@@ -23,11 +23,13 @@ StepAgentType = Union[pd.state.VehicleAgent, pd.state.ModelAgent]
 
 class CustomSimulationAgentBehaviour(Generic[TSimState]):
     @abc.abstractmethod
-    def update_state(self, sim_state: TSimState, agent: "CustomSimulationAgent"):
+    def update_state(self, sim_state: TSimState, agent: "CustomSimulationAgent", raycast: Optional[Callable] = None):
         pass
 
     @abc.abstractmethod
-    def set_inital_state(self, sim_state: TSimState, agent: "CustomSimulationAgent", random_seed: int):
+    def set_inital_state(
+        self, sim_state: TSimState, agent: "CustomSimulationAgent", random_seed: int, raycast: Optional[Callable] = None
+    ):
         pass
 
     @abc.abstractmethod
@@ -56,12 +58,12 @@ class CustomSimulationAgent(SimulationAgentBase, Generic[TSimState]):
         self._behaviour = behaviour
         return self
 
-    def set_inital_state(self, sim_state: TSimState, random_seed: int):
+    def set_inital_state(self, sim_state: TSimState, random_seed: int, raycast: Optional[Callable] = None):
         self._initialize_step_agent(random_seed=random_seed)
         self.set_pose(pose=self._pose, velocity=self._velocity)
 
         if self._behaviour is not None:
-            self._behaviour.set_inital_state(sim_state=sim_state, agent=self, random_seed=random_seed)
+            self._behaviour.set_inital_state(sim_state=sim_state, agent=self, random_seed=random_seed, raycast=raycast)
 
     def set_pose(self, pose: np.ndarray, velocity: Optional[Tuple[float, float, float]] = None):
         self._pose = pose
@@ -71,9 +73,9 @@ class CustomSimulationAgent(SimulationAgentBase, Generic[TSimState]):
             if velocity is not None:
                 self.step_agent.velocity = velocity
 
-    def update_state(self, sim_state: TSimState):
+    def update_state(self, sim_state: TSimState, raycast: Optional[Callable] = None):
         if self._behaviour is not None:
-            self._behaviour.update_state(sim_state=sim_state, agent=self)
+            self._behaviour.update_state(sim_state=sim_state, agent=self, raycast=raycast)
 
     @abc.abstractmethod
     def _initialize_step_agent(self, random_seed: int):

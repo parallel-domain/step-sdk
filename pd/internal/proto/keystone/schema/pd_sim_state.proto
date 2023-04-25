@@ -88,12 +88,13 @@ message ProcessSimState
     string input_artifact_uid = 2;
     string output_artifact_uid = 3;
 
-    oneof input {
-        string param_artifact_uid = 4;
-        ProcessSimStateParams params = 5;
-    }
+    string param_artifact_uid = 4;
+    ProcessSimStateParams params = 5;
 
     int32 batch_size = 6;
+
+    // Set the tag/uid of the code build ECR image to use.
+    string code_build_artifact_uid = 7;
 }
 
 message MergeSimState

@@ -168,6 +168,83 @@ message EnvironmentParameters
       No
   */
   optional EnumDistribution region = 4;
+
+  /*
+  Description: configure parking space appearance
+  Required: no
+  */
+  optional ParkingSpaceData parking_space_data = 5;
+}
+
+/*
+Description: struct used to configure parking space selection in sim, and parking space appreaance in ig level
+*/
+message ParkingSpaceData
+{
+    /*
+    desired parking space angle in DEGREES and its probability
+    */
+    map<int32, float> angle_distribution = 1;
+    /*
+    what line type we want parking lot spaces to have
+    Possible values: SINGLE, DASHED, DOUBLE_OPEN, DOUBLE_SQUARED, DOUBLE_ROUND, T_SHAPE, NO_LINE, RANDOM
+    default: SINGLE
+    omitted values are treated as having 0 probability
+    */
+    optional EnumDistribution lot_parking_delineation_type = 2;
+    /*
+    what line type we want non parallel street parking spaces to have
+    Possible values: SINGLE, DASHED, DOUBLE_OPEN, DOUBLE_SQUARED, DOUBLE_ROUND, T_SHAPE, NO_LINE, RANDOM
+    default: SINGLE
+    omitted values are treated as having 0 probability
+    */
+    optional EnumDistribution street_parking_delineation_type = 3;
+    /*
+    what line type we want parallel street parking spaces to have
+    Possible values: SINGLE, DASHED, DOUBLE_OPEN, DOUBLE_SQUARED, DOUBLE_ROUND, T_SHAPE, NO_LINE, RANDOM, UNMETERED
+    default: will use street_parking_delineation_type if empty
+    omitted values are treated as having 0 probability
+    */
+    optional EnumDistribution street_parking_angle_zero_override = 4;
+    /*
+    color of parking lines. white if not specified
+    all parking will have the same color 
+    */
+    repeated Float3 delineation_color = 5;
+    /*
+    wear of parking lines, defaults to 0.25
+    range: [0-1]
+    */
+    optional CenterSpreadConfig delineation_wear_amount = 6;
+    /*
+    string name of parking space material
+    Possible Values:
+    MI_pavement_01 (default)
+    MI_ParkingTiles_BrickBasket_01
+    MI_ParkingTiles_BrickHerring_01
+    MI_ParkingTiles_BrickHex_01
+    MI_ParkingTiles_BrickOrnate_01
+    MI_ParkingTiles_CobbleStone_01
+    MI_ParkingTiles_CobbleStone_02
+    MI_ParkingTiles_ConcreteBrick_01
+    MI_ParkingTiles_ConcreteBrick_02
+    MI_ParkingTiles_ConcreteBrick_03
+    MI_ParkingTiles_ConcretePavers_01
+    MI_ParkingTiles_StoneFlag_01
+
+    omitted values are treated as having 0 probability
+    */
+    optional EnumDistribution parking_space_material = 7;
+    /*
+    tint color of parking spaces
+    defaults to no tint
+    */
+    repeated Float3 parking_space_tint = 8;
+    /*
+    grunge of parking lines, defaults to 0.25
+    range: [0-1]
+    */
+    optional CenterSpreadConfig parking_space_grunge_amount = 9;
 }
 
 /*
@@ -258,6 +335,28 @@ message RoadMarkingData
   optional CenterSpreadConfig wear = 5;
 }
 
+
+message ObjectDecorations
+{
+    required ObjectDecorationType object_decoration_type = 1;
+    required uint32 object_id = 2;
+    required DecorationData decoration_data = 3;
+}
+
+message DecorationData
+{
+    oneof decoration_data
+    {
+        DecorationPreset decoration_preset = 1;
+    }
+}
+
+message DecorationPreset
+{
+    required string preset_name = 1;
+    optional uint32 variant = 2 [default = 0];
+}
+
 /*
 Description: Used to describe RGB value in RoadMarkingData
 */
@@ -336,6 +435,11 @@ enum AgentType
   STATIC_OBJECT = 5;
   DRONE = 6;
   ANIMAL = 7;
+}
+
+enum ObjectDecorationType
+{
+    LANE = 0;
 }
 
 /*
@@ -607,7 +711,7 @@ message DebrisGeneratorParameters
       Determines the spawn radius of debris (see `LocationRelativePositionRequest`)
 
   Range:
-      Only works with `LocationRelativePositionRequest`
+      Works with `LocationRelativePositionRequest` and `LaneSpawnPolicy`.
 
   Required:
       Yes
@@ -671,7 +775,8 @@ message RandomPedestrianGeneratorParameters
 
   /*
   Description:
-      Determines the center of where the pedestrians will spawn. Radius controlled by `LocationRelativePositionRequest`
+      Determines the center of where the pedestrians will spawn. Radius controlled by `LocationRelativePositionRequest`.
+      Also compatible with `LaneSpawnPolicy` and will use default radius of 20. 
 
   Required:
       Yes
@@ -843,15 +948,29 @@ message AbsolutePositionRequest
 
   /*
   Description:
-      Lane ID to spawn in (UMD)
+      Lane ID to spawn in (UMD), inferred by position if not specified.
 
   Range:
-      Lane id of lane specified by position
+      Lane id of lane in the loaded (UMD) map.
 
   Required:
-      No, if agent is a vehicle. The lane id will be retrieved from the vehicle's position. Yes, if agent is not a vehicle.
+      No. Lane will be inferred from the position and the map data. The lane picked will be of one of the following types: Drivable, Sidewalk, Parking, ParkingAisle, ParkingSpace. 
+	  In cases where the lane can not be determined automatically, an error will be returned.
   */
   optional uint64 lane_id = 3;
+  
+  
+  /*
+  Description:
+     If true the AbsolutePositionRequest Z value for position will be ignored, and the Z will be set to the 'ground' height at the specified XY coordinate.
+
+  Range:
+     True or False
+
+  Required:
+    No
+  */
+  optional bool resolve_z = 4;
 }
 
 /*
@@ -1067,23 +1186,23 @@ message LaneSpawnPolicy
 
   /*
   Description:
-      Specifies a map of desired minimum path lengths based on lane type.
+      Specifies the desired minimum path length for agent.
       The length is from the beginning of the lane.
 
   Required:
-      No, will default to 0
+      No, will default to 0 if lane type is ParkingSpace or ParkingAisle, otherwise will default to 200. 
   */
-  map<string, CenterSpreadConfig> min_path_length = 9;
+  optional CenterSpreadConfig min_path_length = 9;
 
   /*
   Description:
-      Specifies a map of desired minimum path lengths behind the agent based on lane type.
+      Specifies the desired minimum path length behind the agent.
       The length is the distance behind the agent's location to the world edge.
 
   Required:
-      No, will default to 0
+      No, if it will default to 0 if lane type is ParkingSpace or ParkingAisle, otherwise will default to 100.
   */
-  map<string, CenterSpreadConfig> min_length_behind = 10;
+  optional CenterSpreadConfig min_length_behind = 10;
 }
 
 /*
@@ -1142,15 +1261,6 @@ message VehicleSpawnData
       No
   */
   optional AgentSpawnData agent_spawn_data = 3;
-
-  /*
-  Description:
-      Specified if vehicle should be prevented from spawning in a junction lane that has a red light at the start of scenario
-
-  Required:
-      No, will use default value
-  */
-  optional bool prevent_spawn_in_redlight = 4 [default = false];
 }
 
 /*
@@ -1317,8 +1427,6 @@ message VehicleBehavior
       No, if not specified will not ignore any obstacles
   */
   repeated ObstacleType ignore_obstacle_types = 14;
-
-  optional VehicleBehaviorType vehicle_behavior_type = 15 [default = DEFAULT];
 }
 
 /*
@@ -1385,25 +1493,6 @@ enum Gear
   REVERSE = 2;
   NEUTRAL = 3;
   DRIVE = 4;
-}
-
-/*
-Enum to drive vehicle behavior
-*/
-enum VehicleBehaviorType
-{
-  /*
-  Normal behavior of lane following
-  */
-  DEFAULT = 1;
-  /*
-  Stopped, engine off, lights off
-  */
-  OFF = 2;
-  /*
-  Will try to park if spawned in appropriate location for parking
-  */
-  PARKING = 3;
 }
 
 /*

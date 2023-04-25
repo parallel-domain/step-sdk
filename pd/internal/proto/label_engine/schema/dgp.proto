@@ -19,4 +19,14 @@ message WriteDGPDatasetConfig
     string input_instance_point_3d = 10 [(type)=eAnnotation, (stream)=eInput];
     string input_instance_map = 11  [(type)=eMeshIDMap, (stream)=eInput];
     string input_motion_vector_2d = 12[(type)=eAnnotation, (stream)=eInput];
+    string input_world_lines = 13[(type)=eAnnotation, (stream)=eInput];
+    string input_rgb = 14 [(type)=eNone, (stream)=eInput];
+    string input_depth = 15 [(type)=eNone, (stream)=eInput];
+    string input_point_cloud = 16 [(type)=eNone, (stream)=eInput];
+	string input_telemetry = 17 [(type)=eTelemetry, (stream)=eInput];
+    WriteDGPDatasetExtraConfig configuration_flags = 18;
 };
+
+message WriteDGPDatasetExtraConfig {
+    bool output_only_visible_bounds = 1;
+}

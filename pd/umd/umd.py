@@ -14,6 +14,41 @@ from typing import Optional
 import pd.internal.umd.UMD_pb2 as schema
 from pd.core.errors import PdError
 from pd.management import LevelpakVersion, Levelpak, fetch_level_umd
+from pd.internal.proto.umd.generated.wrapper.UMD_pb2 import UniversalMap
+
+
+def load_map_from_file(path: Path) -> UniversalMap:
+    """
+    Load universal map from a file path
+
+    Args:
+        path: Path to the Umd file
+
+    Returns:
+        UniversalMap object
+    """
+    return UniversalMap(proto=load_umd_map_from_file(path=path))
+
+
+
+def load_map(name: str, version: Optional[str] = None) -> UniversalMap:
+    """
+    Load a universal map
+
+    Note - this queries the Step Management API to fetch the Umd file.
+    Configuration required by :mod:`pd.management` must be set before calling
+    this function.
+
+    Args:
+        name: Level name
+        version: Level version. If no version is provided, the default version
+                 will be selected
+
+    Returns:
+        UniversalMap object
+    """
+    return UniversalMap(proto=load_umd_map(name=name, version=version))
+
 
 
 def load_umd_map_from_file(path: Path) -> schema.UniversalMap:

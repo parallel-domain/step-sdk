@@ -118,6 +118,7 @@ labels = [
 
     Label( "DiffusionPrimitive",             200,       -1,    True, (248,151,152) ),
     Label( "Custom",                         201,       -1,    True, (235,135, 45) ),
+    Label( "Parking Gap",                    202,       -1,   False, (252, 52,104) ),
     Label( "Multipath(Noise)",               225,       -1,   False, ( 70,255, 20) ),
     Label( "ThermalNoise(Noise)",            226,       -1,   False, (  0,255,140) ),
     Label( "Fog(Noise)",                     227,       -1,   False, (114,  0,255) ),

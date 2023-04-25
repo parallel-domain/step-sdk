@@ -121,7 +121,7 @@ class MergeSimState(ProtoMessageClass):
 class ProcessSimState(ProtoMessageClass):
     _proto_message = pd_sim_state_pb2.ProcessSimState
 
-    def __init__(self, *, proto: Optional[pd_sim_state_pb2.ProcessSimState]=None, artifact_key: Optional[str]=None, batch_size: Optional[int]=None, input_artifact_uid: Optional[str]=None, output_artifact_uid: Optional[str]=None, param_artifact_uid: Optional[str]=None, params: Optional[ProcessSimStateParams]=None):
+    def __init__(self, *, proto: Optional[pd_sim_state_pb2.ProcessSimState]=None, artifact_key: Optional[str]=None, batch_size: Optional[int]=None, code_build_artifact_uid: Optional[str]=None, input_artifact_uid: Optional[str]=None, output_artifact_uid: Optional[str]=None, param_artifact_uid: Optional[str]=None, params: Optional[ProcessSimStateParams]=None):
         if proto is None:
             proto = pd_sim_state_pb2.ProcessSimState()
         self.proto = proto
@@ -130,6 +130,8 @@ class ProcessSimState(ProtoMessageClass):
             self.artifact_key = artifact_key
         if batch_size is not None:
             self.batch_size = batch_size
+        if code_build_artifact_uid is not None:
+            self.code_build_artifact_uid = code_build_artifact_uid
         if input_artifact_uid is not None:
             self.input_artifact_uid = input_artifact_uid
         if output_artifact_uid is not None:
@@ -154,6 +156,14 @@ class ProcessSimState(ProtoMessageClass):
     @batch_size.setter
     def batch_size(self, value: int):
         self.proto.batch_size = value
+
+    @property
+    def code_build_artifact_uid(self) -> str:
+        return self.proto.code_build_artifact_uid
+
+    @code_build_artifact_uid.setter
+    def code_build_artifact_uid(self, value: str):
+        self.proto.code_build_artifact_uid = value
 
     @property
     def input_artifact_uid(self) -> str:

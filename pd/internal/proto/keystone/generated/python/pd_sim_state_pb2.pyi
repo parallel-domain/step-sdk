@@ -34,20 +34,22 @@ class MergeSimState(_message.Message):
     def __init__(self, first_input_artifact_uid: Optional[str] = ..., second_input_artifact_uid: Optional[str] = ..., output_artifact_uid: Optional[str] = ...) -> None: ...
 
 class ProcessSimState(_message.Message):
-    __slots__ = ["artifact_key", "batch_size", "input_artifact_uid", "output_artifact_uid", "param_artifact_uid", "params"]
+    __slots__ = ["artifact_key", "batch_size", "code_build_artifact_uid", "input_artifact_uid", "output_artifact_uid", "param_artifact_uid", "params"]
     ARTIFACT_KEY_FIELD_NUMBER: ClassVar[int]
     BATCH_SIZE_FIELD_NUMBER: ClassVar[int]
+    CODE_BUILD_ARTIFACT_UID_FIELD_NUMBER: ClassVar[int]
     INPUT_ARTIFACT_UID_FIELD_NUMBER: ClassVar[int]
     OUTPUT_ARTIFACT_UID_FIELD_NUMBER: ClassVar[int]
     PARAMS_FIELD_NUMBER: ClassVar[int]
     PARAM_ARTIFACT_UID_FIELD_NUMBER: ClassVar[int]
     artifact_key: str
     batch_size: int
+    code_build_artifact_uid: str
     input_artifact_uid: str
     output_artifact_uid: str
     param_artifact_uid: str
     params: ProcessSimStateParams
-    def __init__(self, artifact_key: Optional[str] = ..., input_artifact_uid: Optional[str] = ..., output_artifact_uid: Optional[str] = ..., param_artifact_uid: Optional[str] = ..., params: Optional[Union[ProcessSimStateParams, Mapping]] = ..., batch_size: Optional[int] = ...) -> None: ...
+    def __init__(self, artifact_key: Optional[str] = ..., input_artifact_uid: Optional[str] = ..., output_artifact_uid: Optional[str] = ..., param_artifact_uid: Optional[str] = ..., params: Optional[Union[ProcessSimStateParams, Mapping]] = ..., batch_size: Optional[int] = ..., code_build_artifact_uid: Optional[str] = ...) -> None: ...
 
 class ProcessSimStateParams(_message.Message):
     __slots__ = ["capture_all_frames", "cull_agents", "fog_intensity", "headlights", "override_fog_intensity", "override_headlights", "override_rain_intensity", "override_sensor_rig", "override_streetlights", "override_time_of_day", "override_wetness", "rain_intensity", "sensor_rig", "streetlights", "time_of_day", "wetness"]

@@ -238,6 +238,10 @@ message SpawnConfigPreset
 
     optional bool restrictLargeVehicleLaneCurvature = 109 [default = true];
     optional float largeVehicleTurnRadiusMultiple = 110 [default = 3];
+
+    optional ParkingSpaceData parking_space_data = 111;
+
+    repeated ObjectDecorations objectDecorations = 112;
 }
 
 message SpawnConfig
@@ -597,6 +601,7 @@ message ParkingScenarioGeneratorInfo
     optional bool exitAfterParking = 12 [default = false];
     optional bool exitStraight = 13 [default = false];
     optional bool placeVehicleInFrontOfParallelSpot = 14 [default = false];
+    optional float perpendicularOnRoadProbability = 15 [default = 0.5];
 }
 
 message DroneFlightScenarioGeneratorInfo

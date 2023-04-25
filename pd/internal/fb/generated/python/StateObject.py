@@ -38,4 +38,6 @@ class StateObject(object):
     SplineInfoFB = 32
     VehicleTrafficControlOutputFB = 33
     AgentEventsFB = 34
+    ObjectDecorationsInfoFB = 35
+    EnvironmentConfigFB = 36
 

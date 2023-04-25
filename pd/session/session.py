@@ -16,7 +16,7 @@ import logging
 import re
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Optional, Union
+from typing import Optional, Union, List, Tuple
 
 import flatbuffers
 import numpy as np
@@ -47,14 +47,18 @@ from pd.internal.fb.generated.python import (
     pdSubmitScenarioConfig,
     pdSubmitScenarioGenConfig,
     pdUpdateState,
-    pdResponseCode
+    pdResponseCode,
+    pdRaycastQuery,
+    pdRaycastHits,
+    pdFloat3
 )
 from pd.internal.fb.generated.python.pdMessageType import pdMessageType
 from pd.internal.fb.generated.python.pdPerformanceFeature import pdPerformanceFeature
 from pd.session.transport import TlsProxyForZmqTransport, ZmqTransport
 from pd.state.sensor import LidarSensorData, SensorBuffer, SensorData
-from pd.state.serialize import state_to_bytes
+from pd.state.serialize import state_to_bytes, bytes_to_state
 from pd.state.state import State
+from pd.sim.sim import Raycast, RaycastHit
 
 logger = logging.getLogger(__name__)
 
@@ -625,10 +629,8 @@ class SimSession(PdMessageMixin):
             hostname = request_addr_match.group("hostname")
             port = int(request_addr_match.group("port"))
             self.transport = TlsProxyForZmqTransport(hostname, port, client_cert_file)
-            self.transport.timeout_recv_ms = 600000
         else:
             self.transport = ZmqTransport(request_addr)
-            self.transport.timeout_recv_ms = 600000
 
     def __enter__(self):
         self.transport.__enter__()
@@ -637,15 +639,19 @@ class SimSession(PdMessageMixin):
     def __exit__(self, *args):
         return self.transport.__exit__(*args)
 
-    def load_scenario_generation(self, scenario_gen: str) -> (str, int):
+    def load_scenario_generation(self, scenario_gen: str, location_index: int = 0) -> Tuple[str, int]:
         """
-        Load a new scenario configuration
+        Load a new Scenario Generation Config
 
         Args:
-            scenario_gen: json string of scenario configuration
+            scenario_gen: String representation of Scenario Generation Config JSON
+            location_index: A single location at this index is selected from the Scenario Generation Config
+
+        Return:
+            Location and ego id
         """
         builder = flatbuffers.Builder(1024)
-        msg = self._build_pd_scenario_generation_configuration(builder, scenario_gen)
+        msg = self._build_pd_scenario_generation_configuration(builder, scenario_gen, location_index)
         builder.Finish(msg)
         resp_bytes = self.transport.send_request_msg(builder.Output())
 
@@ -665,12 +671,12 @@ class SimSession(PdMessageMixin):
         else:
             self._raise_error_for_unknown_message()
 
-    def query_state_data(self) -> Optional[pdReturnStateData.pdReturnStateData]:
+    def query_state_data(self) -> State:
         """
-        Query server for sensor data
+        Query Sim for state data
 
         Returns:
-            Sensor data returned from backend
+            State data returned by Sim
         """
         builder = flatbuffers.Builder(1024)
         msg = self._build_pd_query_state_data(builder)
@@ -688,18 +694,70 @@ class SimSession(PdMessageMixin):
             return_state_msg.Init(ack_msg.Message().Bytes, ack_msg.Message().Pos)
             state_data = return_state_msg.StateDataAsNumpy().tobytes()
 
-            return state_data
+            return bytes_to_state(state_data)
+        elif msg_type == pdMessageType.pdAck:
+            self._raise_error_for_ack(ack_msg)
+        else:
+            self._raise_error_for_unknown_message()
+
+    def raycast(self, requests: List[Raycast]) -> List[List[RaycastHit]]:
+        """
+        Cast a number of rays in the world and return their points of collisions against surfaces
+        in the world.
+
+        This function takes in a list of raycast requests. For each raycast request, it will return
+        a list of hits.
+        The list of hits (the inner list) will be in the order of increasing distance from the origin point
+        for the given request.
+        The list of responses (the outer list) will have a one-to-one correspondence with the list of requests.
+
+        Args:
+            requests: Any number of raycast requests
+
+        Returns:
+            Same number of responses as the number of requests.
+            Each response is a list of hits.
+        """
+        builder = flatbuffers.Builder(1024)
+        msg = self._build_pd_raycast(builder, requests)
+
+        builder.Finish(msg)
+        resp_bytes = self.transport.send_request_msg(builder.Output())
+
+        ack_bytes = bytearray()
+        ack_bytes.extend(resp_bytes)
+        ack_msg = pdMessage.pdMessage.GetRootAspdMessage(ack_bytes, 0)
+        msg_type = ack_msg.MessageType()
+
+        if msg_type == pdMessageType.pdRaycastHits:
+            return_msg = pdRaycastHits.pdRaycastHits()
+            return_msg.Init(ack_msg.Message().Bytes, ack_msg.Message().Pos)
+            hits_for_all_requests = []
+            for i in range(return_msg.HitsLength()):
+                hits_for_request = []
+                hits_for_request_fb = return_msg.Hits(i)
+                for j in range(hits_for_request_fb.LocationsLength()):
+                    location_fb = hits_for_request_fb.Locations(j)
+                    normal_fb = hits_for_request_fb.Normals(j)
+                    flag = hits_for_request_fb.Flags(j)
+                    hits_for_request.append(RaycastHit(
+                        position=(location_fb.X(), location_fb.Y(), location_fb.Z()),
+                        normal=(normal_fb.X(), normal_fb.Y(), normal_fb.Z()),
+                        surface_flag=flag
+                    ))
+                hits_for_all_requests.append(hits_for_request)
+            return hits_for_all_requests
         elif msg_type == pdMessageType.pdAck:
             self._raise_error_for_ack(ack_msg)
         else:
             self._raise_error_for_unknown_message()
 
     @staticmethod
-    def _build_pd_scenario_generation_configuration(builder, scenario_gen_str: str):
+    def _build_pd_scenario_generation_configuration(builder, scenario_gen_str: str, location_index: int):
         scenario_gen_fb_str = builder.CreateString(scenario_gen_str)
         pdSubmitScenarioGenConfig.pdSubmitScenarioGenConfigStart(builder)
         pdSubmitScenarioGenConfig.pdSubmitScenarioGenConfigAddBuildSimState(builder, scenario_gen_fb_str)
-        pdSubmitScenarioGenConfig.pdSubmitScenarioGenConfigAddLocationIndex(builder, 0)
+        pdSubmitScenarioGenConfig.pdSubmitScenarioGenConfigAddLocationIndex(builder, location_index)
         scenario_gen_msg = pdSubmitScenarioGenConfig.pdSubmitScenarioGenConfigEnd(builder)
         return SimSession._build_pd_message(builder, scenario_gen_msg, pdMessageType.pdSubmitScenarioGenConfig)
 
@@ -708,6 +766,29 @@ class SimSession(PdMessageMixin):
         pdQueryStateData.pdQueryStateDataStart(builder)
         query_msg = pdQueryStateData.pdQueryStateDataEnd(builder)
         return SimSession._build_pd_message(builder, query_msg, pdMessageType.pdQueryStateData)
+
+    @staticmethod
+    def _build_pd_raycast(builder, requests: List[Raycast]):
+        pdRaycastQuery.pdRaycastQueryStartStartVector(builder, len(requests))
+        for request in reversed(requests):
+            pdFloat3.CreatepdFloat3(builder, *request.origin)
+        start_vector_fb = builder.EndVector(len(requests))
+        pdRaycastQuery.pdRaycastQueryStartDirectionVector(builder, len(requests))
+        for request in reversed(requests):
+            pdFloat3.CreatepdFloat3(builder, *request.direction)
+        direction_vector_fb = builder.EndVector(len(requests))
+        pdRaycastQuery.pdRaycastQueryStartDistanceVector(builder, len(requests))
+        for request in reversed(requests):
+            builder.PrependFloat32(request.max_distance)
+        distance_vector_fb = builder.EndVector(len(requests))
+
+        pdRaycastQuery.pdRaycastQueryStart(builder)
+        pdRaycastQuery.pdRaycastQueryAddStart(builder, start_vector_fb)
+        pdRaycastQuery.pdRaycastQueryAddDirection(builder, direction_vector_fb)
+        pdRaycastQuery.pdRaycastQueryAddDistance(builder, distance_vector_fb)
+        raycast_msg = pdRaycastQuery.pdRaycastQueryEnd(builder)
+        return SimSession._build_pd_message(builder, raycast_msg, pdMessageType.pdRaycastQuery)
+
 
 
 def create_step_ig_session(*args, **kwargs) -> StepIgSession:

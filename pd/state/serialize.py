@@ -753,7 +753,7 @@ class SerializeAgent:
                     brake_light_on=obj.brake_light_on
                 )
             )
-            if not obj.is_parked:
+            if obj.is_parked:
                 states_data.append(
                     SerializeSimpleControlState.SimpleControlStateData()
                 )
@@ -836,7 +836,7 @@ class SerializeAgent:
                 occupants=vehicle_model_config_data.occupants,
                 brake_light_on=vehicle_state_data.brake_light_on,
                 indicator_state=indicator_state,
-                is_parked=simple_control_state_data is None
+                is_parked=simple_control_state_data is not None
             )
             agent.angular_velocity = transform_state_data.angular_velocity
         elif model_config_data and transform_state_data:

@@ -17,6 +17,7 @@ include "trajectory_output.fbs";
 include "spline.fbs";
 include "vehicle_traffic_control_output.fbs";
 include "events.fbs";
+include "environment.fbs";
 
 union StateObject
 {
@@ -54,6 +55,8 @@ union StateObject
     SplineInfoFB,
     VehicleTrafficControlOutputFB,
 	AgentEventsFB,
+    ObjectDecorationsInfoFB,
+	EnvironmentConfigFB,
 }
 
 table StateObjectFB

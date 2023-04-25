@@ -6,15 +6,16 @@
 
 import abc
 import logging
-import os
 from abc import abstractmethod
 from typing import Optional, Tuple
 
 from pd.session import SimSession
-from pd.state import State, bytes_to_state
+from pd.state import State
 
+from pd.data_lab.context import get_datalab_context
 from pd.data_lab.config.location import Location
-from pd.data_lab.constants import PD_CLIENT_CREDENTIALS_PATH_ENV
+from pd.management import Ig
+from pd.core import PdError
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +39,7 @@ class AbstractSimulationInstance(abc.ABC):
         return Location(name=loc_name), ego_id
 
     def query_sim_state(self) -> State:
-        state_data = self.session.query_state_data()
-        sim_state = bytes_to_state(state_data)
+        sim_state = self.session.query_state_data()
         return sim_state
 
 
@@ -50,10 +50,22 @@ class SimulationInstance(AbstractSimulationInstance):
     ):
         super().__init__()
         self._address = address
-        self._client_cert_file = os.environ.get(PD_CLIENT_CREDENTIALS_PATH_ENV, None)
+        context = get_datalab_context()
+        self._client_cert_file = context.client_cert_file
         self._temporal_session_reference = None
 
         self._session: Optional[SimSession] = None
+
+        if not context.is_mode_local and context.fail_on_version_mismatch:
+            try:
+                ig_version = next(ig.ig_version for ig in Ig.list() if ig.sim_url == address)
+            except StopIteration:
+                raise PdError(f"Couldn't find a sim instance with the address '{address}'. "
+                              "Please verify the sim instance address.")
+            if ig_version != context.version:
+                raise PdError(f"There's a mismatch between the selected Data Lab version ({context.version}) "
+                              f"and the version of the sim instance ({ig_version}). "
+                              "To disable this check, pass fail_on_version_mismatch=False to setup_datalab().")
 
     @property
     def session(self) -> SimSession:
@@ -62,6 +74,7 @@ class SimulationInstance(AbstractSimulationInstance):
     def create_session(self):
         if self._session is None:
             self._session = SimSession(request_addr=self._address, client_cert_file=self._client_cert_file)
+            self._session.transport.timeout_recv_ms = 600_000
             self._session.__enter__()
             logger.info("Started Sim Session.")
         return self._session

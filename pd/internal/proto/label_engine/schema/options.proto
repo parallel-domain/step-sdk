@@ -21,6 +21,7 @@ enum DataType
     eCameraDistortionCalibration = 12;
     eConfiguration = 13;
     eIGMetadata = 14;
+	eTelemetry = 15;
 }
 
 enum StreamType

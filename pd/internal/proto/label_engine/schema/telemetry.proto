@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "geometry.proto";
+import "options.proto";
+
+
+message GenerateTelemetryConfig
+{
+	Vector3 input_transformation = 1;
+	string output_path = 2				[(type)=eAnnotation, (stream)=eOutput];
+};
+
+message Telemetry
+{
+	TransformationPose fixed_frame = 1;
+	repeated TelemetryValue localization = 2;
+};
+
+message TelemetryValue
+{
+	uint64 timestamp = 1;
+	TransformationPose transformation_pose = 2;
+	Vector3 linear_velocity = 3;
+	Vector3 linear_acceleration = 4;
+	Quaternion angular_velocity = 5;
+	Quaternion angular_acceleration = 6;
+};
+
+message TransformationPose
+{
+	Vector3 position = 1;
+    Quaternion orientation = 2;
+};

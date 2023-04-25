@@ -9,6 +9,9 @@ message Mesh
 {
     uint32 mesh_id = 1;
     string asset_name = 2;
+    // ontology_category_id is populate from the ontology tags added to 
+    // Unreal assets in the editor
+    uint32 ontology_category_id = 5;
 
     Vector3 min = 3;
     Vector3 max = 4;
@@ -77,6 +80,7 @@ enum LabelMatchMode
 {
     eAny = 0;
     eAll = 1;
+    eExcluded = 2;
 };
 
 message MeshSemanticMergeInfo

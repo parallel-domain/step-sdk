@@ -17,6 +17,7 @@ import "mesh_map.proto";
 import "transform_map.proto";
 import "options.proto";
 import "python_engine.proto";
+import "telemetry.proto";
 
 
 

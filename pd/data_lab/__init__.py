@@ -1,28 +1,19 @@
-import os
+# Copyright (c) 2023 Parallel Domain, Inc.
+# All rights reserved.
+#
+# Use of this file is only permitted if you have entered into a
+# separate written license agreement with Parallel Domain, Inc.
+
 from pathlib import Path
 from typing import Generator, Optional, Tuple, TypeVar, Type
 
-from pd.data_lab.constants import PD_CLIENT_ORG_ENV, PD_CLIENT_STEP_API_KEY_ENV
 from pd.data_lab.scenario import Scenario
 from pd.data_lab.scenario_generator import ScenarioGenerator
 from pd.data_lab.session_reference import TemporalSessionReference
 from pd.data_lab.sim_state import SimState
 from pd.state import state_to_bytes
-import pd.management
-
 
 TSimState = TypeVar("TSimState", bound=SimState)
-
-
-def setup_credentials():
-    needed_envs = [PD_CLIENT_ORG_ENV, PD_CLIENT_STEP_API_KEY_ENV]
-
-    if all([n in os.environ for n in needed_envs]):
-        pd.management.api_key = os.environ[PD_CLIENT_STEP_API_KEY_ENV]
-        pd.management.org = os.environ[PD_CLIENT_ORG_ENV]
-
-
-setup_credentials()
 
 
 def create_sensor_sim_stream(

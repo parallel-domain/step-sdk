@@ -34,8 +34,13 @@ class StepScriptContext:
 
     ig: str
     """
-    Ig name, when :attr:`internal_dev` is :obj:`False`
-    Address for Ig instance, when :attr:`internal_dev` is :obj:`True`
+    Address for Ig instance
+    """
+
+    sim: Optional[str]
+    """
+    Address for Sim instance
+    May not be set if the script doesn't require Sim
     """
 
     org: Optional[str] = None
@@ -73,7 +78,9 @@ class StepScriptContext:
     """
 
 
-def common_step_options(require_asset_registry=False, require_umd_path=False):
+def common_step_options(require_asset_registry=False,
+                        require_umd_path=False,
+                        require_sim=False):
     """
     Decorator for click commands that adds common options for Step SDK scripts.
 
@@ -100,6 +107,7 @@ def common_step_options(require_asset_registry=False, require_umd_path=False):
     Args:
         require_asset_registry: Force asset registry path to be required (for internal dev workflow)
         require_umd_path: Force umd path to be required (for internal dev workflow)
+        require_sim: Adds an input for Sim name/address
     """
     # The following callback function is used to capture the unexposed option values
     def _callback(ctx, param, value):
@@ -122,6 +130,7 @@ def common_step_options(require_asset_registry=False, require_umd_path=False):
     # The following function performs the validation on the step script options
     def _validate_step_options(option_values: Dict[str, str]) -> StepScriptContext:
         ig = option_values.get('ig', None)
+        sim = option_values.get('sim', None) if require_sim else None
         org = option_values.get('org', None)
         api_key = option_values.get('apikey', None)
         client_cert_file = option_values.get('client_cert_file', None)
@@ -130,6 +139,10 @@ def common_step_options(require_asset_registry=False, require_umd_path=False):
         umd_path = None
         if is_server_url(ig):
             internal_dev = True
+            if sim and not is_server_url(sim):
+                raise ValueError(
+                    f"Since --ig is a url, --sim must also be a url as well."
+                )
             if org:
                 raise ValueError(
                     f"--org is not needed when using an Ig server address. "
@@ -158,6 +171,10 @@ def common_step_options(require_asset_registry=False, require_umd_path=False):
             ig_version = None
         else:
             internal_dev = False
+            if sim and sim != ig:
+                raise ValueError(
+                    f"Since --ig is a cloud instance name, --sim must be the same instance name."
+                )
             if not org:
                 raise ValueError(
                     f"--org is required when connecting to a named Ig server"
@@ -182,6 +199,7 @@ def common_step_options(require_asset_registry=False, require_umd_path=False):
                 ig_instance = Ig.read(ig)
                 ig_version = ig_instance.ig_version
                 ig = ig_instance.ig_url
+                sim = ig_instance.sim_url
             except HTTPError:
                 raise ValueError(
                     f"Couldn't find an Ig by the name '{ig}'. Please check the value passed in '--ig'"
@@ -192,6 +210,7 @@ def common_step_options(require_asset_registry=False, require_umd_path=False):
         return StepScriptContext(
             internal_dev=internal_dev,
             ig=ig,
+            sim=sim,
             org=org,
             api_key=api_key,
             ig_version=ig_version,
@@ -206,29 +225,37 @@ def common_step_options(require_asset_registry=False, require_umd_path=False):
             '--ig',
             default='tcp://127.0.0.1:9000',
             help="Name of the IG server or address of IG server's url",
-            show_default=True,
-            required=True
+            show_default=True
         ),
         unexposed_option('--client-cert-file', help="Path to .pem certificate file", type=click.Path(exists=True)),
         unexposed_option('--org', help="Step Management org name. Required with named IG server."),
         unexposed_option('--apikey', help="Step Management API key. Required with named IG server."),
     ]
+    if require_sim:
+        _common_step_options.append(
+            unexposed_option(
+                '--sim',
+                default='tcp://127.0.0.1:9002',
+                help="Name of the Sim server or address of Sim server's url",
+                show_default=True
+            )
+        )
     if require_asset_registry:
-        _common_step_options += [
+        _common_step_options.append(
             unexposed_option(
                 '--asset-registry',
                 help="Path to asset registry. Required with IG url.",
                 type=click.Path(exists=True)
             )
-        ]
+        )
     if require_umd_path:
-        _common_step_options += [
+        _common_step_options.append(
             unexposed_option(
                 '--umd',
                 help="Path to Umd file. Required with IG url.",
                 type=click.Path(exists=True)
             )
-        ]
+        )
 
     def inner_decorator(func):
         for option in reversed(_common_step_options):

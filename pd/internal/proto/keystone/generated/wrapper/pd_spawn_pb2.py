@@ -1640,7 +1640,7 @@ class LaneTypeScenarioGeneratorInfo(ProtoMessageClass):
 class ParkingScenarioGeneratorInfo(ProtoMessageClass):
     _proto_message = pd_spawn_pb2.ParkingScenarioGeneratorInfo
 
-    def __init__(self, *, proto: Optional[pd_spawn_pb2.ParkingScenarioGeneratorInfo]=None, aisleLateralOffsetBackIn: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, aisleLateralOffsetNoseIn: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, egoParkPerturbationAngle: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, egoParkPerturbationLateralOffset: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, egoParkPerturbationLongitudinalOffset: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, exitAfterParking: Optional[bool]=None, exitStraight: Optional[bool]=None, maxPedsInParkingSpaces: Optional[int]=None, noseInProbability: Optional[float]=None, parkingSpacePedestrianDensity: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, parkingTypeDistribution: Optional[_pd_distributions_pb2.EnumDistribution]=None, placeVehicleInFrontOfParallelSpot: Optional[bool]=None, pullOutProbability: Optional[float]=None, timeToParkingSpace: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None):
+    def __init__(self, *, proto: Optional[pd_spawn_pb2.ParkingScenarioGeneratorInfo]=None, aisleLateralOffsetBackIn: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, aisleLateralOffsetNoseIn: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, egoParkPerturbationAngle: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, egoParkPerturbationLateralOffset: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, egoParkPerturbationLongitudinalOffset: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, exitAfterParking: Optional[bool]=None, exitStraight: Optional[bool]=None, maxPedsInParkingSpaces: Optional[int]=None, noseInProbability: Optional[float]=None, parkingSpacePedestrianDensity: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, parkingTypeDistribution: Optional[_pd_distributions_pb2.EnumDistribution]=None, perpendicularOnRoadProbability: Optional[float]=None, placeVehicleInFrontOfParallelSpot: Optional[bool]=None, pullOutProbability: Optional[float]=None, timeToParkingSpace: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None):
         if proto is None:
             proto = pd_spawn_pb2.ParkingScenarioGeneratorInfo()
         self.proto = proto
@@ -1674,6 +1674,8 @@ class ParkingScenarioGeneratorInfo(ProtoMessageClass):
             self.parkingSpacePedestrianDensity = parkingSpacePedestrianDensity
         if parkingTypeDistribution is not None:
             self.parkingTypeDistribution = parkingTypeDistribution
+        if perpendicularOnRoadProbability is not None:
+            self.perpendicularOnRoadProbability = perpendicularOnRoadProbability
         if placeVehicleInFrontOfParallelSpot is not None:
             self.placeVehicleInFrontOfParallelSpot = placeVehicleInFrontOfParallelSpot
         if pullOutProbability is not None:
@@ -1768,6 +1770,14 @@ class ParkingScenarioGeneratorInfo(ProtoMessageClass):
     @parkingTypeDistribution.setter
     def parkingTypeDistribution(self, value: _pd_distributions_pb2.EnumDistribution):
         self._parkingTypeDistribution.proto.CopyFrom(value.proto)
+
+    @property
+    def perpendicularOnRoadProbability(self) -> float:
+        return self.proto.perpendicularOnRoadProbability
+
+    @perpendicularOnRoadProbability.setter
+    def perpendicularOnRoadProbability(self, value: float):
+        self.proto.perpendicularOnRoadProbability = value
 
     @property
     def placeVehicleInFrontOfParallelSpot(self) -> bool:
@@ -2400,7 +2410,7 @@ class SpawnConfigPreset(ProtoMessageClass):
         UNCLASSIFIED: pd_spawn_pb2.SpawnConfigPreset.RoadType = pd_spawn_pb2.SpawnConfigPreset.RoadType.UNCLASSIFIED
     _proto_message = pd_spawn_pb2.SpawnConfigPreset
 
-    def __init__(self, *, proto: Optional[pd_spawn_pb2.SpawnConfigPreset]=None, agentStateProbabilities: Optional[List[AgentStateProbabilityConfig]]=None, aggression: Optional[float]=None, aggressionSpread: Optional[float]=None, alignEgoPedestrianToLane: Optional[bool]=None, animalSpeciesAllowed: Optional[str]=None, applyProceedOutOfTurnProbabilityToEgo: Optional[bool]=None, applyRollingStopToEgo: Optional[bool]=None, applyStopLineOffsetToEgo: Optional[bool]=None, bicyclesOnlyInBikeLanes: Optional[bool]=None, crosswalkSignDensity: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, disableAccessories: Optional[bool]=None, disableOccupants: Optional[bool]=None, egoForceMinLengthBehind: Optional[bool]=None, egoIgnoreObstacleTypes: Optional[List[str]]=None, egoLaneChangeChance: Optional[float]=None, egoLaneChangeChanceSpread: Optional[float]=None, egoLaneChangeCooldown: Optional[float]=None, egoLaneChangeCooldownSpread: Optional[float]=None, egoMinDistToEdge: Optional[float]=None, egoMinDistToEdgeSpread: Optional[float]=None, egoMinLaneCountDist: Optional[_pd_unified_generator_pb2.CenterSpreadConfigInt]=None, egoMinPathLength: Optional[float]=None, egoMinPathLengthSpread: Optional[float]=None, egoPedestrianExclusionRadius: Optional[float]=None, egoPedestrianExclusionRadiusSpread: Optional[float]=None, egoPedestrians: Optional[bool]=None, egoRoadTypes: Optional[List[SpawnConfigPreset.RoadType]]=None, egoVehicleModel: Optional[str]=None, emergencyLightsOnProbability: Optional[float]=None, emergencyLightsOnProbabilitySpread: Optional[float]=None, enableCrosswalkPlacement: Optional[bool]=None, enableDrivewayPlacement: Optional[bool]=None, enableDynamicLaneSelection: Optional[bool]=None, enableJunctionPlacement: Optional[bool]=None, instanceParallelParkingMarkers: Optional[bool]=None, instanceParallelParkingSpaces: Optional[bool]=None, junction_generator: Optional[JunctionScenarioGenerator]=None, kitti_generator: Optional[KittiScenarioGenerator]=None, laneChangeChance: Optional[float]=None, laneChangeChanceSpread: Optional[float]=None, laneChangeCooldown: Optional[float]=None, laneChangeCooldownSpread: Optional[float]=None, laneDriftAmp: Optional[float]=None, laneDriftAmpSpread: Optional[float]=None, laneDriftScale: Optional[float]=None, laneDriftScaleSpread: Optional[float]=None, laneOffset: Optional[float]=None, laneOffsetSpread: Optional[float]=None, laneStartOffset: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, largeVehicleTurnRadiusMultiple: Optional[float]=None, lightFlashingPeriod: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, lightIlluminatedPercentage: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, markerDataMap: Optional[Dict[str, _pd_unified_generator_pb2.RoadMarkingData]]=None, minNumberOfAnimals: Optional[int]=None, minNumberOfPedestrians: Optional[int]=None, numberOfAnimals: Optional[int]=None, numberOfPedestrians: Optional[int]=None, parkedVehicleSpawnProbability: Optional[float]=None, parkedVehicleSpawnProbabilitySpread: Optional[float]=None, parkedVehicleSpawnRadius: Optional[float]=None, parkingTypeDistribution: Optional[_pd_unified_generator_pb2.ParkingTypeDistribution]=None, pedestrianColorOverrideChance: Optional[float]=None, pedestrianColorOverrideChanceSpread: Optional[float]=None, pedestrianColorOverrideRGB: Optional[List[float]]=None, pedestrianIdleProbability: Optional[float]=None, pedestrianIdleProbabilitySpread: Optional[float]=None, pedestrianJaywalkAngle: Optional[float]=None, pedestrianJaywalkLookAhead: Optional[float]=None, pedestrianJaywalkRadius: Optional[float]=None, pedestrianSpawnMinEdgeDistance: Optional[float]=None, pedestrianSpawnRadius: Optional[float]=None, pedestrianSpawnTightness: Optional[float]=None, pedestrianVelocity: Optional[float]=None, pedestrianVelocitySpread: Optional[float]=None, pedestriansDynamicPathing: Optional[bool]=None, pedestriansSpawnInParkingLot: Optional[bool]=None, position_generator: Optional[PositionGenerator]=None, proceedOutOfTurnProbability: Optional[float]=None, random_generator: Optional[RandomScenarioGenerator]=None, randomizeVehicleParts: Optional[bool]=None, region: Optional[str]=None, restrictLargeVehicleLaneCurvature: Optional[bool]=None, rollingStop: Optional[_pd_unified_generator_pb2.CenterSpreadProbabilityConfig]=None, searchRadius: Optional[float]=None, signDensity: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, spawnPedestriansOnRoad: Optional[bool]=None, spawnTrailerOnEgoProbability: Optional[float]=None, spawnTrailerProbabilities: Optional[Dict[str, float]]=None, startSeparation: Optional[float]=None, startSeparationSpread: Optional[float]=None, startSeparationTime: Optional[Dict[str, _pd_unified_generator_pb2.CenterSpreadConfig]]=None, startVelocity: Optional[float]=None, startVelocitySpread: Optional[float]=None, stopLineOffset: Optional[_pd_unified_generator_pb2.CenterSpreadProbabilityConfig]=None, targetSeparation: Optional[float]=None, targetSeparationSpread: Optional[float]=None, targetSeparationTime: Optional[Dict[str, _pd_unified_generator_pb2.CenterSpreadConfig]]=None, targetVelocity: Optional[float]=None, targetVelocitySpread: Optional[float]=None, turnTypeDistribution: Optional[_pd_distributions_pb2.EnumDistribution]=None, useStaticTrailers: Optional[bool]=None, vehicleDensityModifier: Optional[float]=None, vehicleDistribution: Optional[Dict[str, _pd_distributions_pb2.VehicleCategoryWeight]]=None, vehicleRoadTypes: Optional[List[SpawnConfigPreset.RoadType]]=None, voi_generator: Optional[VehicleOfInterestGenerator]=None):
+    def __init__(self, *, proto: Optional[pd_spawn_pb2.SpawnConfigPreset]=None, agentStateProbabilities: Optional[List[AgentStateProbabilityConfig]]=None, aggression: Optional[float]=None, aggressionSpread: Optional[float]=None, alignEgoPedestrianToLane: Optional[bool]=None, animalSpeciesAllowed: Optional[str]=None, applyProceedOutOfTurnProbabilityToEgo: Optional[bool]=None, applyRollingStopToEgo: Optional[bool]=None, applyStopLineOffsetToEgo: Optional[bool]=None, bicyclesOnlyInBikeLanes: Optional[bool]=None, crosswalkSignDensity: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, disableAccessories: Optional[bool]=None, disableOccupants: Optional[bool]=None, egoForceMinLengthBehind: Optional[bool]=None, egoIgnoreObstacleTypes: Optional[List[str]]=None, egoLaneChangeChance: Optional[float]=None, egoLaneChangeChanceSpread: Optional[float]=None, egoLaneChangeCooldown: Optional[float]=None, egoLaneChangeCooldownSpread: Optional[float]=None, egoMinDistToEdge: Optional[float]=None, egoMinDistToEdgeSpread: Optional[float]=None, egoMinLaneCountDist: Optional[_pd_unified_generator_pb2.CenterSpreadConfigInt]=None, egoMinPathLength: Optional[float]=None, egoMinPathLengthSpread: Optional[float]=None, egoPedestrianExclusionRadius: Optional[float]=None, egoPedestrianExclusionRadiusSpread: Optional[float]=None, egoPedestrians: Optional[bool]=None, egoRoadTypes: Optional[List[SpawnConfigPreset.RoadType]]=None, egoVehicleModel: Optional[str]=None, emergencyLightsOnProbability: Optional[float]=None, emergencyLightsOnProbabilitySpread: Optional[float]=None, enableCrosswalkPlacement: Optional[bool]=None, enableDrivewayPlacement: Optional[bool]=None, enableDynamicLaneSelection: Optional[bool]=None, enableJunctionPlacement: Optional[bool]=None, instanceParallelParkingMarkers: Optional[bool]=None, instanceParallelParkingSpaces: Optional[bool]=None, junction_generator: Optional[JunctionScenarioGenerator]=None, kitti_generator: Optional[KittiScenarioGenerator]=None, laneChangeChance: Optional[float]=None, laneChangeChanceSpread: Optional[float]=None, laneChangeCooldown: Optional[float]=None, laneChangeCooldownSpread: Optional[float]=None, laneDriftAmp: Optional[float]=None, laneDriftAmpSpread: Optional[float]=None, laneDriftScale: Optional[float]=None, laneDriftScaleSpread: Optional[float]=None, laneOffset: Optional[float]=None, laneOffsetSpread: Optional[float]=None, laneStartOffset: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, largeVehicleTurnRadiusMultiple: Optional[float]=None, lightFlashingPeriod: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, lightIlluminatedPercentage: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, markerDataMap: Optional[Dict[str, _pd_unified_generator_pb2.RoadMarkingData]]=None, minNumberOfAnimals: Optional[int]=None, minNumberOfPedestrians: Optional[int]=None, numberOfAnimals: Optional[int]=None, numberOfPedestrians: Optional[int]=None, objectDecorations: Optional[List[_pd_unified_generator_pb2.ObjectDecorations]]=None, parkedVehicleSpawnProbability: Optional[float]=None, parkedVehicleSpawnProbabilitySpread: Optional[float]=None, parkedVehicleSpawnRadius: Optional[float]=None, parkingTypeDistribution: Optional[_pd_unified_generator_pb2.ParkingTypeDistribution]=None, parking_space_data: Optional[_pd_unified_generator_pb2.ParkingSpaceData]=None, pedestrianColorOverrideChance: Optional[float]=None, pedestrianColorOverrideChanceSpread: Optional[float]=None, pedestrianColorOverrideRGB: Optional[List[float]]=None, pedestrianIdleProbability: Optional[float]=None, pedestrianIdleProbabilitySpread: Optional[float]=None, pedestrianJaywalkAngle: Optional[float]=None, pedestrianJaywalkLookAhead: Optional[float]=None, pedestrianJaywalkRadius: Optional[float]=None, pedestrianSpawnMinEdgeDistance: Optional[float]=None, pedestrianSpawnRadius: Optional[float]=None, pedestrianSpawnTightness: Optional[float]=None, pedestrianVelocity: Optional[float]=None, pedestrianVelocitySpread: Optional[float]=None, pedestriansDynamicPathing: Optional[bool]=None, pedestriansSpawnInParkingLot: Optional[bool]=None, position_generator: Optional[PositionGenerator]=None, proceedOutOfTurnProbability: Optional[float]=None, random_generator: Optional[RandomScenarioGenerator]=None, randomizeVehicleParts: Optional[bool]=None, region: Optional[str]=None, restrictLargeVehicleLaneCurvature: Optional[bool]=None, rollingStop: Optional[_pd_unified_generator_pb2.CenterSpreadProbabilityConfig]=None, searchRadius: Optional[float]=None, signDensity: Optional[_pd_unified_generator_pb2.CenterSpreadConfig]=None, spawnPedestriansOnRoad: Optional[bool]=None, spawnTrailerOnEgoProbability: Optional[float]=None, spawnTrailerProbabilities: Optional[Dict[str, float]]=None, startSeparation: Optional[float]=None, startSeparationSpread: Optional[float]=None, startSeparationTime: Optional[Dict[str, _pd_unified_generator_pb2.CenterSpreadConfig]]=None, startVelocity: Optional[float]=None, startVelocitySpread: Optional[float]=None, stopLineOffset: Optional[_pd_unified_generator_pb2.CenterSpreadProbabilityConfig]=None, targetSeparation: Optional[float]=None, targetSeparationSpread: Optional[float]=None, targetSeparationTime: Optional[Dict[str, _pd_unified_generator_pb2.CenterSpreadConfig]]=None, targetVelocity: Optional[float]=None, targetVelocitySpread: Optional[float]=None, turnTypeDistribution: Optional[_pd_distributions_pb2.EnumDistribution]=None, useStaticTrailers: Optional[bool]=None, vehicleDensityModifier: Optional[float]=None, vehicleDistribution: Optional[Dict[str, _pd_distributions_pb2.VehicleCategoryWeight]]=None, vehicleRoadTypes: Optional[List[SpawnConfigPreset.RoadType]]=None, voi_generator: Optional[VehicleOfInterestGenerator]=None):
         if proto is None:
             proto = pd_spawn_pb2.SpawnConfigPreset()
         self.proto = proto
@@ -2415,7 +2425,9 @@ class SpawnConfigPreset(ProtoMessageClass):
         self._lightFlashingPeriod = get_wrapper(proto_type=proto.lightFlashingPeriod.__class__)(proto=proto.lightFlashingPeriod)
         self._lightIlluminatedPercentage = get_wrapper(proto_type=proto.lightIlluminatedPercentage.__class__)(proto=proto.lightIlluminatedPercentage)
         self._markerDataMap = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.markerDataMap.items()}, attr_name='markerDataMap', dict_owner=proto)
+        self._objectDecorations = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.objectDecorations], attr_name='objectDecorations', list_owner=proto)
         self._parkingTypeDistribution = get_wrapper(proto_type=proto.parkingTypeDistribution.__class__)(proto=proto.parkingTypeDistribution)
+        self._parking_space_data = get_wrapper(proto_type=proto.parking_space_data.__class__)(proto=proto.parking_space_data)
         self._pedestrianColorOverrideRGB = ProtoListWrapper(container=[float(v) for v in proto.pedestrianColorOverrideRGB], attr_name='pedestrianColorOverrideRGB', list_owner=proto)
         self._position_generator = get_wrapper(proto_type=proto.position_generator.__class__)(proto=proto.position_generator)
         self._random_generator = get_wrapper(proto_type=proto.random_generator.__class__)(proto=proto.random_generator)
@@ -2543,6 +2555,8 @@ class SpawnConfigPreset(ProtoMessageClass):
             self.numberOfAnimals = numberOfAnimals
         if numberOfPedestrians is not None:
             self.numberOfPedestrians = numberOfPedestrians
+        if objectDecorations is not None:
+            self.objectDecorations = objectDecorations
         if parkedVehicleSpawnProbability is not None:
             self.parkedVehicleSpawnProbability = parkedVehicleSpawnProbability
         if parkedVehicleSpawnProbabilitySpread is not None:
@@ -2551,6 +2565,8 @@ class SpawnConfigPreset(ProtoMessageClass):
             self.parkedVehicleSpawnRadius = parkedVehicleSpawnRadius
         if parkingTypeDistribution is not None:
             self.parkingTypeDistribution = parkingTypeDistribution
+        if parking_space_data is not None:
+            self.parking_space_data = parking_space_data
         if pedestrianColorOverrideChance is not None:
             self.pedestrianColorOverrideChance = pedestrianColorOverrideChance
         if pedestrianColorOverrideChanceSpread is not None:
@@ -3104,6 +3120,16 @@ class SpawnConfigPreset(ProtoMessageClass):
         self.proto.numberOfPedestrians = value
 
     @property
+    def objectDecorations(self) -> List[_pd_unified_generator_pb2.ObjectDecorations]:
+        return self._objectDecorations
+
+    @objectDecorations.setter
+    def objectDecorations(self, value: List[_pd_unified_generator_pb2.ObjectDecorations]):
+        self._objectDecorations.clear()
+        for v in value:
+            self._objectDecorations.append(v)
+
+    @property
     def parkedVehicleSpawnProbability(self) -> float:
         return self.proto.parkedVehicleSpawnProbability
 
@@ -3134,6 +3160,14 @@ class SpawnConfigPreset(ProtoMessageClass):
     @parkingTypeDistribution.setter
     def parkingTypeDistribution(self, value: _pd_unified_generator_pb2.ParkingTypeDistribution):
         self._parkingTypeDistribution.proto.CopyFrom(value.proto)
+
+    @property
+    def parking_space_data(self) -> _pd_unified_generator_pb2.ParkingSpaceData:
+        return self._parking_space_data
+
+    @parking_space_data.setter
+    def parking_space_data(self, value: _pd_unified_generator_pb2.ParkingSpaceData):
+        self._parking_space_data.proto.CopyFrom(value.proto)
 
     @property
     def pedestrianColorOverrideChance(self) -> float:

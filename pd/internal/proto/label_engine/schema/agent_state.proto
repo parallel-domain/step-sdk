@@ -25,6 +25,7 @@ message InstanceStateMetadata
 
 message VehicleState
 {
+    // Lights state
     bool head_lights = 1;
     bool tail_lights = 2;
     bool emergency_lights = 3;
@@ -46,20 +47,25 @@ message VehicleState
 
     bool is_ego = 16;
     uint32 connected_instance_id = 17;
+
+    // Bulb data
+    bool emergency_light_bulb_active = 18;
+    bool left_front_indicator_bulb_active = 19;
+    bool left_rear_indicator_bulb_active = 20;
+    bool right_front_indicator_bulb_active = 21;
+    bool right_rear_indicator_bulb_active = 22;
+    bool head_light_bulb_active = 23;
+    bool tail_light_bulb_active = 24;
+    bool brake_light_bulb_active = 25;
+    bool daytime_running_light_bulb_active = 26;
 }
 
 message ParkingSpotState
 {
-    ParkingSpotOrientation orientation = 1;
+    uint32 parking_spot_angle = 1;
     ParkingSpotColor color = 2;
     float wear = 3;
     string material_type = 4;
-}
-
-enum ParkingSpotOrientation
-{
-    PARALLEL = 0;
-    PERPENDICULAR = 1;
 }
 
 // TODO: refactor to merge all Color messages into one

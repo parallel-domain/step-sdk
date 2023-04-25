@@ -406,6 +406,26 @@ table pdReturnStateData
     state_data: [uint8];
 }
 
+table pdRaycastQuery
+{
+    start : [pdFloat3];
+    direction : [pdFloat3];
+    distance : [float];
+}
+
+table pdRaycastHit
+{
+    locations : [pdFloat3];
+    normals : [pdFloat3];
+    flags : [uint64];
+}
+
+table pdRaycastHits
+{
+   hits : [pdRaycastHit];
+}
+
+
 union pdMessageType
 {
     pdLoadLocation,
@@ -439,6 +459,10 @@ union pdMessageType
     pdReturnScenarioData,
     pdQueryStateData,
     pdReturnStateData,
+    
+    // Query world
+    pdRaycastQuery,
+    pdRaycastHits
 }
 
 table pdMessage

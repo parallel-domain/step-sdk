@@ -32,6 +32,7 @@ message KeystoneBuildMessage
             SourceMaps source_maps = 10;
             PackageMapsFromP4 package_maps_from_p4 = 11;
             LEEncoder le_encoder = 12;
+            ProcessSimState sim_state_process = 13;
         }
     }
 

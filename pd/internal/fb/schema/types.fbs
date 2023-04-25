@@ -83,11 +83,13 @@ table AgentTags
 	tags : [string];
 }
 
+// Avoid adding any state to this table unless you are 110% sure you must
 table AgentMetadata
 {
 	agent_tags : [AgentTags];
 }
 
+// Avoid adding any state to this table unless you are 110% sure you must. The pattern to add arbitrary world state is using the World Agent, and the normal agent type tables.
 table WorldInfoFB
 {
     name        : string;
@@ -108,6 +110,9 @@ table WorldInfoFB
 	
 	// Scenario and special agent info
 	agent_metadata : AgentMetadata;
+	
+	// Do not add data to this table, use the world agent pattern and add an agentstateFB to the table in sim.fbs
+
 }
 
 enum IndicatorState : int { None = 0, Left = 1, Right = 2, Hazards = 3 }
