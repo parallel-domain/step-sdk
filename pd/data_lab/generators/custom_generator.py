@@ -50,7 +50,7 @@ class CustomAtomicGenerator(BaseGenerator, Generic[TSimState]):
 
     def set_initial_agent_positions(self, state: TSimState, random_seed: int, raycast: Optional[Callable] = None):
         for agent in self.agents:
-            agent.set_inital_state(sim_state=state, random_seed=random_seed, raycast=raycast)
+            agent.set_initial_state(sim_state=state, random_seed=random_seed, raycast=raycast)
 
 
 class DefaultCustomAtomicGenerator(CustomAtomicGenerator[TSimState]):

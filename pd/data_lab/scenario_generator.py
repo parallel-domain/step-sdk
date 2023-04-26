@@ -182,7 +182,9 @@ class ScenarioGenerator(Generic[TSimState]):
 
             for gen in custom_generators:
                 gen.set_initial_agent_positions(
-                    state=self._sim_state, random_seed=scenario.random_seed, raycast=self._sim_instance.session.raycast
+                    state=self._sim_state,
+                    random_seed=scenario.random_seed,
+                    raycast=self._sim_instance.session.raycast if self._sim_instance is not None else None,
                 )
 
     def _initialize_generators(self, scenario: Scenario):
@@ -218,4 +220,7 @@ class ScenarioGenerator(Generic[TSimState]):
                 time_delta=self.scenario.sim_state.scenario_gen.sim_update_time
             )
         for gen in self._custom_generators:
-            gen.update_state(state=self._sim_state, raycast=self._sim_instance.session.raycast)
+            gen.update_state(
+                state=self._sim_state,
+                raycast=self._sim_instance.session.raycast if self._sim_instance is not None else None,
+            )

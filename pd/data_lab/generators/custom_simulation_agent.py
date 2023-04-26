@@ -27,7 +27,7 @@ class CustomSimulationAgentBehaviour(Generic[TSimState]):
         pass
 
     @abc.abstractmethod
-    def set_inital_state(
+    def set_initial_state(
         self, sim_state: TSimState, agent: "CustomSimulationAgent", random_seed: int, raycast: Optional[Callable] = None
     ):
         pass
@@ -58,12 +58,12 @@ class CustomSimulationAgent(SimulationAgentBase, Generic[TSimState]):
         self._behaviour = behaviour
         return self
 
-    def set_inital_state(self, sim_state: TSimState, random_seed: int, raycast: Optional[Callable] = None):
+    def set_initial_state(self, sim_state: TSimState, random_seed: int, raycast: Optional[Callable] = None):
         self._initialize_step_agent(random_seed=random_seed)
         self.set_pose(pose=self._pose, velocity=self._velocity)
 
         if self._behaviour is not None:
-            self._behaviour.set_inital_state(sim_state=sim_state, agent=self, random_seed=random_seed, raycast=raycast)
+            self._behaviour.set_initial_state(sim_state=sim_state, agent=self, random_seed=random_seed, raycast=raycast)
 
     def set_pose(self, pose: np.ndarray, velocity: Optional[Tuple[float, float, float]] = None):
         self._pose = pose
