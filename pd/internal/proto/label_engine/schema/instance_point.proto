@@ -21,6 +21,8 @@ message InstancePoint3DMetadata
         ParkingPointData parking_point_data = 4;
         PedestrianPointData pedestrian_point_data = 5;
         WheelPointData wheel_point_data = 6;
+        DroneAutoLoaderPointData drone_autoloader_point_data = 7;
+		WheelStopperPointData wheel_stopper_point_data = 8;
     }
 }
 
@@ -41,9 +43,11 @@ message InstancePoint2DMetadata
         ParkingPointData parking_point_data = 4;
         PedestrianPointData pedestrian_point_data = 5;
         WheelPointData wheel_point_data = 6;
+        DroneAutoLoaderPointData drone_autoloader_point_data = 7;
+		WheelStopperPointData wheel_stopper_point_data = 8;
     }
 
-    bool visibility = 7;
+    bool visibility = 9;
 }
 
 message TrailerPointData
@@ -59,7 +63,8 @@ message TrailerPointData
         DRAWBAR_TRIANGLE_LEFT = 6;
         DRAWBAR_TRIANGLE_RIGHT = 7;
         DRAWBAR_NECK = 8;
-        OTHER = 9;
+        TONGUE_JACK = 9;
+        ACCESSORY = 10;
     }
     TrailerPointType type = 1;
     string other_name = 2;
@@ -90,6 +95,22 @@ message VehiclePointData
         EGO_RIGHT = 6;
     }
     VehiclePointType type = 1;
+}
+
+message DroneAutoLoaderPointData
+{
+  enum DroneAutoLoaderPointType
+  {
+    ARM_A_TIP = 0;
+    ARM_A_SUPPORT_JUNCTION = 1;
+    ARM_A_REAR_MOUNT = 2;
+    ARM_A_BASE = 3;
+    ARM_B_TIP = 4;
+    ARM_B_SUPPORT_JUNCTION = 5;
+    ARM_B_REAR_MOUNT = 6;
+    ARM_B_BASE = 7;
+  }
+  DroneAutoLoaderPointType type = 1;
 }
 
 message WheelPointData
@@ -131,4 +152,14 @@ message PedestrianPointData
 		RIGHT_ANKLE = 18;
     }
     PedestrianPointType type = 1;
+}
+
+message WheelStopperPointData
+{
+	enum WheelStopperPointType
+	{
+		LEFT_POINT = 0;
+		RIGHT_POINT = 1;
+	}
+	WheelStopperPointType type = 1;
 }

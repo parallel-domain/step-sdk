@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0egeometry.proto\x12\x07pd.data\"\x1f\n\x07Vector2\x12\t\n\x01x\x18\x01 \x01(\x02\x12\t\n\x01y\x18\x02 \x01(\x02\"*\n\x07Vector3\x12\t\n\x01x\x18\x01 \x01(\x02\x12\t\n\x01y\x18\x02 \x01(\x02\x12\t\n\x01z\x18\x03 \x01(\x02\"8\n\nQuaternion\x12\t\n\x01w\x18\x01 \x01(\x02\x12\t\n\x01x\x18\x02 \x01(\x02\x12\t\n\x01y\x18\x03 \x01(\x02\x12\t\n\x01z\x18\x04 \x01(\x02\"}\n\tTransform\x12\x1f\n\x05scale\x18\x01 \x01(\x0b\x32\x10.pd.data.Vector3\x12(\n\x0borientation\x18\x02 \x01(\x0b\x32\x13.pd.data.Quaternion\x12%\n\x0btranslation\x18\x03 \x01(\x0b\x32\x10.pd.data.Vector3\"H\n\x06Line2D\x12\x1f\n\x05start\x18\x01 \x01(\x0b\x32\x10.pd.data.Vector2\x12\x1d\n\x03\x65nd\x18\x02 \x01(\x0b\x32\x10.pd.data.Vector2\"0\n\nPolyLine2D\x12\"\n\x08vertices\x18\x01 \x03(\x0b\x32\x10.pd.data.Vector2\"/\n\tPolygon2D\x12\"\n\x08vertices\x18\x01 \x03(\x0b\x32\x10.pd.data.Vector2\"E\n\x05\x42ox2D\x12\x1d\n\x03min\x18\x01 \x01(\x0b\x32\x10.pd.data.Vector2\x12\x1d\n\x03max\x18\x02 \x01(\x0b\x32\x10.pd.data.Vector2\"H\n\x06Line3D\x12\x1f\n\x05start\x18\x01 \x01(\x0b\x32\x10.pd.data.Vector3\x12\x1d\n\x03\x65nd\x18\x02 \x01(\x0b\x32\x10.pd.data.Vector3\"0\n\nPolyLine3D\x12\"\n\x08vertices\x18\x01 \x03(\x0b\x32\x10.pd.data.Vector3\"/\n\tPolygon3D\x12\"\n\x08vertices\x18\x01 \x03(\x0b\x32\x10.pd.data.Vector3\"y\n\x08\x43uboid3D\x12%\n\x0btranslation\x18\x01 \x01(\x0b\x32\x10.pd.data.Vector3\x12\x1f\n\x05scale\x18\x02 \x01(\x0b\x32\x10.pd.data.Vector3\x12%\n\x08rotation\x18\x03 \x01(\x0b\x32\x13.pd.data.Quaternionb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0egeometry.proto\x12\x07pd.data\"\x1f\n\x07Vector2\x12\t\n\x01x\x18\x01 \x01(\x02\x12\t\n\x01y\x18\x02 \x01(\x02\"*\n\x07Vector3\x12\t\n\x01x\x18\x01 \x01(\x02\x12\t\n\x01y\x18\x02 \x01(\x02\x12\t\n\x01z\x18\x03 \x01(\x02\"5\n\x07Vector4\x12\t\n\x01w\x18\x01 \x01(\x02\x12\t\n\x01x\x18\x02 \x01(\x02\x12\t\n\x01y\x18\x03 \x01(\x02\x12\t\n\x01z\x18\x04 \x01(\x02\"8\n\nQuaternion\x12\t\n\x01w\x18\x01 \x01(\x02\x12\t\n\x01x\x18\x02 \x01(\x02\x12\t\n\x01y\x18\x03 \x01(\x02\x12\t\n\x01z\x18\x04 \x01(\x02\"}\n\tTransform\x12\x1f\n\x05scale\x18\x01 \x01(\x0b\x32\x10.pd.data.Vector3\x12(\n\x0borientation\x18\x02 \x01(\x0b\x32\x13.pd.data.Quaternion\x12%\n\x0btranslation\x18\x03 \x01(\x0b\x32\x10.pd.data.Vector3\"H\n\x06Line2D\x12\x1f\n\x05start\x18\x01 \x01(\x0b\x32\x10.pd.data.Vector2\x12\x1d\n\x03\x65nd\x18\x02 \x01(\x0b\x32\x10.pd.data.Vector2\"0\n\nPolyLine2D\x12\"\n\x08vertices\x18\x01 \x03(\x0b\x32\x10.pd.data.Vector2\"/\n\tPolygon2D\x12\"\n\x08vertices\x18\x01 \x03(\x0b\x32\x10.pd.data.Vector2\"E\n\x05\x42ox2D\x12\x1d\n\x03min\x18\x01 \x01(\x0b\x32\x10.pd.data.Vector2\x12\x1d\n\x03max\x18\x02 \x01(\x0b\x32\x10.pd.data.Vector2\"H\n\x06Line3D\x12\x1f\n\x05start\x18\x01 \x01(\x0b\x32\x10.pd.data.Vector3\x12\x1d\n\x03\x65nd\x18\x02 \x01(\x0b\x32\x10.pd.data.Vector3\"0\n\nPolyLine3D\x12\"\n\x08vertices\x18\x01 \x03(\x0b\x32\x10.pd.data.Vector3\"/\n\tPolygon3D\x12\"\n\x08vertices\x18\x01 \x03(\x0b\x32\x10.pd.data.Vector3\"y\n\x08\x43uboid3D\x12%\n\x0btranslation\x18\x01 \x01(\x0b\x32\x10.pd.data.Vector3\x12\x1f\n\x05scale\x18\x02 \x01(\x0b\x32\x10.pd.data.Vector3\x12%\n\x08rotation\x18\x03 \x01(\x0b\x32\x13.pd.data.Quaternionb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'geometry_pb2', globals())
@@ -24,24 +24,26 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _VECTOR2._serialized_end=58
   _VECTOR3._serialized_start=60
   _VECTOR3._serialized_end=102
-  _QUATERNION._serialized_start=104
-  _QUATERNION._serialized_end=160
-  _TRANSFORM._serialized_start=162
-  _TRANSFORM._serialized_end=287
-  _LINE2D._serialized_start=289
-  _LINE2D._serialized_end=361
-  _POLYLINE2D._serialized_start=363
-  _POLYLINE2D._serialized_end=411
-  _POLYGON2D._serialized_start=413
-  _POLYGON2D._serialized_end=460
-  _BOX2D._serialized_start=462
-  _BOX2D._serialized_end=531
-  _LINE3D._serialized_start=533
-  _LINE3D._serialized_end=605
-  _POLYLINE3D._serialized_start=607
-  _POLYLINE3D._serialized_end=655
-  _POLYGON3D._serialized_start=657
-  _POLYGON3D._serialized_end=704
-  _CUBOID3D._serialized_start=706
-  _CUBOID3D._serialized_end=827
+  _VECTOR4._serialized_start=104
+  _VECTOR4._serialized_end=157
+  _QUATERNION._serialized_start=159
+  _QUATERNION._serialized_end=215
+  _TRANSFORM._serialized_start=217
+  _TRANSFORM._serialized_end=342
+  _LINE2D._serialized_start=344
+  _LINE2D._serialized_end=416
+  _POLYLINE2D._serialized_start=418
+  _POLYLINE2D._serialized_end=466
+  _POLYGON2D._serialized_start=468
+  _POLYGON2D._serialized_end=515
+  _BOX2D._serialized_start=517
+  _BOX2D._serialized_end=586
+  _LINE3D._serialized_start=588
+  _LINE3D._serialized_end=660
+  _POLYLINE3D._serialized_start=662
+  _POLYLINE3D._serialized_end=710
+  _POLYGON3D._serialized_start=712
+  _POLYGON3D._serialized_end=759
+  _CUBOID3D._serialized_start=761
+  _CUBOID3D._serialized_end=882
 # @@protoc_insertion_point(module_scope)

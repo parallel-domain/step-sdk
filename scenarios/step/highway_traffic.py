@@ -183,7 +183,7 @@ class VehicleAgentAdapter:
 
 
 @click.command()
-@common_step_options(require_asset_registry=True, require_umd_path=True)
+@common_step_options()
 @click.option('--preview/--no-preview', default=True, show_default=True, help="Preview rendered frame")
 @click.option('--sensor', help="Path to custom sensor rig. By default, uses the Barebones sensor rig")
 @click.option(
@@ -228,10 +228,7 @@ def cli(preview, sensor, output_dir, force, debug, step_options: StepScriptConte
     instance_output_path = output_path / "instance_segmentation_2d"
 
     # Load route information
-    if step_options.internal_dev:
-        umd_map = pd.umd.load_umd_map_from_file(step_options.umd_path)
-    else:
-        umd_map = pd.umd.load_umd_map(level_name, level_version)
+    umd_map = step_options.load_umd_map(level_name, level_version)
 
     # Load sensor rig
     sensor_list = pd.state.load_sensor_rig(sensor if sensor else pd.state.SensorRig.BAREBONES_ALL)

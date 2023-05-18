@@ -89,7 +89,14 @@ class ParkingConfigFB(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def ParkingConfigFBStart(builder): builder.StartObject(9)
+    # ParkingConfigFB
+    def GlobalParkingDecalWear(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return 0.0
+
+def ParkingConfigFBStart(builder): builder.StartObject(10)
 def ParkingConfigFBAddAngle(builder, angle): builder.PrependInt32Slot(0, angle, 0)
 def ParkingConfigFBAddLotParkingDelineationType(builder, lotParkingDelineationType): builder.PrependInt32Slot(1, lotParkingDelineationType, 0)
 def ParkingConfigFBAddStreetParkingDelineationType(builder, streetParkingDelineationType): builder.PrependInt32Slot(2, streetParkingDelineationType, 0)
@@ -99,4 +106,5 @@ def ParkingConfigFBAddDelineationWearAmount(builder, delineationWearAmount): bui
 def ParkingConfigFBAddParkingSpaceMaterial(builder, parkingSpaceMaterial): builder.PrependInt32Slot(6, parkingSpaceMaterial, 0)
 def ParkingConfigFBAddParkingSpaceTint(builder, parkingSpaceTint): builder.PrependStructSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(parkingSpaceTint), 0)
 def ParkingConfigFBAddParkingSpaceGrungeAmount(builder, parkingSpaceGrungeAmount): builder.PrependFloat32Slot(8, parkingSpaceGrungeAmount, 0.0)
+def ParkingConfigFBAddGlobalParkingDecalWear(builder, globalParkingDecalWear): builder.PrependFloat32Slot(9, globalParkingDecalWear, 0.0)
 def ParkingConfigFBEnd(builder): return builder.EndObject()

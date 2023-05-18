@@ -9,7 +9,7 @@ Level and related objects
 """
 
 from dataclasses import dataclass
-from typing import List, Type, TypeVar
+from typing import List, Type, TypeVar, Optional
 
 from dacite import from_dict
 
@@ -27,7 +27,7 @@ class Levelpak:
     name: str
     """Levelpak name"""
 
-    default_version: str
+    default_version: Optional[str]
     """Default version selected when no version is specified"""
 
     versions: List[str]

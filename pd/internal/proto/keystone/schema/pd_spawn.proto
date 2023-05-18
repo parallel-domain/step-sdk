@@ -241,7 +241,10 @@ message SpawnConfigPreset
 
     optional ParkingSpaceData parking_space_data = 111;
 
-    repeated ObjectDecorations objectDecorations = 112;
+    optional ObjectDecorationParams object_decoration_params = 112;
+    optional float object_decoration_radius = 113;
+
+    optional ObjectDecorationParams ego_parking_space_decoration_params = 114;
 }
 
 message SpawnConfig

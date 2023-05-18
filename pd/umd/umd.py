@@ -134,4 +134,4 @@ def load_default_umd_map() -> schema.UniversalMap:
     Returns:
         Map protobuf object
     """
-    return load_umd_map("Test_SF_6thAndMission_small_parking")
+    return load_umd_map("Test_SF_6thAndMission_small")

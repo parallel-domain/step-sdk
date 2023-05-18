@@ -1,0 +1,55 @@
+syntax="proto3";
+
+import "pd_sensor.proto";
+
+package pd.data;
+
+// The messages mirror the SensorRig/SensorConfig messages used internally to the sim/IG and keystone
+// The key difference is they store the camera extrinsics in matrix form rather than yaw/pitch/roll to
+// fix round trip errors that were occuring between the IG and the LE
+// These should eventually be collapsed into a single form, and yaw/pitch/roll limited to use as an input
+// format across the stack and not for storage
+
+message SensorExtrinsicMatrix
+{
+    repeated float sensor_to_vehicle = 1;
+
+    // Setting this flag to true will cause the yaw value of the sensor orientation to be locked to the vehicle
+    // but leave the pitch and roll values as zero with respect to the world frame
+    bool lock_to_yaw = 2;
+
+    // If attach_socket is not empty, the camera would attach to a socket of the mesh
+    string attach_socket = 3;
+    bool follow_rotation = 4;
+}
+
+message SensorConfigLE
+{
+    string display_name = 1;
+    oneof sensor_intrinsic {
+        keystone.CameraIntrinsic camera_intrinsic = 2;
+        keystone.LidarIntrinsic lidar_intrinsic = 3;
+        keystone.RadarIntrinsic radar_intrinsic = 4;
+    }
+    SensorExtrinsicMatrix sensor_extrinsic = 5;
+}
+
+message SensorList
+{
+    repeated string sensors = 1;
+}
+
+message SensorRigConfigLE
+{
+    repeated SensorConfigLE sensor_configs = 1;
+
+    // For security reasons, in some cases we don't want to store the sensor rig data outside of our S3 bucket. In order to do this
+    // we have an optional sensor rig artifact uuid parameter in a given sensor rig.
+    // If this parameter is set, it will take precendance over any data set in the given sensor rig and we will enter into what we
+    // define as a secure sensor rig. In practical terms, the end-user have a placeholder sensor rig file that only contain the
+    // sensor_rig_artifact_uid data, if we detect that it's the case, we copy the data from S3 into the temporary location
+    // defined above in sensor_rig_data_dir_path.
+    string sensor_rig_artifact_uid = 2;
+
+    repeated SensorList default_sensor_splits_list = 3;
+}

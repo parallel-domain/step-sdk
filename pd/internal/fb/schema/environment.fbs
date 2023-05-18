@@ -89,6 +89,9 @@ table ParkingConfigFB
 
     // grunge applied to material [0-1]
     parking_space_grunge_amount: float;
+
+    // wear applied to parking decals [0-1]
+    global_parking_decal_wear: float;
 }
 
 table DecorationPreset
@@ -97,14 +100,9 @@ table DecorationPreset
   variant: int;
 }
 
-table Decal
+table ParkingSpaceDecal
 {
-  asset_name: string;
-}
-
-table Text
-{
-  value: string;
+  decal_preset: string;
 }
 
 table PaintTexture
@@ -113,10 +111,15 @@ table PaintTexture
   wear: float;
 }
 
+table Text
+{
+  value: string;
+}
+
 union DecorationData
 {
   DecorationPreset,
-  Decal,
+  ParkingSpaceDecal,
   PaintTexture,
   Text
 }
@@ -129,7 +132,7 @@ enum DecorationObjectType : int
 table DecorationDataFB
 {
     id: uint64 (key);
-    decoration_data: DecorationData; 
+    decoration_data: DecorationData;
 }
 
 table ObjectDecorations
@@ -148,4 +151,5 @@ table ObjectDecorationsInfoFB
 table EnvironmentConfigFB
 {
     parking_config: ParkingConfigFB;
+    object_decoration_info: ObjectDecorationsInfoFB;
 }

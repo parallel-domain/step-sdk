@@ -79,5 +79,7 @@ message RenderInfo
     // Set to True to enable the updated data pipeline
     // from the IG
     bool new_data_pipeline = 39 [(keystone_attributes) = {group: "advanced"}];
+    // Set use_linux to True if you want to run a render on Linux instead of Windows
+    bool use_linux = 42 [(keystone_attributes) = {group: "advanced"}];
     
-} // next index 42
+} // next index 43

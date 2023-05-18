@@ -16,7 +16,7 @@ Additionally, we support loading sensor definitions from a JSON file via the
 
 from dataclasses import dataclass, field
 from abc import ABC
-from enum import IntEnum, Enum, auto
+from enum import IntEnum, Enum
 from typing import List, Dict, Optional, Union, Any, Tuple
 import json
 from pathlib import Path

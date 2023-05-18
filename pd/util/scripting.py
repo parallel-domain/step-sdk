@@ -7,7 +7,7 @@
 """
 Utilities for scripting, such as handling common inputs.
 """
-
+import os
 from functools import partial, wraps
 from dataclasses import dataclass
 from typing import Optional, Dict
@@ -16,10 +16,14 @@ from requests import HTTPError
 
 import click
 
+from pd.core import PdError
 from pd.session import is_server_url
 import pd.management
 from pd.management import Ig
-from pd.assets import init_asset_registry_version, init_asset_registry_file, get_asset_registry_path
+from pd.assets import init_asset_registry_version, init_asset_registry_file
+from pd.umd import load_umd_map_from_file, load_umd_map
+import pd.internal.umd.UMD_pb2 as schema
+from pd.internal.proto.umd.generated.wrapper.UMD_pb2 import UniversalMap
 
 
 @dataclass
@@ -29,7 +33,6 @@ class StepScriptContext:
     Indicates an internal dev workflow
     In internal dev workflow, Step Management API is not used.
     Addresses for any instances (Sim, IG, etc) must be explicitly provided.
-    Path to all related artifacts (Umd, Asset Registry) must be explicitly provided. 
     """
 
     ig: str
@@ -63,24 +66,59 @@ class StepScriptContext:
     Path to client certificate
     """
 
-    asset_registry_path: Optional[Path] = None
-    """
-    Path to asset registry being used, if any.
-    Always set when :attr:`internal_dev` is :obj:`False`.
-    May not be set when :attr:`internal_dev` is :obj:`True`, 
-    depending on if the script requires this path.
-    """
+    def load_umd_map(self, location_name: str, location_version: str) -> schema.UniversalMap:
+        """
+        Load Umd map using the proper context information.
 
-    umd_path: Optional[Path] = None
-    """
-    Path to asset Umd file, if requested.
-    Only valid when :attr:`internal_dev` is :obj:`True` (use :func:`load_umd_map` otherwise)
-    """
+        I.e. Cloud workflow uses cloud Umd file and internal dev workflow uses local Umd file.
+
+        Args:
+            location_name: Location name
+            location_version: Location version. Unused for internal dev workflow
+
+        Returns:
+            Umd map
+        """
+        if self.internal_dev:
+            map_file = (
+                    Path(os.environ.get("PD_ROOT", ""))
+                    / "generated"
+                    / "locations"
+                    / location_name
+                    / f"{location_name}.umd"
+            )
+            if not map_file.is_file():
+                raise PdError(
+                    f"Couldn't find local map (Umd) for map {location_name} at {str(map_file)}. "
+                    "Please download the map artifact."
+                )
+            return load_umd_map_from_file(path=map_file)
+        else:
+            try:
+                return load_umd_map(name=location_name, version=location_version)
+            except PdError as e:
+                raise PdError(
+                    f"Couldn't load map {location_name} {location_version} from management API. "
+                    f"Error: {str(e)}"
+                )
+
+    def load_map(self, location_name: str, location_version: str) -> UniversalMap:
+        """
+        Load map using the proper context information.
+
+        I.e. Cloud workflow uses cloud Umd file and internal dev workflow uses local Umd file.
+
+        Args:
+            location_name: Location name
+            location_version: Location version. Unused for internal dev workflow
+
+        Returns:
+            Map object
+        """
+        return UniversalMap(proto=self.load_umd_map(location_name, location_version))
 
 
-def common_step_options(require_asset_registry=False,
-                        require_umd_path=False,
-                        require_sim=False):
+def common_step_options(require_sim=False):
     """
     Decorator for click commands that adds common options for Step SDK scripts.
 
@@ -105,8 +143,6 @@ def common_step_options(require_asset_registry=False,
     certain options to be required.
 
     Args:
-        require_asset_registry: Force asset registry path to be required (for internal dev workflow)
-        require_umd_path: Force umd path to be required (for internal dev workflow)
         require_sim: Adds an input for Sim name/address
     """
     # The following callback function is used to capture the unexposed option values
@@ -134,9 +170,6 @@ def common_step_options(require_asset_registry=False,
         org = option_values.get('org', None)
         api_key = option_values.get('apikey', None)
         client_cert_file = option_values.get('client_cert_file', None)
-        asset_registry = option_values.get('asset_registry', None)
-        umd = option_values.get('umd', None)
-        umd_path = None
         if is_server_url(ig):
             internal_dev = True
             if sim and not is_server_url(sim):
@@ -153,21 +186,12 @@ def common_step_options(require_asset_registry=False,
                     f"--apikey is not needed when using an Ig server address. "
                     f"Please remove it."
                 )
-            if asset_registry:
-                asset_registry_path = Path(asset_registry)
-                init_asset_registry_file(asset_registry_path)
-            elif require_asset_registry:
-                raise ValueError(
-                    f"--asset-registry parameter is required"
-                )
-            else:
-                asset_registry_path = None
-            if umd:
-                umd_path = Path(umd)
-            elif require_umd_path:
-                raise ValueError(
-                    f"--umd parameter is required"
-                )
+            local_asset_registry_path = Path(os.environ.get("PD_ROOT", "")) / 'assets' / 'asset_registry.db'
+            if not local_asset_registry_path.is_file():
+                raise PdError(f"Couldn't find asset registry at {str(local_asset_registry_path)}. "
+                              "Please make sure env var PD_ROOT is set and asset registry exists at "
+                              "$PD_ROOT/assets/asset_registry.db")
+            init_asset_registry_file(local_asset_registry_path)
             ig_version = None
         else:
             internal_dev = False
@@ -183,16 +207,6 @@ def common_step_options(require_asset_registry=False,
                 raise ValueError(
                     f"--apikey is required when connecting to a named Ig server"
                 )
-            if asset_registry:
-                raise ValueError(
-                    f"--asset-registry is not needed when connecting to a named Ig server. "
-                    f"Please remove it."
-                )
-            if umd:
-                raise ValueError(
-                    f"--umd is not needed when connecting to a named Ig server. "
-                    f"Please remove it."
-                )
             pd.management.org = org
             pd.management.api_key = api_key
             try:
@@ -205,7 +219,6 @@ def common_step_options(require_asset_registry=False,
                     f"Couldn't find an Ig by the name '{ig}'. Please check the value passed in '--ig'"
                 )
             init_asset_registry_version(ig_version)
-            asset_registry_path = get_asset_registry_path()
 
         return StepScriptContext(
             internal_dev=internal_dev,
@@ -214,9 +227,7 @@ def common_step_options(require_asset_registry=False,
             org=org,
             api_key=api_key,
             ig_version=ig_version,
-            client_cert_file=client_cert_file,
-            asset_registry_path=asset_registry_path,
-            umd_path=umd_path
+            client_cert_file=client_cert_file
         )
 
     unexposed_option = partial(click.option, expose_value=False, callback=_callback)
@@ -238,22 +249,6 @@ def common_step_options(require_asset_registry=False,
                 default='tcp://127.0.0.1:9002',
                 help="Name of the Sim server or address of Sim server's url",
                 show_default=True
-            )
-        )
-    if require_asset_registry:
-        _common_step_options.append(
-            unexposed_option(
-                '--asset-registry',
-                help="Path to asset registry. Required with IG url.",
-                type=click.Path(exists=True)
-            )
-        )
-    if require_umd_path:
-        _common_step_options.append(
-            unexposed_option(
-                '--umd',
-                help="Path to Umd file. Required with IG url.",
-                type=click.Path(exists=True)
             )
         )
 

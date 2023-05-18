@@ -66,6 +66,10 @@ message ParkingSpotState
     ParkingSpotColor color = 2;
     float wear = 3;
     string material_type = 4;
+    string delineation_type = 5;
+    ParkingSpotColor delineation_color = 6;
+    double marker_wear = 7;
+    string marker_type = 8;
 }
 
 // TODO: refactor to merge all Color messages into one

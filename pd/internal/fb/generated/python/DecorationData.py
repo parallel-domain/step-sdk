@@ -5,7 +5,7 @@
 class DecorationData(object):
     NONE = 0
     DecorationPreset = 1
-    Decal = 2
+    ParkingSpaceDecal = 2
     PaintTexture = 3
     Text = 4
 

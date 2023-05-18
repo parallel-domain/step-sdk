@@ -72,7 +72,7 @@ def save_image(base_path: Path, asset_name: str, rotation: int, image):
 
 
 @click.command()
-@common_step_options(require_asset_registry=True)
+@common_step_options()
 @click.option(
     '-o', '--output',
     type=click.Path(exists=False, file_okay=False, dir_okay=True),

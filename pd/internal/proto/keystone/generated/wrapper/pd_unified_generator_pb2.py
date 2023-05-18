@@ -231,6 +231,12 @@ class AtomicGeneratorParameters(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.CenterSpreadConfig)
 class CenterSpreadConfig(ProtoMessageClass):
+    """
+    Description:
+        Specifies center and spred of distribution defined with float values.
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.CenterSpreadConfig
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.CenterSpreadConfig]=None, center: Optional[float]=None, spread: Optional[float]=None):
@@ -260,6 +266,12 @@ class CenterSpreadConfig(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.CenterSpreadConfigInt)
 class CenterSpreadConfigInt(ProtoMessageClass):
+    """
+    Description:
+        Specifies center and spred of distribution defined with integer values.
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.CenterSpreadConfigInt
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.CenterSpreadConfigInt]=None, center: Optional[int]=None, spread: Optional[int]=None):
@@ -289,6 +301,12 @@ class CenterSpreadConfigInt(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.CenterSpreadProbabilityConfig)
 class CenterSpreadProbabilityConfig(ProtoMessageClass):
+    """
+    Description:
+        Specifies probability distribution defined by centere and spread.
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.CenterSpreadProbabilityConfig
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.CenterSpreadProbabilityConfig]=None, center: Optional[float]=None, probability: Optional[float]=None, spread: Optional[float]=None):
@@ -478,6 +496,12 @@ class DebrisGeneratorParameters(AtomicGeneratorMessage):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.DecorationData)
 class DecorationData(ProtoMessageClass):
+    """
+    Description:
+        Stores decoration specific parameters.
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.DecorationData
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.DecorationData]=None, decoration_preset: Optional[DecorationPreset]=None):
@@ -498,6 +522,12 @@ class DecorationData(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.DecorationPreset)
 class DecorationPreset(ProtoMessageClass):
+    """
+    Description:
+        Specifies preset name to use in the given scenario.
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.DecorationPreset
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.DecorationPreset]=None, preset_name: Optional[str]=None, variant: Optional[int]=None):
@@ -981,6 +1011,14 @@ class FloatArray(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.JunctionSpawnPolicy)
 class JunctionSpawnPolicy(ProtoMessageClass):
+    """
+    Description:
+        Specifies junction lanes as spawning locations.
+    Required:
+        No
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.JunctionSpawnPolicy
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.JunctionSpawnPolicy]=None, distance_to_junction: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None):
@@ -1001,6 +1039,14 @@ class JunctionSpawnPolicy(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.LaneCurvatureSpawnPolicy)
 class LaneCurvatureSpawnPolicy(ProtoMessageClass):
+    """
+    Description:
+        Specifies curved sections as spawning locations.
+    Required:
+        No
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.LaneCurvatureSpawnPolicy
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.LaneCurvatureSpawnPolicy]=None, curvature_bounds: Optional[MinMaxConfigFloat]=None, min_section_length: Optional[float]=None):
@@ -1119,14 +1165,16 @@ class LaneSpawnPolicy(ProtoMessageClass):
               Description:
                   Specifies the desired minimum path length for agent.
                   The length is from the beginning of the lane.
+                  This parameter does not have an effect if spawning in a driveway, parking aisle or parking space.
               Required:
-                  No, will default to 0 if lane type is ParkingSpace or ParkingAisle, otherwise will default to 200.
+                  No. Defaults to 200.
         min_length_behind:
               Description:
                   Specifies the desired minimum path length behind the agent.
                   The length is the distance behind the agent's location to the world edge.
+                  This parameter does not have an effect if spawning in a driveway, parking aisle or parking space.
               Required:
-                  No, if it will default to 0 if lane type is ParkingSpace or ParkingAisle, otherwise will default to 100.
+                  No. Defaults to 100.
 """
     _proto_message = pd_unified_generator_pb2.LaneSpawnPolicy
 
@@ -1311,6 +1359,12 @@ class LocationRelativePositionRequest(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.MinMaxConfigFloat)
 class MinMaxConfigFloat(ProtoMessageClass):
+    """
+    Description:
+        Specifies lower and upper bounds defined with float values.
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.MinMaxConfigFloat
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.MinMaxConfigFloat]=None, max: Optional[float]=None, min: Optional[float]=None):
@@ -1340,6 +1394,12 @@ class MinMaxConfigFloat(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.MinMaxConfigInt)
 class MinMaxConfigInt(ProtoMessageClass):
+    """
+    Description:
+        Specifies lower and upper bounds defined with integer values.
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.MinMaxConfigInt
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.MinMaxConfigInt]=None, max: Optional[int]=None, min: Optional[int]=None):
@@ -1411,19 +1471,96 @@ class NearbyAssetPolicy(ProtoMessageClass):
     def search_radius(self, value: CenterSpreadConfig):
         self._search_radius.proto.CopyFrom(value.proto)
 
+@register_wrapper(proto_type=pd_unified_generator_pb2.ObjectDecorationParams)
+class ObjectDecorationParams(ProtoMessageClass):
+    """
+    sample from this message for each lane/object type we want to decorate
+    this message is written in a way so both legacy and atomics can use it
+    for atomics, it will be used together with a position request
+    for legacy, it will be used with a radius and per object chance that's in spawn config
+
+    Args:
+        decorate_chance:
+                the chance of each item being decorated (for example each lane within a radius)
+                range: [0-1]
+                default is 0.1 if not specified, however if no ObjectDecoration is provided at all,
+                the code for adding decorations will be skipped. this is so we don't get unexpected
+                decals showing up in renders
+        preset_distribution:
+                distribution of presets
+                each preset also can have a number of variants, randomized for now
+                available options for parking decal:
+                None
+                TAXI_text,
+                TAXI_icon,
+                NO_PARKING_text,
+                LOADING_ZONE_text,
+                NO_PARKING_full,
+                EV_JP_01_A_icon,
+                EV_JP_01_B_icon,
+                EV_JP_01_C_icon,
+                EV_01_icon,
+                EV_02_icon,
+                EV_03_icon,
+                Family_01_A_icon,
+                Family_01_B_icon,
+                Family_01_C_icon,
+                PARKING_10_MIN_text,
+                PARKING_30_MIN_text,
+                PARKING_15_MIN_text,
+                RESERVED_01_text,
+                Wheelchair_01_A_icon,
+                Wheelchair_01_B_icon,
+                Wheelchair_01_C_icon,
+                Wheelchair_01_D_icon,
+"""
+    _proto_message = pd_unified_generator_pb2.ObjectDecorationParams
+
+    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.ObjectDecorationParams]=None, decorate_chance: Optional[float]=None, preset_distribution: Optional[_pd_distributions_pb2.EnumDistribution]=None):
+        if proto is None:
+            proto = pd_unified_generator_pb2.ObjectDecorationParams()
+        self.proto = proto
+        self._preset_distribution = get_wrapper(proto_type=proto.preset_distribution.__class__)(proto=proto.preset_distribution)
+        if decorate_chance is not None:
+            self.decorate_chance = decorate_chance
+        if preset_distribution is not None:
+            self.preset_distribution = preset_distribution
+
+    @property
+    def decorate_chance(self) -> float:
+        return self.proto.decorate_chance
+
+    @decorate_chance.setter
+    def decorate_chance(self, value: float):
+        self.proto.decorate_chance = value
+
+    @property
+    def preset_distribution(self) -> _pd_distributions_pb2.EnumDistribution:
+        return self._preset_distribution
+
+    @preset_distribution.setter
+    def preset_distribution(self, value: _pd_distributions_pb2.EnumDistribution):
+        self._preset_distribution.proto.CopyFrom(value.proto)
+
 @register_wrapper(proto_type=pd_unified_generator_pb2.ObjectDecorations)
 class ObjectDecorations(ProtoMessageClass):
+    """
+    message for specifying decorations in the map, for example parking decals
+    where decoration is applied is based on object_id and object_decoration_type
+    for example, decoration type is LANE and object_id is 340, it will look for lane id
+    340 to apply decorations to
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.ObjectDecorations
 
-    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.ObjectDecorations]=None, decoration_data: Optional[DecorationData]=None, object_decoration_type: Optional[ObjectDecorationType]=None, object_id: Optional[int]=None):
+    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.ObjectDecorations]=None, decoration_data: Optional[DecorationData]=None, object_id: Optional[int]=None):
         if proto is None:
             proto = pd_unified_generator_pb2.ObjectDecorations()
         self.proto = proto
         self._decoration_data = get_wrapper(proto_type=proto.decoration_data.__class__)(proto=proto.decoration_data)
         if decoration_data is not None:
             self.decoration_data = decoration_data
-        if object_decoration_type is not None:
-            self.object_decoration_type = object_decoration_type
         if object_id is not None:
             self.object_id = object_id
 
@@ -1434,14 +1571,6 @@ class ObjectDecorations(ProtoMessageClass):
     @decoration_data.setter
     def decoration_data(self, value: DecorationData):
         self._decoration_data.proto.CopyFrom(value.proto)
-
-    @property
-    def object_decoration_type(self) -> int:
-        return self.proto.object_decoration_type
-
-    @object_decoration_type.setter
-    def object_decoration_type(self, value: int):
-        self.proto.object_decoration_type = value
 
     @property
     def object_id(self) -> int:
@@ -1579,16 +1708,20 @@ class ParkingSpaceData(ProtoMessageClass):
         parking_space_grunge_amount:
                 grunge of parking lines, defaults to 0.25
                 range: [0-1]
+        global_parking_decal_wear:
+                global wear amount for decals in parking spaces
+                range: [0-1]
 """
     _proto_message = pd_unified_generator_pb2.ParkingSpaceData
 
-    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.ParkingSpaceData]=None, angle_distribution: Optional[Dict[int, float]]=None, delineation_color: Optional[List[_pd_types_pb2.Float3]]=None, delineation_wear_amount: Optional[CenterSpreadConfig]=None, lot_parking_delineation_type: Optional[_pd_distributions_pb2.EnumDistribution]=None, parking_space_grunge_amount: Optional[CenterSpreadConfig]=None, parking_space_material: Optional[_pd_distributions_pb2.EnumDistribution]=None, parking_space_tint: Optional[List[_pd_types_pb2.Float3]]=None, street_parking_angle_zero_override: Optional[_pd_distributions_pb2.EnumDistribution]=None, street_parking_delineation_type: Optional[_pd_distributions_pb2.EnumDistribution]=None):
+    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.ParkingSpaceData]=None, angle_distribution: Optional[Dict[int, float]]=None, delineation_color: Optional[List[_pd_types_pb2.Float3]]=None, delineation_wear_amount: Optional[CenterSpreadConfig]=None, global_parking_decal_wear: Optional[CenterSpreadConfig]=None, lot_parking_delineation_type: Optional[_pd_distributions_pb2.EnumDistribution]=None, parking_space_grunge_amount: Optional[CenterSpreadConfig]=None, parking_space_material: Optional[_pd_distributions_pb2.EnumDistribution]=None, parking_space_tint: Optional[List[_pd_types_pb2.Float3]]=None, street_parking_angle_zero_override: Optional[_pd_distributions_pb2.EnumDistribution]=None, street_parking_delineation_type: Optional[_pd_distributions_pb2.EnumDistribution]=None):
         if proto is None:
             proto = pd_unified_generator_pb2.ParkingSpaceData()
         self.proto = proto
         self._angle_distribution = ProtoDictWrapper(container={k: float(v) for (k, v) in proto.angle_distribution.items()}, attr_name='angle_distribution', dict_owner=proto)
         self._delineation_color = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.delineation_color], attr_name='delineation_color', list_owner=proto)
         self._delineation_wear_amount = get_wrapper(proto_type=proto.delineation_wear_amount.__class__)(proto=proto.delineation_wear_amount)
+        self._global_parking_decal_wear = get_wrapper(proto_type=proto.global_parking_decal_wear.__class__)(proto=proto.global_parking_decal_wear)
         self._lot_parking_delineation_type = get_wrapper(proto_type=proto.lot_parking_delineation_type.__class__)(proto=proto.lot_parking_delineation_type)
         self._parking_space_grunge_amount = get_wrapper(proto_type=proto.parking_space_grunge_amount.__class__)(proto=proto.parking_space_grunge_amount)
         self._parking_space_material = get_wrapper(proto_type=proto.parking_space_material.__class__)(proto=proto.parking_space_material)
@@ -1601,6 +1734,8 @@ class ParkingSpaceData(ProtoMessageClass):
             self.delineation_color = delineation_color
         if delineation_wear_amount is not None:
             self.delineation_wear_amount = delineation_wear_amount
+        if global_parking_decal_wear is not None:
+            self.global_parking_decal_wear = global_parking_decal_wear
         if lot_parking_delineation_type is not None:
             self.lot_parking_delineation_type = lot_parking_delineation_type
         if parking_space_grunge_amount is not None:
@@ -1640,6 +1775,14 @@ class ParkingSpaceData(ProtoMessageClass):
     @delineation_wear_amount.setter
     def delineation_wear_amount(self, value: CenterSpreadConfig):
         self._delineation_wear_amount.proto.CopyFrom(value.proto)
+
+    @property
+    def global_parking_decal_wear(self) -> CenterSpreadConfig:
+        return self._global_parking_decal_wear
+
+    @global_parking_decal_wear.setter
+    def global_parking_decal_wear(self, value: CenterSpreadConfig):
+        self._global_parking_decal_wear.proto.CopyFrom(value.proto)
 
     @property
     def lot_parking_delineation_type(self) -> _pd_distributions_pb2.EnumDistribution:
@@ -1693,6 +1836,12 @@ class ParkingSpaceData(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.ParkingTypeDistribution)
 class ParkingTypeDistribution(ProtoMessageClass):
+    """
+    Description:
+        Specifies distribution of parking types present in the map.
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.ParkingTypeDistribution
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.ParkingTypeDistribution]=None, forward: Optional[float]=None, parallel: Optional[float]=None, reverse: Optional[float]=None):
@@ -2047,6 +2196,14 @@ class PedestrianSpawnData(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.PositionOfInterestPolicy)
 class PositionOfInterestPolicy(ProtoMessageClass):
+    """
+    Description:
+        Specifies what policy to use in order to spawn agents on a lane.
+    Required:
+        No
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.PositionOfInterestPolicy
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.PositionOfInterestPolicy]=None, junction_spawn_policy: Optional[JunctionSpawnPolicy]=None, lane_curvature_spawn_policy: Optional[LaneCurvatureSpawnPolicy]=None):
@@ -2098,7 +2255,8 @@ class PositionRequest(ProtoMessageClass):
               Description:
                   Only applied after initial pose is determined by position_type.
                   Determines how much to rotate pose about Z axis (points up in right handed coordinate system)
-                  Example: 90 degrees would rotate pose to the left.
+                  Units are in radians.
+                  Example: pi/2 radians would rotate pose to the left.
               Required:
                   No, will default to `0.0`
         position_type:
@@ -2494,6 +2652,12 @@ class RoadPitchPositionRequest(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.SignalLightDistribution)
 class SignalLightDistribution(ProtoMessageClass):
+    """
+    Description:
+        Specifies distribution of bulb color in the traffic signal lights.
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.SignalLightDistribution
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.SignalLightDistribution]=None, green: Optional[float]=None, red: Optional[float]=None, yellow: Optional[float]=None):
@@ -2586,7 +2750,11 @@ class TrafficGeneratorParameters(AtomicGeneratorMessage):
               Description:
                   Determines the spawn radius of vehicles (see `LocationRelativePositionRequest`)
               Range:
-                  Only works with `LocationRelativePositionRequest`
+                  Only works with `LocationRelativePositionRequest`.
+                  min_path_length and min_length_behind in the lane spawn policy of LocationRelativePositionRequest
+                  should be set smaller than the values used when placing the reference agent to ensure
+                  traffic is placed between the reference agent and edge of the world. The default values
+                  are halved compared to the normal LaneSpawnPolicy defaults.
               Required:
                   Yes
         spawn_probability:
@@ -2715,6 +2883,12 @@ class TrafficGeneratorParameters(AtomicGeneratorMessage):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.TurnTypeDistribution)
 class TurnTypeDistribution(ProtoMessageClass):
+    """
+    Description:
+        Specifies distribution of turns types of incoming lanes in a junction.
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.TurnTypeDistribution
 
     def __init__(self, *, proto: Optional[pd_unified_generator_pb2.TurnTypeDistribution]=None, left: Optional[float]=None, right: Optional[float]=None, straight: Optional[float]=None):
@@ -3307,6 +3481,12 @@ class VehicleSpawnData(ProtoMessageClass):
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.AgentType)
 class AgentType(ProtoEnumClass):
+    """
+    Description:
+        Currently supported agent types
+
+    Args:
+"""
     _proto_message = pd_unified_generator_pb2.AgentType
     ANIMAL: pd_unified_generator_pb2.AgentType = pd_unified_generator_pb2.AgentType.ANIMAL
     DRONE: pd_unified_generator_pb2.AgentType = pd_unified_generator_pb2.AgentType.DRONE
@@ -3316,11 +3496,6 @@ class AgentType(ProtoEnumClass):
     TRAILER_VEHICLE: pd_unified_generator_pb2.AgentType = pd_unified_generator_pb2.AgentType.TRAILER_VEHICLE
     UNSPECIFIED: pd_unified_generator_pb2.AgentType = pd_unified_generator_pb2.AgentType.UNSPECIFIED
     VEHICLE: pd_unified_generator_pb2.AgentType = pd_unified_generator_pb2.AgentType.VEHICLE
-
-@register_wrapper(proto_type=pd_unified_generator_pb2.ObjectDecorationType)
-class ObjectDecorationType(ProtoEnumClass):
-    _proto_message = pd_unified_generator_pb2.ObjectDecorationType
-    LANE: pd_unified_generator_pb2.ObjectDecorationType = pd_unified_generator_pb2.ObjectDecorationType.LANE
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.ObstacleType)
 class ObstacleType(ProtoEnumClass):
@@ -3368,8 +3543,11 @@ class PedestrianBehavior(ProtoEnumClass):
               Description: Stays in place
         JAYWALKER:
               Description: Jaywalking behavior (e.g. crosses the road at a non-crosswalk)
+        EDGESTOPPER:
+              Description: Spawned on sidewalk in front of tagged agent. Walks towards agent and stops at edge of sidewalk
 """
     _proto_message = pd_unified_generator_pb2.PedestrianBehavior
+    EDGESTOPPER: pd_unified_generator_pb2.PedestrianBehavior = pd_unified_generator_pb2.PedestrianBehavior.EDGESTOPPER
     JAYWALKER: pd_unified_generator_pb2.PedestrianBehavior = pd_unified_generator_pb2.PedestrianBehavior.JAYWALKER
     NORMAL: pd_unified_generator_pb2.PedestrianBehavior = pd_unified_generator_pb2.PedestrianBehavior.NORMAL
     STATIC: pd_unified_generator_pb2.PedestrianBehavior = pd_unified_generator_pb2.PedestrianBehavior.STATIC

@@ -2,13 +2,21 @@ syntax = "proto3";
 
 package keystone;
 
-
+/*
+Description:
+    Normal distribution, is a probability distribution that is symmetric about the mean.
+    Data near the mean is more frequent in occurrence than data far from the mean.
+*/
 message NormalDistribution
 {
     float mean = 1;
     float variance = 2;
 }
 
+/*
+Description:
+    Normal distribution truncated within the interval specified by min and max values.
+*/
 message TrucatedNormalDistribution
 {
     float mean = 1;
@@ -16,13 +24,21 @@ message TrucatedNormalDistribution
     float min = 3;
     float max = 4;
 }
-
+/*
+Description:
+    A uniform distribution, also known as a rectangular distribution, 
+    is a distribution that has constant probability.
+*/
 message ContinousUniformDistribution
 {
     float min = 1;
     float max = 2;
 }
-
+/*
+Description:
+    A discrete value range which groups continuos floating-point values 
+    into a single binary feature in the distribution.
+*/
 message Bucket {
     oneof value {
         string string_value = 1;
@@ -32,16 +48,31 @@ message Bucket {
     float probability = 4;
 }
 
+/*
+Description:
+    A uniform distribution, where the probability of outcomes is equally likely
+    and with finite values.
+*/
 message DiscreteUniformDistribution
 {
     repeated Bucket buckets = 1;
 }
 
+/*
+Description:
+    This is a discrete probability distribution that describes the results of
+    a random variable that can take on one of K possible categories,
+    with the probability of each category (bucket) separately specified.
+*/
 message CategoricalDistribution
 {
     repeated Bucket buckets = 1;
 }
 
+/*
+Description:
+    A single sample distribution.
+*/
 message ConstantDistribution
 {
     oneof value {
@@ -50,12 +81,20 @@ message ConstantDistribution
         int32 int32_value = 3;
     }
 }
-
+/*
+Description:
+    A distribution represented by categories and their corresponding probabilities.
+    Probability weights need to sum up to 1.
+*/
 message EnumDistribution
 {
     map<string, float> probabilities = 1;
 }
 
+/*
+Description:
+    Specifies type of distribution to use.
+*/
 message Distribution
 {
     oneof distribution {
@@ -68,6 +107,10 @@ message Distribution
     }
 }
 
+/*
+Description:
+    Associates distribution weight of the associated vehicle category.
+*/
 message VehicleCategoryWeight
 {
     float weight = 2;

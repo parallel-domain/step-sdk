@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 from . import geometry_pb2 as geometry__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13transform_map.proto\x12\x07pd.data\x1a\x0egeometry.proto\"\x9a\x01\n\x12SocketTransformMap\x12>\n\nsocket_map\x18\x01 \x03(\x0b\x32*.pd.data.SocketTransformMap.SocketMapEntry\x1a\x44\n\x0eSocketMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12!\n\x05value\x18\x02 \x01(\x0b\x32\x12.pd.data.Transform:\x02\x38\x01\"\x9b\x01\n\x05Value\x12\x14\n\nbool_value\x18\x01 \x01(\x08H\x00\x12\x15\n\x0bint32_value\x18\x02 \x01(\x05H\x00\x12\x15\n\x0bint64_value\x18\x03 \x01(\x03H\x00\x12\x15\n\x0b\x66loat_value\x18\x04 \x01(\x02H\x00\x12\x16\n\x0c\x64ouble_value\x18\x05 \x01(\x01H\x00\x12\x16\n\x0cstring_value\x18\x06 \x01(\tH\x00\x42\x07\n\x05value\"\x7f\n\x08ValueMap\x12\x32\n\tvalue_map\x18\x01 \x03(\x0b\x32\x1f.pd.data.ValueMap.ValueMapEntry\x1a?\n\rValueMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1d\n\x05value\x18\x02 \x01(\x0b\x32\x0e.pd.data.Value:\x02\x38\x01\"\xd1\x04\n\x0cTransformMap\x12>\n\rtransform_map\x18\x01 \x03(\x0b\x32\'.pd.data.TransformMap.TransformMapEntry\x12K\n\x14socket_transform_map\x18\x02 \x03(\x0b\x32-.pd.data.TransformMap.SocketTransformMapEntry\x12\x36\n\tvalue_map\x18\x03 \x03(\x0b\x32#.pd.data.TransformMap.ValueMapEntry\x12I\n\x13\x61\x63tor_transform_map\x18\x04 \x03(\x0b\x32,.pd.data.TransformMap.ActorTransformMapEntry\x1aG\n\x11TransformMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\r\x12!\n\x05value\x18\x02 \x01(\x0b\x32\x12.pd.data.Transform:\x02\x38\x01\x1aV\n\x17SocketTransformMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\r\x12*\n\x05value\x18\x02 \x01(\x0b\x32\x1b.pd.data.SocketTransformMap:\x02\x38\x01\x1a\x42\n\rValueMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\r\x12 \n\x05value\x18\x02 \x01(\x0b\x32\x11.pd.data.ValueMap:\x02\x38\x01\x1aL\n\x16\x41\x63torTransformMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\r\x12!\n\x05value\x18\x02 \x01(\x0b\x32\x12.pd.data.Transform:\x02\x38\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13transform_map.proto\x12\x07pd.data\x1a\x0egeometry.proto\"\x9a\x01\n\x12SocketTransformMap\x12>\n\nsocket_map\x18\x01 \x03(\x0b\x32*.pd.data.SocketTransformMap.SocketMapEntry\x1a\x44\n\x0eSocketMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12!\n\x05value\x18\x02 \x01(\x0b\x32\x12.pd.data.Transform:\x02\x38\x01\"\x9b\x02\n\x05Value\x12\x14\n\nbool_value\x18\x01 \x01(\x08H\x00\x12\x15\n\x0bint32_value\x18\x02 \x01(\x05H\x00\x12\x15\n\x0bint64_value\x18\x03 \x01(\x03H\x00\x12\x15\n\x0b\x66loat_value\x18\x04 \x01(\x02H\x00\x12\x16\n\x0c\x64ouble_value\x18\x05 \x01(\x01H\x00\x12\x16\n\x0cstring_value\x18\x06 \x01(\tH\x00\x12(\n\x0cvector_value\x18\x07 \x01(\x0b\x32\x10.pd.data.Vector3H\x00\x12)\n\rvector4_value\x18\x08 \x01(\x0b\x32\x10.pd.data.Vector4H\x00\x12)\n\nquat_value\x18\t \x01(\x0b\x32\x13.pd.data.QuaternionH\x00\x42\x07\n\x05value\"\x7f\n\x08ValueMap\x12\x32\n\tvalue_map\x18\x01 \x03(\x0b\x32\x1f.pd.data.ValueMap.ValueMapEntry\x1a?\n\rValueMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1d\n\x05value\x18\x02 \x01(\x0b\x32\x0e.pd.data.Value:\x02\x38\x01\"\xd1\x04\n\x0cTransformMap\x12>\n\rtransform_map\x18\x01 \x03(\x0b\x32\'.pd.data.TransformMap.TransformMapEntry\x12K\n\x14socket_transform_map\x18\x02 \x03(\x0b\x32-.pd.data.TransformMap.SocketTransformMapEntry\x12\x36\n\tvalue_map\x18\x03 \x03(\x0b\x32#.pd.data.TransformMap.ValueMapEntry\x12I\n\x13\x61\x63tor_transform_map\x18\x04 \x03(\x0b\x32,.pd.data.TransformMap.ActorTransformMapEntry\x1aG\n\x11TransformMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\r\x12!\n\x05value\x18\x02 \x01(\x0b\x32\x12.pd.data.Transform:\x02\x38\x01\x1aV\n\x17SocketTransformMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\r\x12*\n\x05value\x18\x02 \x01(\x0b\x32\x1b.pd.data.SocketTransformMap:\x02\x38\x01\x1a\x42\n\rValueMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\r\x12 \n\x05value\x18\x02 \x01(\x0b\x32\x11.pd.data.ValueMap:\x02\x38\x01\x1aL\n\x16\x41\x63torTransformMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\r\x12!\n\x05value\x18\x02 \x01(\x0b\x32\x12.pd.data.Transform:\x02\x38\x01\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'transform_map_pb2', globals())
@@ -38,19 +38,19 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _SOCKETTRANSFORMMAP_SOCKETMAPENTRY._serialized_start=135
   _SOCKETTRANSFORMMAP_SOCKETMAPENTRY._serialized_end=203
   _VALUE._serialized_start=206
-  _VALUE._serialized_end=361
-  _VALUEMAP._serialized_start=363
-  _VALUEMAP._serialized_end=490
-  _VALUEMAP_VALUEMAPENTRY._serialized_start=427
-  _VALUEMAP_VALUEMAPENTRY._serialized_end=490
-  _TRANSFORMMAP._serialized_start=493
-  _TRANSFORMMAP._serialized_end=1086
-  _TRANSFORMMAP_TRANSFORMMAPENTRY._serialized_start=781
-  _TRANSFORMMAP_TRANSFORMMAPENTRY._serialized_end=852
-  _TRANSFORMMAP_SOCKETTRANSFORMMAPENTRY._serialized_start=854
-  _TRANSFORMMAP_SOCKETTRANSFORMMAPENTRY._serialized_end=940
-  _TRANSFORMMAP_VALUEMAPENTRY._serialized_start=942
-  _TRANSFORMMAP_VALUEMAPENTRY._serialized_end=1008
-  _TRANSFORMMAP_ACTORTRANSFORMMAPENTRY._serialized_start=1010
-  _TRANSFORMMAP_ACTORTRANSFORMMAPENTRY._serialized_end=1086
+  _VALUE._serialized_end=489
+  _VALUEMAP._serialized_start=491
+  _VALUEMAP._serialized_end=618
+  _VALUEMAP_VALUEMAPENTRY._serialized_start=555
+  _VALUEMAP_VALUEMAPENTRY._serialized_end=618
+  _TRANSFORMMAP._serialized_start=621
+  _TRANSFORMMAP._serialized_end=1214
+  _TRANSFORMMAP_TRANSFORMMAPENTRY._serialized_start=909
+  _TRANSFORMMAP_TRANSFORMMAPENTRY._serialized_end=980
+  _TRANSFORMMAP_SOCKETTRANSFORMMAPENTRY._serialized_start=982
+  _TRANSFORMMAP_SOCKETTRANSFORMMAPENTRY._serialized_end=1068
+  _TRANSFORMMAP_VALUEMAPENTRY._serialized_start=1070
+  _TRANSFORMMAP_VALUEMAPENTRY._serialized_end=1136
+  _TRANSFORMMAP_ACTORTRANSFORMMAPENTRY._serialized_start=1138
+  _TRANSFORMMAP_ACTORTRANSFORMMAPENTRY._serialized_end=1214
 # @@protoc_insertion_point(module_scope)

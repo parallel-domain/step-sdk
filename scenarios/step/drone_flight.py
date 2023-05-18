@@ -109,7 +109,7 @@ class DroneSimulator:
 
 
 @click.command()
-@common_step_options(require_umd_path=True)
+@common_step_options()
 @click.option('--preview/--no-preview', default=True, show_default=True, help="Preview rendered frame")
 @click.option(
     '-o', '--output-dir',
@@ -150,10 +150,7 @@ def cli(preview, output_dir, location, day, grayscale, seed, force, step_options
     lighting = LIGHTING_CHOICES['day'] if day else LIGHTING_CHOICES['night']
 
     level_name, level_version = location
-    if step_options.internal_dev:
-        umd_map = pd.umd.load_umd_map_from_file(step_options.umd_path)
-    else:
-        umd_map = pd.umd.load_umd_map(level_name, level_version)
+    umd_map = step_options.load_umd_map(level_name, level_version)
     start_x, start_y, start_z = get_starting_position_from_umd(umd_map, seed)
     ego_agent_id = pd.state.rand_agent_id()
 

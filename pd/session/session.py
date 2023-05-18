@@ -255,7 +255,7 @@ class IgSession(PdMessageMixin):
         Load a default map
         """
         self.load_location(
-            location_name="Test_SF_6thAndMission_small_parking", time_of_day="LS_sky_noon_mostlySunny_1250_HDS025"
+            location_name="Test_SF_6thAndMission_small", time_of_day="LS_sky_noon_mostlySunny_1250_HDS025"
         )
 
     def load_location(self, location_name: str, time_of_day: str):

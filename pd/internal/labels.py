@@ -116,6 +116,9 @@ labels = [
 
     Label( "Water",                          67,        -1,   False, ( 34,189,255) ),
 
+    Label( "GuardRail",                      68,        -1,   False, (220,110,190) ),
+    Label( "Wall",                           69,        -1,   False, (153,190,190) ), 
+
     Label( "DiffusionPrimitive",             200,       -1,    True, (248,151,152) ),
     Label( "Custom",                         201,       -1,    True, (235,135, 45) ),
     Label( "Parking Gap",                    202,       -1,   False, (252, 52,104) ),
@@ -123,8 +126,9 @@ labels = [
     Label( "ThermalNoise(Noise)",            226,       -1,   False, (  0,255,140) ),
     Label( "Fog(Noise)",                     227,       -1,   False, (114,  0,255) ),
     Label( "Rain(Noise)",                    228,       -1,   False, (105,255,255) ),
-
-    Label( "Void",                           255,        -1,   False, (  0,  0,  0) )
+    Label( "TireSplash(Noise)",              229,       -1,   False, (155,205,255) ),
+    
+    Label( "Void",                           255,       -1,   False, (  0,  0,  0) )
 ]
 
 # Cuboid labels

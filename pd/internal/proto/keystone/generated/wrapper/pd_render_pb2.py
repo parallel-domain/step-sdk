@@ -35,7 +35,7 @@ class RenderInfo(ProtoMessageClass):
         SPREAD: pd_render_pb2.RenderInfo.EnvironmentMode = pd_render_pb2.RenderInfo.EnvironmentMode.SPREAD
     _proto_message = pd_render_pb2.RenderInfo
 
-    def __init__(self, *, proto: Optional[pd_render_pb2.RenderInfo]=None, annotate_accessories_2d: Optional[bool]=None, annotate_accessories_3d: Optional[bool]=None, annotate_wing_mirrors_2d: Optional[bool]=None, annotate_wing_mirrors_3d: Optional[bool]=None, apply_lidar_noise: Optional[bool]=None, artifact_key: Optional[str]=None, batch_size: Optional[int]=None, bbox_2d_only_visible_pixels: Optional[bool]=None, box_non_visible_signal_bulbs: Optional[bool]=None, capture_all_frames: Optional[bool]=None, capture_rate: Optional[int]=None, code_build_artifact_uid: Optional[str]=None, disable_reflection: Optional[bool]=None, disable_specular: Optional[bool]=None, enable_radar_debug: Optional[bool]=None, end_scene: Optional[int]=None, environment_attr_list: Optional[List[RenderInfo.Environment]]=None, environment_mode: Optional[RenderInfo.EnvironmentMode]=None, generate_previews: Optional[bool]=None, hide_all_volumetrics: Optional[bool]=None, hide_crosswalk_segmentation_mesh: Optional[bool]=None, image_generator_core_artifact_uid: Optional[str]=None, keep_glass_transparent: Optional[bool]=None, level_pak_artifact_uid: Optional[Dict[str, str]]=None, merge_bikes_riders_3d: Optional[bool]=None, new_data_pipeline: Optional[bool]=None, output_artifact_uid: Optional[str]=None, output_instance_point_caches: Optional[bool]=None, output_telemetry: Optional[bool]=None, output_truncated_3d_annotations: Optional[bool]=None, physical_ground_truth: Optional[bool]=None, render_ego_vehicle: Optional[bool]=None, sensor_rig: Optional[_pd_sensor_pb2.SensorRigConfig]=None, sensor_splits_list: Optional[List[_pd_sensor_pb2.SensorList]]=None, start_scene: Optional[int]=None, state_file_archive_artifact_uid: Optional[str]=None, use_high_gpu_mem_render_node: Optional[bool]=None, use_instance_point_caches: Optional[bool]=None, use_opaque_glass: Optional[int]=None, vehicle_color_offset: Optional[int]=None, volumetric_density_scale: Optional[float]=None):
+    def __init__(self, *, proto: Optional[pd_render_pb2.RenderInfo]=None, annotate_accessories_2d: Optional[bool]=None, annotate_accessories_3d: Optional[bool]=None, annotate_wing_mirrors_2d: Optional[bool]=None, annotate_wing_mirrors_3d: Optional[bool]=None, apply_lidar_noise: Optional[bool]=None, artifact_key: Optional[str]=None, batch_size: Optional[int]=None, bbox_2d_only_visible_pixels: Optional[bool]=None, box_non_visible_signal_bulbs: Optional[bool]=None, capture_all_frames: Optional[bool]=None, capture_rate: Optional[int]=None, code_build_artifact_uid: Optional[str]=None, disable_reflection: Optional[bool]=None, disable_specular: Optional[bool]=None, enable_radar_debug: Optional[bool]=None, end_scene: Optional[int]=None, environment_attr_list: Optional[List[RenderInfo.Environment]]=None, environment_mode: Optional[RenderInfo.EnvironmentMode]=None, generate_previews: Optional[bool]=None, hide_all_volumetrics: Optional[bool]=None, hide_crosswalk_segmentation_mesh: Optional[bool]=None, image_generator_core_artifact_uid: Optional[str]=None, keep_glass_transparent: Optional[bool]=None, level_pak_artifact_uid: Optional[Dict[str, str]]=None, merge_bikes_riders_3d: Optional[bool]=None, new_data_pipeline: Optional[bool]=None, output_artifact_uid: Optional[str]=None, output_instance_point_caches: Optional[bool]=None, output_telemetry: Optional[bool]=None, output_truncated_3d_annotations: Optional[bool]=None, physical_ground_truth: Optional[bool]=None, render_ego_vehicle: Optional[bool]=None, sensor_rig: Optional[_pd_sensor_pb2.SensorRigConfig]=None, sensor_splits_list: Optional[List[_pd_sensor_pb2.SensorList]]=None, start_scene: Optional[int]=None, state_file_archive_artifact_uid: Optional[str]=None, use_high_gpu_mem_render_node: Optional[bool]=None, use_instance_point_caches: Optional[bool]=None, use_linux: Optional[bool]=None, use_opaque_glass: Optional[int]=None, vehicle_color_offset: Optional[int]=None, volumetric_density_scale: Optional[float]=None):
         if proto is None:
             proto = pd_render_pb2.RenderInfo()
         self.proto = proto
@@ -119,6 +119,8 @@ class RenderInfo(ProtoMessageClass):
             self.use_high_gpu_mem_render_node = use_high_gpu_mem_render_node
         if use_instance_point_caches is not None:
             self.use_instance_point_caches = use_instance_point_caches
+        if use_linux is not None:
+            self.use_linux = use_linux
         if use_opaque_glass is not None:
             self.use_opaque_glass = use_opaque_glass
         if vehicle_color_offset is not None:
@@ -434,6 +436,14 @@ class RenderInfo(ProtoMessageClass):
     @use_instance_point_caches.setter
     def use_instance_point_caches(self, value: bool):
         self.proto.use_instance_point_caches = value
+
+    @property
+    def use_linux(self) -> bool:
+        return self.proto.use_linux
+
+    @use_linux.setter
+    def use_linux(self, value: bool):
+        self.proto.use_linux = value
 
     @property
     def use_opaque_glass(self) -> int:

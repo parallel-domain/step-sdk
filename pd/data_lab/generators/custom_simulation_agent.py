@@ -9,6 +9,7 @@ import random
 from typing import Literal, Optional, Tuple, Union, TypeVar, Generic, List, Callable
 
 import numpy as np
+
 import pd.state
 from pd.assets import get_asset_names_in_category, get_vehicle_colors, get_vehicle_wheel_names, get_vehicle_wheel_poses
 from pd.data_lab.generators.simulation_agent import SimulationAgentBase
@@ -97,6 +98,10 @@ class CustomSimulationAgent(SimulationAgentBase, Generic[TSimState]):
     def prop_assets() -> List[str]:
         return sorted(list(get_asset_names_in_category("prop")))
 
+    @abc.abstractmethod
+    def clone(self) -> "CustomSimulationAgent[TSimState]":
+        pass
+
 
 class CustomVehicleSimulationAgent(CustomSimulationAgent, Generic[TSimState]):
     def __init__(
@@ -105,13 +110,17 @@ class CustomVehicleSimulationAgent(CustomSimulationAgent, Generic[TSimState]):
         lock_to_ground: bool = True,
         ground_offset=0.0,
         asset_name: Optional[str] = None,
+        agent_id: Optional[int] = None,
     ):
         self.ground_offset = ground_offset
         self.lock_to_ground = lock_to_ground
         self._asset_name = asset_name
         # Just setup defaults. Init later
         step_agent = pd.state.VehicleAgent(
-            vehicle_type=asset_name, id=pd.state.rand_agent_id(), pose=np.eye(4), velocity=(0.0, 0.0, 0.0)
+            vehicle_type=asset_name,
+            id=pd.state.rand_agent_id() if agent_id is None else agent_id,
+            pose=np.eye(4),
+            velocity=(0.0, 0.0, 0.0),
         )
         super().__init__(sensor_rig=sensor_rig, step_agent=step_agent)
 
@@ -153,10 +162,11 @@ class CustomVehicleSimulationAgent(CustomSimulationAgent, Generic[TSimState]):
 
     def clone(self) -> "CustomVehicleSimulationAgent[TSimState]":
         cloned = CustomVehicleSimulationAgent(
-            sensor_rig=self.sensor_rig,
+            sensor_rig=self.sensor_rig.clone() if self.sensor_rig is not None else None,
             lock_to_ground=self.lock_to_ground,
             ground_offset=self.ground_offset,
             asset_name=self._asset_name,
+            agent_id=self.agent_id,
         )
         cloned.set_behaviour(behaviour=self._behaviour.clone())
         cloned.set_pose(self._pose)
@@ -170,12 +180,16 @@ class CustomPedestrianSimulationAgent(CustomSimulationAgent, Generic[TSimState])
         lock_to_ground: bool = True,
         ground_offset=0.0,
         asset_name: Optional[str] = None,
+        agent_id: Optional[int] = None,
     ):
         self.ground_offset = ground_offset
         self.lock_to_ground = lock_to_ground
         self._asset_name = asset_name
         step_agent = pd.state.ModelAgent(
-            asset_name=asset_name, id=pd.state.rand_agent_id(), pose=np.eye(4), velocity=(0.0, 0.0, 0.0)
+            asset_name=asset_name,
+            id=pd.state.rand_agent_id() if agent_id is None else agent_id,
+            pose=np.eye(4),
+            velocity=(0.0, 0.0, 0.0),
         )
         super().__init__(sensor_rig=sensor_rig, step_agent=step_agent)
 
@@ -199,10 +213,11 @@ class CustomPedestrianSimulationAgent(CustomSimulationAgent, Generic[TSimState])
 
     def clone(self) -> "CustomPedestrianSimulationAgent[TSimState]":
         cloned = CustomPedestrianSimulationAgent(
-            sensor_rig=self.sensor_rig,
+            sensor_rig=self.sensor_rig.clone(),
             lock_to_ground=self.lock_to_ground,
             ground_offset=self.ground_offset,
             asset_name=self._asset_name,
+            agent_id=self.agent_id,
         )
         cloned.set_behaviour(behaviour=self._behaviour.clone())
         cloned.set_pose(self._pose)
@@ -217,13 +232,17 @@ class CustomObjectSimulationAgent(CustomSimulationAgent, Generic[TSimState]):
         ground_offset=0.0,
         asset_name: Optional[str] = None,
         asset_category: Optional[Literal["character", "vehicle", "traffic_control", "prop"]] = "traffic_control",
+        agent_id: Optional[int] = None,
     ):
         self.ground_offset = ground_offset
         self.lock_to_ground = lock_to_ground
         self._asset_name = asset_name
         self._asset_category = asset_category
         step_agent = pd.state.ModelAgent(
-            asset_name=asset_name, id=pd.state.rand_agent_id(), pose=np.eye(4), velocity=(0.0, 0.0, 0.0)
+            asset_name=asset_name,
+            id=pd.state.rand_agent_id() if agent_id is None else agent_id,
+            pose=np.eye(4),
+            velocity=(0.0, 0.0, 0.0),
         )
         super().__init__(sensor_rig=sensor_rig, step_agent=step_agent)
 
@@ -256,11 +275,12 @@ class CustomObjectSimulationAgent(CustomSimulationAgent, Generic[TSimState]):
 
     def clone(self) -> "CustomObjectSimulationAgent[TSimState]":
         cloned = CustomObjectSimulationAgent(
-            sensor_rig=self.sensor_rig,
+            sensor_rig=self.sensor_rig.clone() if self.sensor_rig is not None else None,
             lock_to_ground=self.lock_to_ground,
             ground_offset=self.ground_offset,
             asset_name=self._asset_name,
             asset_category=self._asset_category,
+            agent_id=self.agent_id,
         )
         cloned.set_behaviour(behaviour=self._behaviour.clone())
         cloned.set_pose(self._pose)
@@ -274,9 +294,14 @@ class CustomSimulationAgents(Generic[TSimState]):
         asset_name: Optional[str] = None,
         lock_to_ground: bool = True,
         ground_offset=0.0,
+        agent_id: Optional[int] = None,
     ) -> CustomSimulationAgent:
         return CustomPedestrianSimulationAgent(
-            sensor_rig=sensor_rig, ground_offset=ground_offset, lock_to_ground=lock_to_ground, asset_name=asset_name
+            sensor_rig=sensor_rig,
+            ground_offset=ground_offset,
+            lock_to_ground=lock_to_ground,
+            asset_name=asset_name,
+            agent_id=agent_id,
         )
 
     @staticmethod
@@ -284,9 +309,10 @@ class CustomSimulationAgents(Generic[TSimState]):
         asset_name: Optional[str] = None,
         lock_to_ground: bool = True,
         ground_offset=0.0,
+        agent_id: Optional[int] = None,
     ) -> CustomSimulationAgent[TSimState]:
         return CustomPedestrianSimulationAgent(
-            ground_offset=ground_offset, lock_to_ground=lock_to_ground, asset_name=asset_name
+            ground_offset=ground_offset, lock_to_ground=lock_to_ground, asset_name=asset_name, agent_id=agent_id
         )
 
     @staticmethod
@@ -296,6 +322,7 @@ class CustomSimulationAgents(Generic[TSimState]):
         asset_category: Optional[Literal["character", "vehicle", "traffic_control", "prop"]] = "traffic_control",
         lock_to_ground: bool = True,
         ground_offset=0.0,
+        agent_id: Optional[int] = None,
     ) -> CustomSimulationAgent[TSimState]:
         return CustomObjectSimulationAgent(
             ground_offset=ground_offset,
@@ -303,6 +330,7 @@ class CustomSimulationAgents(Generic[TSimState]):
             asset_name=asset_name,
             asset_category=asset_category,
             sensor_rig=sensor_rig,
+            agent_id=agent_id,
         )
 
     @staticmethod
@@ -311,9 +339,14 @@ class CustomSimulationAgents(Generic[TSimState]):
         asset_name: Optional[str] = None,
         lock_to_ground: bool = True,
         ground_offset=0.0,
+        agent_id: Optional[int] = None,
     ) -> CustomSimulationAgent[TSimState]:
         return CustomVehicleSimulationAgent(
-            sensor_rig=sensor_rig, ground_offset=ground_offset, lock_to_ground=lock_to_ground, asset_name=asset_name
+            sensor_rig=sensor_rig,
+            ground_offset=ground_offset,
+            lock_to_ground=lock_to_ground,
+            asset_name=asset_name,
+            agent_id=agent_id,
         )
 
     @staticmethod
@@ -321,9 +354,10 @@ class CustomSimulationAgents(Generic[TSimState]):
         asset_name: Optional[str] = None,
         lock_to_ground: bool = True,
         ground_offset=0.0,
+        agent_id: Optional[int] = None,
     ) -> CustomSimulationAgent[TSimState]:
         return CustomVehicleSimulationAgent(
-            ground_offset=ground_offset, lock_to_ground=lock_to_ground, asset_name=asset_name
+            ground_offset=ground_offset, lock_to_ground=lock_to_ground, asset_name=asset_name, agent_id=agent_id
         )
 
     @staticmethod

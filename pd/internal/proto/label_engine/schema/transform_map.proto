@@ -19,6 +19,9 @@ message Value
         float float_value = 4;
         double double_value = 5;
         string string_value = 6;
+        Vector3 vector_value = 7;
+        Vector4 vector4_value = 8;
+        Quaternion quat_value = 9;
     };
 }
 

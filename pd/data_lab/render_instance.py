@@ -13,6 +13,7 @@ from typing import List, Literal, Optional
 
 import pd.state
 from pd.core import PdError
+from pd.data_lab.sim_state import SimState
 from pd.management.ig import Ig, IgQuality, IgStatus
 from pd.session import StepSession
 
@@ -27,7 +28,6 @@ class AbstractRenderInstance(abc.ABC):
     def __init__(self):
         super().__init__()
 
-        self._simulation_time = 0.0
         self._temporal_session_reference = None
 
         self.session: Optional[StepSession] = None
@@ -74,26 +74,22 @@ class AbstractRenderInstance(abc.ABC):
     def temporal_session_reference(self) -> Optional[TemporalSessionReference]:
         return self._temporal_session_reference
 
-    @property
-    def simulation_datetime(self) -> datetime:
-        return datetime.fromtimestamp(self._simulation_time)
 
-    def render_frame(self, step_state: pd.state.State, time_delta: float) -> TemporalSessionReference:
+    def render_frame(self, sim_state: SimState) -> TemporalSessionReference:
         if self.session is not None:
-            self._simulation_time += time_delta
 
             # invalidate previous frame session ref
             if self._temporal_session_reference is not None:
                 self._temporal_session_reference.on_session_state_changed()
 
-            step_state.simulation_time_sec += time_delta
-            self.session.update_state(state=step_state)
+            # step_state.simulation_time_sec += time_delta
+            self.session.update_state(state=sim_state.current_state)
 
             # create new frames session ref
             self._temporal_session_reference = TemporalSessionReference(
                 session=self.session,
-                state=step_state,
-                date_time=self.simulation_datetime,
+                state=sim_state.current_state,
+                date_time=sim_state.current_sim_date_time,
             )
         return self.temporal_session_reference
 
@@ -116,8 +112,10 @@ class ManagedRenderInstance(AbstractRenderInstance):
 
         context = get_datalab_context()
         if context.is_mode_local:
-            raise PdError("ManagedRenderInstance does not support local mode in Data Lab. "
-                          "Please specify cloud credentials to use a ManagedRenderInstance.")
+            raise PdError(
+                "ManagedRenderInstance does not support local mode in Data Lab. "
+                "Please specify cloud credentials to use a ManagedRenderInstance."
+            )
         self._client_cert_file = context.client_cert_file
         self._ig_version = context.version
         self._time_to_live = time_to_live
@@ -231,7 +229,6 @@ class ManagedRenderInstance(AbstractRenderInstance):
             self.session = None
             self._temporal_session_reference = None
             self._location_is_set = False
-            self._simulation_time = 0.0
             logger.info("Ended Render Session!")
 
     def __enter__(self) -> StepSession:
@@ -258,12 +255,16 @@ class RenderInstance(AbstractRenderInstance):
             try:
                 ig_version = next(ig.ig_version for ig in Ig.list() if ig.ig_url == address)
             except StopIteration:
-                raise PdError(f"Couldn't find a render instance with the address '{address}'. "
-                              "Please verify the render instance address.")
+                raise PdError(
+                    f"Couldn't find a render instance with the address '{address}'. "
+                    "Please verify the render instance address."
+                )
             if ig_version != context.version:
-                raise PdError(f"There's a mismatch between the selected Data Lab version ({context.version}) "
-                              f"and the version of the render instance ({ig_version}). "
-                              "To disable this check, pass fail_on_version_mismatch=False to setup_datalab().")
+                raise PdError(
+                    f"There's a mismatch between the selected Data Lab version ({context.version}) "
+                    f"and the version of the render instance ({ig_version}). "
+                    "To disable this check, pass fail_on_version_mismatch=False to setup_datalab()."
+                )
 
     def create_session(self):
         if self.session is None:
@@ -282,7 +283,8 @@ class RenderInstance(AbstractRenderInstance):
             self.session = None
             self._temporal_session_reference = None
             self._location_is_set = False
-            self._simulation_time = 0.0
+            self._loaded_location = None
+            self._loaded_time_of_day = None
             logger.info("Ended Render Session!")
 
     def __enter__(self) -> StepSession:

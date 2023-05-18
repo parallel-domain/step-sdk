@@ -4,27 +4,27 @@
 
 import flatbuffers
 
-class Decal(object):
+class ParkingSpaceDecal(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsDecal(cls, buf, offset):
+    def GetRootAsParkingSpaceDecal(cls, buf, offset):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = Decal()
+        x = ParkingSpaceDecal()
         x.Init(buf, n + offset)
         return x
 
-    # Decal
+    # ParkingSpaceDecal
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # Decal
-    def AssetName(self):
+    # ParkingSpaceDecal
+    def DecalPreset(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return bytes()
 
-def DecalStart(builder): builder.StartObject(1)
-def DecalAddAssetName(builder, assetName): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(assetName), 0)
-def DecalEnd(builder): return builder.EndObject()
+def ParkingSpaceDecalStart(builder): builder.StartObject(1)
+def ParkingSpaceDecalAddDecalPreset(builder, decalPreset): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(decalPreset), 0)
+def ParkingSpaceDecalEnd(builder): return builder.EndObject()

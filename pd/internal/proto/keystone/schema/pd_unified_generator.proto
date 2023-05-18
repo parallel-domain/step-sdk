@@ -245,6 +245,12 @@ message ParkingSpaceData
     range: [0-1]
     */
     optional CenterSpreadConfig parking_space_grunge_amount = 9;
+
+    /*
+    global wear amount for decals in parking spaces
+    range: [0-1]
+    */
+    optional CenterSpreadConfig global_parking_decal_wear = 10;
 }
 
 /*
@@ -334,15 +340,19 @@ message RoadMarkingData
   */
   optional CenterSpreadConfig wear = 5;
 }
-
-
-message ObjectDecorations
+/*
+Description:
+    Specifies preset name to use in the given scenario.
+*/
+message DecorationPreset
 {
-    required ObjectDecorationType object_decoration_type = 1;
-    required uint32 object_id = 2;
-    required DecorationData decoration_data = 3;
+    required string preset_name = 1;
+    optional uint32 variant = 2 [default = 0];
 }
-
+/*
+Description:
+    Stores decoration specific parameters.
+*/
 message DecorationData
 {
     oneof decoration_data
@@ -351,10 +361,64 @@ message DecorationData
     }
 }
 
-message DecorationPreset
+/*
+message for specifying decorations in the map, for example parking decals
+where decoration is applied is based on object_id and object_decoration_type
+for example, decoration type is LANE and object_id is 340, it will look for lane id
+340 to apply decorations to
+*/
+message ObjectDecorations
 {
-    required string preset_name = 1;
-    optional uint32 variant = 2 [default = 0];
+    required uint32 object_id = 1;
+    required DecorationData decoration_data = 2;
+}
+
+/*
+sample from this message for each lane/object type we want to decorate
+this message is written in a way so both legacy and atomics can use it
+for atomics, it will be used together with a position request
+for legacy, it will be used with a radius and per object chance that's in spawn config
+*/
+message ObjectDecorationParams
+{
+    /*
+    the chance of each item being decorated (for example each lane within a radius)
+    range: [0-1]
+    default is 0.1 if not specified, however if no ObjectDecoration is provided at all, 
+    the code for adding decorations will be skipped. this is so we don't get unexpected 
+    decals showing up in renders
+    */
+    optional float decorate_chance = 1 [default = 0.1];
+    /* 
+    distribution of presets
+    each preset also can have a number of variants, randomized for now
+    available options for parking decal:
+
+    None
+    TAXI_text,
+    TAXI_icon,
+    NO_PARKING_text,
+    LOADING_ZONE_text,
+    NO_PARKING_full,
+    EV_JP_01_A_icon,
+    EV_JP_01_B_icon,
+    EV_JP_01_C_icon,
+    EV_01_icon,
+    EV_02_icon,
+    EV_03_icon,
+    Family_01_A_icon,
+    Family_01_B_icon,
+    Family_01_C_icon,
+    PARKING_10_MIN_text,
+    PARKING_30_MIN_text,
+    PARKING_15_MIN_text,
+    RESERVED_01_text,
+    Wheelchair_01_A_icon,
+    Wheelchair_01_B_icon,
+    Wheelchair_01_C_icon,
+    Wheelchair_01_D_icon,
+    */
+    optional EnumDistribution preset_distribution = 2;
 }
 
 /*
@@ -424,7 +488,10 @@ message EgoAgentGeneratorParameters
   */
   optional DroneSpawnData drone_spawn_data = 6;
 }
-
+/*
+Description:
+    Currently supported agent types
+*/
 enum AgentType
 {
   UNSPECIFIED = 0;
@@ -435,11 +502,6 @@ enum AgentType
   STATIC_OBJECT = 5;
   DRONE = 6;
   ANIMAL = 7;
-}
-
-enum ObjectDecorationType
-{
-    LANE = 0;
 }
 
 /*
@@ -485,7 +547,12 @@ message TrafficGeneratorParameters
       Determines the spawn radius of vehicles (see `LocationRelativePositionRequest`)
 
   Range:
-      Only works with `LocationRelativePositionRequest`
+      Only works with `LocationRelativePositionRequest`.
+
+      min_path_length and min_length_behind in the lane spawn policy of LocationRelativePositionRequest
+      should be set smaller than the values used when placing the reference agent to ensure
+      traffic is placed between the reference agent and edge of the world. The default values
+      are halved compared to the normal LaneSpawnPolicy defaults.  
 
   Required:
       Yes
@@ -874,7 +941,8 @@ message PositionRequest
   Description:
       Only applied after initial pose is determined by position_type.
       Determines how much to rotate pose about Z axis (points up in right handed coordinate system)
-      Example: 90 degrees would rotate pose to the left.
+      Units are in radians.
+      Example: pi/2 radians would rotate pose to the left.
 
   Required:
       No, will default to `0.0`
@@ -897,7 +965,13 @@ message PositionRequest
     RoadPitchPositionRequest road_pitch_position_request = 8;
   }
 }
+/*
+Description:
+    Specifies curved sections as spawning locations.
 
+Required:
+    No
+*/
 message LaneCurvatureSpawnPolicy
 {
   // curvature min and max bounds used to search for curved sections
@@ -905,12 +979,24 @@ message LaneCurvatureSpawnPolicy
   // the shortest length allowed in resulting curved sections
   optional float min_section_length = 2;
 }
+/*
+Description:
+    Specifies junction lanes as spawning locations.
 
+Required:
+    No
+*/
 message JunctionSpawnPolicy
 {
   optional ContinousUniformDistribution distance_to_junction = 1;
 }
+/*
+Description:
+    Specifies what policy to use in order to spawn agents on a lane.
 
+Required:
+    No
+*/
 message PositionOfInterestPolicy
 {
   oneof PositionOfInterestType
@@ -1189,8 +1275,10 @@ message LaneSpawnPolicy
       Specifies the desired minimum path length for agent.
       The length is from the beginning of the lane.
 
+      This parameter does not have an effect if spawning in a driveway, parking aisle or parking space.
+
   Required:
-      No, will default to 0 if lane type is ParkingSpace or ParkingAisle, otherwise will default to 200. 
+      No. Defaults to 200.
   */
   optional CenterSpreadConfig min_path_length = 9;
 
@@ -1199,8 +1287,10 @@ message LaneSpawnPolicy
       Specifies the desired minimum path length behind the agent.
       The length is the distance behind the agent's location to the world edge.
 
+      This parameter does not have an effect if spawning in a driveway, parking aisle or parking space.
+
   Required:
-      No, if it will default to 0 if lane type is ParkingSpace or ParkingAisle, otherwise will default to 100.
+      No. Defaults to 100.
   */
   optional CenterSpreadConfig min_length_behind = 10;
 }
@@ -1533,7 +1623,7 @@ message PedestrianSpawnData
   Required:
       No, will use default value
   */
-  optional bool pedestrians_dynamic_pathing = 3 [default = true];
+  optional bool pedestrians_dynamic_pathing = 3 [default = true, deprecated = true];
 
   /*
   Description:
@@ -1625,6 +1715,11 @@ enum PedestrianBehavior
   Description: Jaywalking behavior (e.g. crosses the road at a non-crosswalk)
   */
   JAYWALKER = 3;
+
+  /*
+  Description: Spawned on sidewalk in front of tagged agent. Walks towards agent and stops at edge of sidewalk
+  */
+  EDGESTOPPER = 4;
 }
 
 /*
@@ -1683,51 +1778,77 @@ enum SpecialAgentTag
 }
 
 
-
-
+/*
+Description:
+    Specifies distribution of bulb color in the traffic signal lights.
+*/
 message SignalLightDistribution
 {
   optional float green = 1 [default = 0.3333];
   optional float red = 2 [default = 0.3333];
   optional float yellow = 3 [default = 0.3333];
 }
-
+/*
+Description:
+    Specifies distribution of turns types of incoming lanes in a junction.
+*/
 message TurnTypeDistribution
 {
   optional float straight = 1 [default = 0.3333];
   optional float left = 2 [default = 0.3333];
   optional float right = 3 [default = 0.3333];
 }
-
+/*
+Description:
+    Specifies distribution of parking types present in the map.
+*/
 message ParkingTypeDistribution
 {
   optional float forward = 1 [default = 0.5];
   optional float reverse = 2 [default = 0.5];
   optional float parallel = 3 [default = 0.0];
 }
-
+/*
+Description:
+    Specifies probability distribution defined by centere and spread.
+*/
 message CenterSpreadProbabilityConfig
 {
   optional float probability = 1 [default = 0.0];
   optional float center = 2 [default = 0.0];
   optional float spread = 3 [default = 0.0];
 }
+/*
+Description:
+    Specifies center and spred of distribution defined with float values.
+*/
 message CenterSpreadConfig
 {
   optional float center = 1 [default = 0.0];
   optional float spread = 2 [default = 0.0];
 }
+/*
+Description:
+    Specifies center and spred of distribution defined with integer values.
+*/
 message CenterSpreadConfigInt
 {
   optional int32 center = 1 [default = 0];
   optional int32 spread = 2 [default = 0];
 }
+/*
+Description:
+    Specifies lower and upper bounds defined with float values.
+*/
 message MinMaxConfigFloat
 {
   optional float min = 1 [default = 0.0];
   optional float max = 2 [default = 0.0];
 }
-
+/*
+Description:
+    Specifies lower and upper bounds defined with integer values.
+*/
 message MinMaxConfigInt
 {
   optional int32 min = 1 [default = 0];

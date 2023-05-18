@@ -47,7 +47,7 @@ def get_driveway_positions_from_umd(umd_map):
 
 
 @click.command()
-@common_step_options(require_umd_path=True)
+@common_step_options()
 @click.option(
     '-o', '--output-dir',
     type=click.Path(exists=False, file_okay=False, dir_okay=True),
@@ -67,10 +67,7 @@ def cli(output_dir, step_options: StepScriptContext = None):
     output_path.mkdir(exist_ok=True)
 
     level_name, level_version = DEFAULT_LOCATION
-    if step_options.internal_dev:
-        umd_map = pd.umd.load_umd_map_from_file(step_options.umd_path)
-    else:
-        umd_map = pd.umd.load_umd_map(level_name, level_version)
+    umd_map = step_options.load_umd_map(level_name, level_version)
 
     click.echo("Connecting to server...", nl=False)
     session = pd.session.StepSession(request_addr=request_addr, client_cert_file=client_cert_file)

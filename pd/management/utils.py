@@ -48,7 +48,7 @@ def create_ig_with_retry(max_retries: int = 0, **kwargs) -> Ig:
         else:
             # Delay before checking again
             time.sleep(5)
-            ig = Ig.read(kwargs['org'], ig.name)
+            ig = Ig.read(ig.name)
 
     # Bugfix for Ig networking race condition
     time.sleep(20)

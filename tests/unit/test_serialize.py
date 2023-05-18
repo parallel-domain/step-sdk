@@ -3,13 +3,13 @@ import pytest
 import numpy as np
 
 from pd.state.serialize import (
+    state_to_bytes, bytes_to_state,
     SerializePostProcessMaterial, SerializePostProcessParams, SerializeNoiseParams, SerializeDistortionParams,
     SerializeCameraSensor, SerializeSensor, SerializePose, SerializeLiDARBeam, SerializeLiDARIntensityParams,
     SerializeLiDARSensor, SerializeSensorRig, SerializeTransformState, SerializeModelConfig, SerializePhaseBulbValue,
     SerializeVehicleModelConfig, SerializeSimpleVehicleState, SerializeAgent, SerializeWorldInfo, SerializeState,
     SerializeSignalModuleOutput, SerializeControlState, SerializeToneCurve, SerializeSimpleControlState,
-    SerializePedestrianState,
-    state_to_bytes, bytes_to_state
+    SerializePedestrianState, SerializeEnvironmentConfig, SerializeObjectDecorationsInfo
 )
 from pd.state.sensor import (
     PostProcessMaterial, PostProcessParams, NoiseParams, DenoiseFilter, DistortionParams, CameraSensor, LiDARBeam,
@@ -18,7 +18,9 @@ from pd.state.sensor import (
 from pd.state.pose6d import Pose6D
 from pd.state.state import (
     VehicleAgent, ModelAgent, SensorAgent, WorldInfo, PerformanceMode, State,
-    PhaseBulbValue, PhaseBulbLogicalState, SignalAgent, VehicleIndicatorState
+    PhaseBulbValue, PhaseBulbLogicalState, SignalAgent, VehicleIndicatorState, ParkingConfig, LotParkingDelineationType,
+    StreetParkingDelineationType, StreetParkingAngleZeroOverride, ParkingSpaceMaterial, WorldAgent, ObjectDecorations,
+    DecorationObjectType, DecorationPreset, ParkingSpaceDecal, PaintTexture
 )
 
 from pd.internal.fb.generated.python import (
@@ -28,7 +30,7 @@ from pd.internal.fb.generated.python import (
     LiDARConfigFB, LiDARBeamFB, LiDARIntensityParamsFB,
     SensorExtrinsicConfigFB, SensorConfigFB, SensorRigConfigFB,
     PhaseBulbValuesFB, SignalModuleOutputFB, ControlStateFB, TonemapCurveFB,
-    SimpleControlStateFB, PedestrianStateFB
+    SimpleControlStateFB, PedestrianStateFB, EnvironmentConfigFB, ObjectDecorationsInfoFB
 )
 from pd.internal.fb.generated.python.SensorIntrinsicConfigFB import SensorIntrinsicConfigFB
 
@@ -47,12 +49,15 @@ def test_deserialize_sample_states(resources):
         base_path / '20221113-SJ_237AndGreatAmerica_1.pd',
         base_path / '20221114-SJ_237AndGreatAmerica_1.pd',
         base_path / '20230322-SF_6thAndMission_medium_1.pd',
+        base_path / '20230503-SJ_237AndZanker_1.pd',
     ]
     for state_file_path in sample_state_files_path:
         with open(state_file_path, "rb") as f:
             state_data = f.read()
             state = bytes_to_state(state_data)
             assert state
+            bytes = state_to_bytes(state)
+            assert bytes
 
 
 def test_state_to_bytes():
@@ -776,7 +781,13 @@ class TestSerializeWorldInfo:
             fog_intensity=0.4,
             enable_headlights=True,
             performance_mode=PerformanceMode.Performance,
-            anti_aliasing=42
+            anti_aliasing=42,
+            scenario_seed=25487,
+            agent_tags={
+                1: ['aaa', 'bbb'],
+                343: ['ccc'],
+                99: ['ddd', 'eee', 'fff']
+            }
         )
         builder.Finish(SerializeWorldInfo.serialize(builder, world_info))
         fb = WorldInfoFB.WorldInfoFB.GetRootAsWorldInfoFB(builder.Output(), 0)
@@ -793,6 +804,11 @@ class TestSerializeWorldInfo:
         assert result.enable_headlights
         assert result.performance_mode == PerformanceMode.Performance
         assert result.anti_aliasing == 42
+        assert result.scenario_seed == 25487
+        assert len(result.agent_tags.items()) == 3
+        assert result.agent_tags[1] == ['aaa', 'bbb']
+        assert result.agent_tags[343] == ['ccc']
+        assert result.agent_tags[99] == ['ddd', 'eee', 'fff']
 
     def test_serdes_null_location(self, builder):
         world_info = WorldInfo()
@@ -822,6 +838,8 @@ class TestSerializeWorldInfo:
         assert not default.enable_headlights
         assert default.performance_mode == PerformanceMode.HighFidelity
         assert default.anti_aliasing == 4
+        assert default.scenario_seed == 0
+        assert default.agent_tags == {}
 
 
 class TestSerializeState:
@@ -1185,6 +1203,69 @@ class TestSerializeAgent:
         assert helpers.fisclose(result.angular_velocity[1], 4.2)
         assert helpers.fisclose(result.angular_velocity[2], 4.3)
 
+    def test_serdes_world_agent(self, builder, helpers):
+        world_agent = WorldAgent(
+            id=1,
+            parking_config=ParkingConfig(
+                angle=42,
+                delineation_color=(1.3, 4.5, 6.7),
+                delineation_wear_amount=0.82,
+                parking_space_tint=(0.1, 0.2, 0.3),
+                parking_space_grunge_amount=0.123,
+                lot_parking_delineation_type=LotParkingDelineationType.Random,
+                street_parking_delineation_type=StreetParkingDelineationType.DoubleOpen,
+                street_parking_angle_zero_override=StreetParkingAngleZeroOverride.Dashed,
+                parking_space_material=ParkingSpaceMaterial.MI_ParkingTiles_CobbleStone_01
+            ),
+            object_decorations={
+                10756: ObjectDecorations(
+                    type=DecorationObjectType.Lane,
+                    object_id=56,
+                    decorations={
+                        20: DecorationPreset(preset_name="test preset", variant=4567),
+                        13: ParkingSpaceDecal(decal_preset="test decal preset")
+                    }
+                )
+            }
+        )
+        builder.Finish(SerializeAgent.serialize(builder, world_agent))
+        fb = AgentStateFB.AgentStateFB.GetRootAsAgentStateFB(builder.Output(), 0)
+        result = SerializeAgent.deserialize(fb)
+
+        assert result
+        assert isinstance(result, WorldAgent)
+        assert result.id == 1
+        assert result.parking_config
+        assert result.parking_config.angle == 42
+        assert helpers.fisclose(result.parking_config.delineation_color[0], 1.3)
+        assert helpers.fisclose(result.parking_config.delineation_color[1], 4.5)
+        assert helpers.fisclose(result.parking_config.delineation_color[2], 6.7)
+        assert helpers.fisclose(result.parking_config.delineation_wear_amount, 0.82)
+        assert helpers.fisclose(result.parking_config.parking_space_tint[0], 0.1)
+        assert helpers.fisclose(result.parking_config.parking_space_tint[1], 0.2)
+        assert helpers.fisclose(result.parking_config.parking_space_tint[2], 0.3)
+        assert helpers.fisclose(result.parking_config.parking_space_grunge_amount, 0.123)
+        assert result.parking_config.lot_parking_delineation_type == LotParkingDelineationType.Random
+        assert result.parking_config.street_parking_delineation_type == StreetParkingDelineationType.DoubleOpen
+        assert result.parking_config.street_parking_angle_zero_override == StreetParkingAngleZeroOverride.Dashed
+        assert result.parking_config.parking_space_material == ParkingSpaceMaterial.MI_ParkingTiles_CobbleStone_01
+
+        assert result.object_decorations
+        assert len(result.object_decorations.items()) == 1
+        object_decorations = result.object_decorations.get(10756, None)
+        assert object_decorations
+        assert object_decorations.type == DecorationObjectType.Lane
+        assert object_decorations.object_id == 56
+        assert object_decorations.decorations
+        assert len(object_decorations.decorations.items()) == 2
+        decorations = object_decorations.decorations.get(20, None)
+        assert isinstance(decorations, DecorationPreset)
+        assert decorations.preset_name == "test preset"
+        assert decorations.variant == 4567
+        decorations = object_decorations.decorations.get(13, None)
+        assert isinstance(decorations, ParkingSpaceDecal)
+        assert decorations.decal_preset == "test decal preset"
+
     def test_deserialize_default(self, builder):
         AgentStateFB.AgentStateFBStart(builder)
         builder.Finish(AgentStateFB.AgentStateFBEnd(builder))
@@ -1513,3 +1594,115 @@ class TestSerializePedestrianState:
         assert default
         assert isinstance(default, SerializePedestrianState.PedestrianStateData)
         assert default.animation_data is None
+
+
+class TestSerializeEnvironmentConfig:
+    def test_serdes(self, builder, helpers):
+        environment_config = SerializeEnvironmentConfig.EnvironmentConfigData(
+            parking_config=ParkingConfig(
+                angle=42,
+                delineation_color=(1.3, 4.5, 6.7),
+                delineation_wear_amount=0.82,
+                parking_space_tint=(0.1, 0.2, 0.3),
+                parking_space_grunge_amount=0.123,
+                lot_parking_delineation_type=LotParkingDelineationType.Random,
+                street_parking_delineation_type=StreetParkingDelineationType.DoubleOpen,
+                street_parking_angle_zero_override=StreetParkingAngleZeroOverride.Dashed,
+                parking_space_material=ParkingSpaceMaterial.MI_ParkingTiles_CobbleStone_01
+            )
+        )
+        builder.Finish(SerializeEnvironmentConfig.serialize(builder, environment_config))
+        fb = EnvironmentConfigFB.EnvironmentConfigFB.GetRootAsEnvironmentConfigFB(builder.Output(), 0)
+        result = SerializeEnvironmentConfig.deserialize(fb)
+
+        assert result
+        assert result.parking_config
+        assert result.parking_config.angle == 42
+        assert helpers.fisclose(result.parking_config.delineation_color[0], 1.3)
+        assert helpers.fisclose(result.parking_config.delineation_color[1], 4.5)
+        assert helpers.fisclose(result.parking_config.delineation_color[2], 6.7)
+        assert helpers.fisclose(result.parking_config.delineation_wear_amount, 0.82)
+        assert helpers.fisclose(result.parking_config.parking_space_tint[0], 0.1)
+        assert helpers.fisclose(result.parking_config.parking_space_tint[1], 0.2)
+        assert helpers.fisclose(result.parking_config.parking_space_tint[2], 0.3)
+        assert helpers.fisclose(result.parking_config.parking_space_grunge_amount, 0.123)
+        assert result.parking_config.lot_parking_delineation_type == LotParkingDelineationType.Random
+        assert result.parking_config.street_parking_delineation_type == StreetParkingDelineationType.DoubleOpen
+        assert result.parking_config.street_parking_angle_zero_override == StreetParkingAngleZeroOverride.Dashed
+        assert result.parking_config.parking_space_material == ParkingSpaceMaterial.MI_ParkingTiles_CobbleStone_01
+
+    def test_deserialize_default(self, builder, helpers):
+        EnvironmentConfigFB.EnvironmentConfigFBStart(builder)
+        builder.Finish(EnvironmentConfigFB.EnvironmentConfigFBEnd(builder))
+        fb = EnvironmentConfigFB.EnvironmentConfigFB.GetRootAsEnvironmentConfigFB(builder.Output(), 0)
+        default = SerializeEnvironmentConfig.deserialize(fb)
+
+        assert default
+        assert isinstance(default, SerializeEnvironmentConfig.EnvironmentConfigData)
+        assert default.parking_config is None
+
+
+class TestSerializeObjectDecorationsInfo:
+    def test_serdes(self, builder, helpers):
+        object_decorations_info = SerializeObjectDecorationsInfo.ObjectDecorationsInfoData(
+            object_decorations={
+                10756: ObjectDecorations(
+                    type=DecorationObjectType.Lane,
+                    object_id=56,
+                    decorations={
+                        20: DecorationPreset(preset_name="test preset", variant=4567),
+                        13: ParkingSpaceDecal(decal_preset="test decal preset")
+                    }
+                ),
+                345: ObjectDecorations(
+                    type=DecorationObjectType.Lane,
+                    object_id=89,
+                    decorations={
+                        8374: PaintTexture(color_rgb=(4.5, 6.7, 7.8), wear=0.84),
+                        3984: "test string decoration"
+                    }
+                )
+            }
+        )
+        builder.Finish(SerializeObjectDecorationsInfo.serialize(builder, object_decorations_info))
+        fb = ObjectDecorationsInfoFB.ObjectDecorationsInfoFB.GetRootAsObjectDecorationsInfoFB(builder.Output(), 0)
+        result = SerializeObjectDecorationsInfo.deserialize(fb)
+
+        assert result
+        assert result.object_decorations
+        assert len(result.object_decorations.items()) == 2
+        object_decorations = result.object_decorations.get(10756, None)
+        assert object_decorations
+        assert object_decorations.type == DecorationObjectType.Lane
+        assert object_decorations.object_id == 56
+        assert object_decorations.decorations
+        assert len(object_decorations.decorations.items()) == 2
+        decorations = object_decorations.decorations.get(20, None)
+        assert isinstance(decorations, DecorationPreset)
+        assert decorations.preset_name == "test preset"
+        assert decorations.variant == 4567
+        decorations = object_decorations.decorations.get(13, None)
+        assert isinstance(decorations, ParkingSpaceDecal)
+        assert decorations.decal_preset == "test decal preset"
+        object_decorations = result.object_decorations.get(345, None)
+        assert object_decorations
+        assert object_decorations.type == DecorationObjectType.Lane
+        assert object_decorations.object_id == 89
+        assert object_decorations.decorations
+        assert len(object_decorations.decorations.items()) == 2
+        decorations = object_decorations.decorations.get(8374, None)
+        assert isinstance(decorations, PaintTexture)
+        assert helpers.fisclose(decorations.color_rgb[0], 4.5)
+        assert helpers.fisclose(decorations.color_rgb[1], 6.7)
+        assert helpers.fisclose(decorations.color_rgb[2], 7.8)
+        assert helpers.fisclose(decorations.wear, 0.84)
+
+    def test_deserialize_default(self, builder, helpers):
+        ObjectDecorationsInfoFB.ObjectDecorationsInfoFBStart(builder)
+        builder.Finish(ObjectDecorationsInfoFB.ObjectDecorationsInfoFBEnd(builder))
+        fb = ObjectDecorationsInfoFB.ObjectDecorationsInfoFB.GetRootAsObjectDecorationsInfoFB(builder.Output(), 0)
+        default = SerializeObjectDecorationsInfo.deserialize(fb)
+
+        assert default
+        assert isinstance(default, SerializeObjectDecorationsInfo.ObjectDecorationsInfoData)
+        assert default.object_decorations == {}

@@ -116,7 +116,7 @@ def generate_route(umd_map) -> List[Tuple[float, float, float]]:
 
 
 @click.command()
-@common_step_options(require_umd_path=True)
+@common_step_options()
 @click.option('--preview/--no-preview', default=True, show_default=True, help="Preview rendered frame")
 @click.option('--location', default=DEFAULT_LOCATION, help="Location name and version", type=(str, str),
               show_default=True)
@@ -157,10 +157,7 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
 
     # Load route information
     level_name, level_version = location
-    if step_options.internal_dev:
-        umd_map = pd.umd.load_umd_map_from_file(step_options.umd_path)
-    else:
-        umd_map = pd.umd.load_umd_map(level_name, level_version)
+    umd_map = step_options.load_umd_map(level_name, level_version)
     ego_route_points = generate_route(umd_map=umd_map)
     # Set up generator for pose calculation
     ego_poses = pd.umd.move_along_path(

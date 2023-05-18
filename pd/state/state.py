@@ -36,7 +36,7 @@ For example::
 
 from dataclasses import dataclass, field
 from abc import ABC
-from typing import List, Tuple, Optional, Union
+from typing import List, Tuple, Optional, Union, Dict
 from enum import Enum, auto, IntEnum
 import uuid
 import warnings
@@ -236,6 +236,126 @@ class PhaseBulbValue:
     logical_state: PhaseBulbLogicalState = PhaseBulbLogicalState.Inactive
 
 
+@dataclass
+class WorldAgent(Agent):
+    """
+    Represents global information about the World
+    """
+
+    parking_config: Optional['ParkingConfig'] = None
+    object_decorations: Dict[int, 'ObjectDecorations'] = field(default_factory=dict)
+
+
+@dataclass
+class DecorationPreset:
+    preset_name: str
+    variant: int
+
+
+@dataclass
+class ParkingSpaceDecal:
+    decal_preset: str
+
+
+@dataclass
+class PaintTexture:
+    color_rgb: Tuple[float, float, float]
+    wear: float
+
+
+class DecorationObjectType(IntEnum):
+    Lane = 0
+
+
+@dataclass
+class ObjectDecorations:
+    type: DecorationObjectType
+    object_id: int
+    decorations: Dict[int, Union[DecorationPreset, ParkingSpaceDecal, PaintTexture, str]]
+
+
+class LotParkingDelineationType(IntEnum):
+    Single = 0
+    Dashed = 1
+    DoubleOpen = 2
+    DoubleSquared = 3
+    DoubleRound = 4
+    TShape = 5
+    NoLine = 6
+    Random = 7
+
+
+class StreetParkingDelineationType(IntEnum):
+    Single = 0
+    Dashed = 1
+    Double = 2
+    DoubleOpen = 3
+    DoubleSquared = 4
+    DoubleRound = 5
+    TShape = 6
+    NoLine = 7
+    Random = 8
+
+
+class StreetParkingAngleZeroOverride(IntEnum):
+    Single = 0
+    Dashed = 1
+    Double = 2
+    DoubleOpen = 3
+    DoubleSquared = 4
+    DoubleRound = 5
+    TShape = 6
+    NoLine = 7
+    Random = 8
+    Unmetered = 9
+
+
+class ParkingSpaceMaterial(IntEnum):
+    MI_pavement_01 = 0
+    MI_ParkingTiles_BrickBasket_01 = 1
+    MI_ParkingTiles_BrickHerring_01 = 2
+    MI_ParkingTiles_BrickHex_01 = 3
+    MI_ParkingTiles_BrickOrnate_01 = 4
+    MI_ParkingTiles_CobbleStone_01 = 5
+    MI_ParkingTiles_CobbleStone_02 = 6
+    MI_ParkingTiles_ConcreteBrick_01 = 7
+    MI_ParkingTiles_ConcreteBrick_02 = 8
+    MI_ParkingTiles_ConcreteBrick_03 = 9
+    MI_ParkingTiles_ConcretePavers_01 = 10
+    MI_ParkingTiles_StoneFlag_01 = 11
+
+
+@dataclass
+class ParkingConfig:
+
+    angle: int
+    """Angle of the parking spaces in degrees"""
+
+    delineation_color: Tuple[float, float, float]
+    """Parking line color"""
+
+    delineation_wear_amount: float
+    """Parking line wear between 0 and 1"""
+
+    parking_space_tint: Tuple[float, float, float]
+    """Tint applies to parking space material"""
+
+    parking_space_grunge_amount: float
+    """Grunge applied to parking space material, between 0 and 1"""
+
+    lot_parking_delineation_type: LotParkingDelineationType = LotParkingDelineationType.Single
+    """Parking lot line type"""
+
+    street_parking_delineation_type: StreetParkingDelineationType = StreetParkingDelineationType.Single
+    """Street parking line type"""
+
+    street_parking_angle_zero_override: StreetParkingAngleZeroOverride = StreetParkingAngleZeroOverride.Single
+    """Parallel street parking line type"""
+
+    parking_space_material: ParkingSpaceMaterial = ParkingSpaceMaterial.MI_pavement_01
+    """Material to show inside parking spaces"""
+
+
 class PerformanceMode(Enum):
     """
     Enumerates available performance modes
@@ -280,6 +400,12 @@ class WorldInfo:
 
     anti_aliasing: int = 4
     """Anti-aliasing level"""
+
+    scenario_seed: int = 0
+    """For internal use only"""
+
+    agent_tags: Dict[int, List[str]] = field(default_factory=dict)
+    """Map of agent id to a list of tags"""
 
 
 @dataclass
