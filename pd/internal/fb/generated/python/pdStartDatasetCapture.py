@@ -319,7 +319,14 @@ class pdStartDatasetCapture(object):
             return self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos)
         return 0
 
-def pdStartDatasetCaptureStart(builder): builder.StartObject(43)
+    # pdStartDatasetCapture
+    def UseLidarRollingShutter(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(90))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos)
+        return 1
+
+def pdStartDatasetCaptureStart(builder): builder.StartObject(44)
 def pdStartDatasetCaptureAddDatasetName(builder, datasetName): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(datasetName), 0)
 def pdStartDatasetCaptureAddScenarioName(builder, scenarioName): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(scenarioName), 0)
 def pdStartDatasetCaptureAddDesc(builder, desc): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(desc), 0)
@@ -363,4 +370,5 @@ def pdStartDatasetCaptureAddDisableSpecular(builder, disableSpecular): builder.P
 def pdStartDatasetCaptureAddBoxNonVisibleSignalBulbs(builder, boxNonVisibleSignalBulbs): builder.PrependBoolSlot(40, boxNonVisibleSignalBulbs, 0)
 def pdStartDatasetCaptureAddUseInstancePointCaches(builder, useInstancePointCaches): builder.PrependBoolSlot(41, useInstancePointCaches, 1)
 def pdStartDatasetCaptureAddNewDataPipeline(builder, newDataPipeline): builder.PrependBoolSlot(42, newDataPipeline, 0)
+def pdStartDatasetCaptureAddUseLidarRollingShutter(builder, useLidarRollingShutter): builder.PrependBoolSlot(43, useLidarRollingShutter, 1)
 def pdStartDatasetCaptureEnd(builder): return builder.EndObject()

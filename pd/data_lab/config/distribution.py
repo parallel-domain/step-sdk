@@ -194,7 +194,6 @@ class Distribution(pd_distributions_pb2.Distribution):
         if isinstance(value, enum.Enum):
             value = value.value
         self.constant = ConstantDistribution.from_value(value=value)
-        pass
 
     @property
     def is_set(self) -> bool:

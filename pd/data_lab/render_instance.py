@@ -246,25 +246,48 @@ class ManagedRenderInstance(AbstractRenderInstance):
 
 
 class RenderInstance(AbstractRenderInstance):
-    def __init__(self, address: Optional[str] = None):
+    def __init__(
+            self,
+            name: Optional[str] = None,
+            address: Optional[str] = None,
+    ):
+        """
+        Create a render instance for an existing remote IG server
+
+        Args:
+            name: Instance name. Required for cloud mode
+            address: Instance address. Used in local mode
+        """
         super().__init__()
         self._address = address
         context = get_datalab_context()
         self._client_cert_file = context.client_cert_file
-        if not context.is_mode_local and context.fail_on_version_mismatch:
+
+        if name and address:
+            raise PdError("Only one of 'name' or 'address' can be specified for RenderInstance.")
+        if not context.is_mode_local and not name:
+            raise PdError("A 'name' is required in RenderInstance when running in cloud mode.")
+
+        if context.is_mode_local:
+            # Local mode, use local address if none is provided
+            self._address = self._address or "tcp://localhost:9000"
+        else:
+            # Cloud mode, resolve the address
             try:
-                ig_version = next(ig.ig_version for ig in Ig.list() if ig.ig_url == address)
+                ig = next(ig for ig in Ig.list() if ig.name == name)
             except StopIteration:
                 raise PdError(
-                    f"Couldn't find a render instance with the address '{address}'. "
-                    "Please verify the render instance address."
+                    f"Couldn't find a render instance with the name '{name}'. "
+                    "Please verify that the name is correct."
                 )
-            if ig_version != context.version:
-                raise PdError(
-                    f"There's a mismatch between the selected Data Lab version ({context.version}) "
-                    f"and the version of the render instance ({ig_version}). "
-                    "To disable this check, pass fail_on_version_mismatch=False to setup_datalab()."
-                )
+            if context.fail_on_version_mismatch:
+                if ig.ig_version != context.version:
+                    raise PdError(
+                        f"There's a mismatch between the selected Data Lab version ({context.version}) "
+                        f"and the version of the render instance ({ig.ig_version}). "
+                        "To disable this check, pass fail_on_version_mismatch=False to setup_datalab()."
+                    )
+            self._address = ig.ig_url
 
     def create_session(self):
         if self.session is None:

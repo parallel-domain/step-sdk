@@ -117,7 +117,10 @@ labels = [
     Label( "Water",                          67,        -1,   False, ( 34,189,255) ),
 
     Label( "GuardRail",                      68,        -1,   False, (220,110,190) ),
-    Label( "Wall",                           69,        -1,   False, (153,190,190) ), 
+    Label( "Wall",                           69,        -1,   False, (153,190,190) ),
+
+    Label( "WheelStopper",                   70,        -1,    True, (163,200,200) ),
+    Label( "ParkingMarker",                  71,        -1,    True, (156,203,105) ),
 
     Label( "DiffusionPrimitive",             200,       -1,    True, (248,151,152) ),
     Label( "Custom",                         201,       -1,    True, (235,135, 45) ),

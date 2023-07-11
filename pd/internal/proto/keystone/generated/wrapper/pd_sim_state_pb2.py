@@ -12,7 +12,7 @@ class BuildSimState(ProtoMessageClass):
         if proto is None:
             proto = pd_sim_state_pb2.BuildSimState()
         self.proto = proto
-        self._locations = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.locations], attr_name='locations', list_owner=proto)
+        self._locations = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.locations], attr_name='locations', list_owner=self)
         self._scenario_gen = get_wrapper(proto_type=proto.scenario_gen.__class__)(proto=proto.scenario_gen)
         self._sensor_rig = get_wrapper(proto_type=proto.sensor_rig.__class__)(proto=proto.sensor_rig)
         if code_build_artifact_uid is not None:
@@ -68,7 +68,10 @@ class BuildSimState(ProtoMessageClass):
 
     @scenario_gen.setter
     def scenario_gen(self, value: _pd_scenario_pb2.ScenarioGenConfig):
-        self._scenario_gen.proto.CopyFrom(value.proto)
+        self.proto.scenario_gen.CopyFrom(value.proto)
+        
+        self._scenario_gen = value
+        self._scenario_gen._update_proto_references(self.proto.scenario_gen)
 
     @property
     def sensor_rig(self) -> _pd_sensor_pb2.SensorRigConfig:
@@ -76,7 +79,17 @@ class BuildSimState(ProtoMessageClass):
 
     @sensor_rig.setter
     def sensor_rig(self, value: _pd_sensor_pb2.SensorRigConfig):
-        self._sensor_rig.proto.CopyFrom(value.proto)
+        self.proto.sensor_rig.CopyFrom(value.proto)
+        
+        self._sensor_rig = value
+        self._sensor_rig._update_proto_references(self.proto.sensor_rig)
+
+    def _update_proto_references(self, proto: pd_sim_state_pb2.BuildSimState):
+        self.proto = proto
+        for i, v in enumerate(self.locations):
+            v._update_proto_references(self.proto.locations[i])
+        self._scenario_gen._update_proto_references(proto.scenario_gen)
+        self._sensor_rig._update_proto_references(proto.sensor_rig)
 
 @register_wrapper(proto_type=pd_sim_state_pb2.MergeSimState)
 class MergeSimState(ProtoMessageClass):
@@ -116,6 +129,9 @@ class MergeSimState(ProtoMessageClass):
     @second_input_artifact_uid.setter
     def second_input_artifact_uid(self, value: str):
         self.proto.second_input_artifact_uid = value
+
+    def _update_proto_references(self, proto: pd_sim_state_pb2.MergeSimState):
+        self.proto = proto
 
 @register_wrapper(proto_type=pd_sim_state_pb2.ProcessSimState)
 class ProcessSimState(ProtoMessageClass):
@@ -195,7 +211,14 @@ class ProcessSimState(ProtoMessageClass):
 
     @params.setter
     def params(self, value: ProcessSimStateParams):
-        self._params.proto.CopyFrom(value.proto)
+        self.proto.params.CopyFrom(value.proto)
+        
+        self._params = value
+        self._params._update_proto_references(self.proto.params)
+
+    def _update_proto_references(self, proto: pd_sim_state_pb2.ProcessSimState):
+        self.proto = proto
+        self._params._update_proto_references(proto.params)
 
 @register_wrapper(proto_type=pd_sim_state_pb2.ProcessSimStateParams)
 class ProcessSimStateParams(ProtoMessageClass):
@@ -205,7 +228,7 @@ class ProcessSimStateParams(ProtoMessageClass):
         if proto is None:
             proto = pd_sim_state_pb2.ProcessSimStateParams()
         self.proto = proto
-        self._cull_agents = ProtoListWrapper(container=[int(v) for v in proto.cull_agents], attr_name='cull_agents', list_owner=proto)
+        self._cull_agents = ProtoListWrapper(container=[int(v) for v in proto.cull_agents], attr_name='cull_agents', list_owner=self)
         self._sensor_rig = get_wrapper(proto_type=proto.sensor_rig.__class__)(proto=proto.sensor_rig)
         if capture_all_frames is not None:
             self.capture_all_frames = capture_all_frames
@@ -344,7 +367,10 @@ class ProcessSimStateParams(ProtoMessageClass):
 
     @sensor_rig.setter
     def sensor_rig(self, value: _pd_sensor_pb2.SensorRigConfig):
-        self._sensor_rig.proto.CopyFrom(value.proto)
+        self.proto.sensor_rig.CopyFrom(value.proto)
+        
+        self._sensor_rig = value
+        self._sensor_rig._update_proto_references(self.proto.sensor_rig)
 
     @property
     def streetlights(self) -> float:
@@ -369,6 +395,10 @@ class ProcessSimStateParams(ProtoMessageClass):
     @wetness.setter
     def wetness(self, value: float):
         self.proto.wetness = value
+
+    def _update_proto_references(self, proto: pd_sim_state_pb2.ProcessSimStateParams):
+        self.proto = proto
+        self._sensor_rig._update_proto_references(proto.sensor_rig)
 
 @register_wrapper(proto_type=pd_sim_state_pb2.SimStateCull)
 class SimStateCull(ProtoMessageClass):
@@ -448,3 +478,6 @@ class SimStateCull(ProtoMessageClass):
     @trailing_frame_window.setter
     def trailing_frame_window(self, value: int):
         self.proto.trailing_frame_window = value
+
+    def _update_proto_references(self, proto: pd_sim_state_pb2.SimStateCull):
+        self.proto = proto

@@ -43,6 +43,9 @@ class Float3(ProtoMessageClass):
     def z(self, value: float):
         self.proto.z = value
 
+    def _update_proto_references(self, proto: pd_types_pb2.Float3):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_types_pb2.Float3x3)
 class Float3x3(ProtoMessageClass):
     _proto_message = pd_types_pb2.Float3x3
@@ -67,7 +70,10 @@ class Float3x3(ProtoMessageClass):
 
     @r0.setter
     def r0(self, value: Float3):
-        self._r0.proto.CopyFrom(value.proto)
+        self.proto.r0.CopyFrom(value.proto)
+        
+        self._r0 = value
+        self._r0._update_proto_references(self.proto.r0)
 
     @property
     def r1(self) -> Float3:
@@ -75,7 +81,10 @@ class Float3x3(ProtoMessageClass):
 
     @r1.setter
     def r1(self, value: Float3):
-        self._r1.proto.CopyFrom(value.proto)
+        self.proto.r1.CopyFrom(value.proto)
+        
+        self._r1 = value
+        self._r1._update_proto_references(self.proto.r1)
 
     @property
     def r2(self) -> Float3:
@@ -83,7 +92,16 @@ class Float3x3(ProtoMessageClass):
 
     @r2.setter
     def r2(self, value: Float3):
-        self._r2.proto.CopyFrom(value.proto)
+        self.proto.r2.CopyFrom(value.proto)
+        
+        self._r2 = value
+        self._r2._update_proto_references(self.proto.r2)
+
+    def _update_proto_references(self, proto: pd_types_pb2.Float3x3):
+        self.proto = proto
+        self._r0._update_proto_references(proto.r0)
+        self._r1._update_proto_references(proto.r1)
+        self._r2._update_proto_references(proto.r2)
 
 @register_wrapper(proto_type=pd_types_pb2.Pose)
 class Pose(ProtoMessageClass):
@@ -106,7 +124,10 @@ class Pose(ProtoMessageClass):
 
     @orientation.setter
     def orientation(self, value: Float3x3):
-        self._orientation.proto.CopyFrom(value.proto)
+        self.proto.orientation.CopyFrom(value.proto)
+        
+        self._orientation = value
+        self._orientation._update_proto_references(self.proto.orientation)
 
     @property
     def position(self) -> Float3:
@@ -114,4 +135,12 @@ class Pose(ProtoMessageClass):
 
     @position.setter
     def position(self, value: Float3):
-        self._position.proto.CopyFrom(value.proto)
+        self.proto.position.CopyFrom(value.proto)
+        
+        self._position = value
+        self._position._update_proto_references(self.proto.position)
+
+    def _update_proto_references(self, proto: pd_types_pb2.Pose):
+        self.proto = proto
+        self._orientation._update_proto_references(proto.orientation)
+        self._position._update_proto_references(proto.position)

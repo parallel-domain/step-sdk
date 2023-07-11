@@ -98,15 +98,19 @@ class ScenarioGenerator(Generic[TSimState]):
     def next_frame(self) -> Tuple[Optional[TemporalSessionReference], Optional[TSimState]]:
         if self._first_frame:
             # on beginning we need to run start_skip_frames plus one frame we want to capture
-            self._first_frame = False
             sim_capture_rate = self.discrete_scenario.start_skip_frames + 1
         else:
             sim_capture_rate = max(1, self.discrete_scenario.sim_capture_rate)
 
         temporal_session_reference = None
         for i in range(sim_capture_rate):
-            # this updates the current simulation state in our sim state
-            has_state = self._sim_instance.next_frame(sim_state=self._sim_state)
+            # we already have the first state from sim instance setup, but have not rendered it yet
+            if self._first_frame:
+                has_state = True
+                self._first_frame = False
+            else:
+                # this updates the current simulation state in our sim state
+                has_state = self._sim_instance.next_frame(sim_state=self._sim_state)
 
             if has_state is False:
                 # if the sim instance has no more state we signal the end of the scene by returning None

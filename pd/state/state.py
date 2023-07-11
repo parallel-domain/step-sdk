@@ -182,7 +182,7 @@ class VehicleAgent(Agent, PosedAgent):
     brake_light_on: bool = False
     """Whether vehicle brake light is on"""
 
-    indicator_state: VehicleIndicatorState = VehicleIndicatorState.Inactive
+    indicator_state: Union[VehicleIndicatorState, int] = VehicleIndicatorState.Inactive
     """State of the vehicle's turn indicator"""
 
     is_parked: bool = False
@@ -233,7 +233,7 @@ class PhaseBulbValue:
     yellow: float = 0.0
     green: float = 0.0
 
-    logical_state: PhaseBulbLogicalState = PhaseBulbLogicalState.Inactive
+    logical_state: Union[PhaseBulbLogicalState, int] = PhaseBulbLogicalState.Inactive
 
 
 @dataclass
@@ -269,7 +269,7 @@ class DecorationObjectType(IntEnum):
 
 @dataclass
 class ObjectDecorations:
-    type: DecorationObjectType
+    type: Union[DecorationObjectType, int]
     object_id: int
     decorations: Dict[int, Union[DecorationPreset, ParkingSpaceDecal, PaintTexture, str]]
 
@@ -343,16 +343,16 @@ class ParkingConfig:
     parking_space_grunge_amount: float
     """Grunge applied to parking space material, between 0 and 1"""
 
-    lot_parking_delineation_type: LotParkingDelineationType = LotParkingDelineationType.Single
+    lot_parking_delineation_type: Union[LotParkingDelineationType, int] = LotParkingDelineationType.Single
     """Parking lot line type"""
 
-    street_parking_delineation_type: StreetParkingDelineationType = StreetParkingDelineationType.Single
+    street_parking_delineation_type: Union[StreetParkingDelineationType, int] = StreetParkingDelineationType.Single
     """Street parking line type"""
 
-    street_parking_angle_zero_override: StreetParkingAngleZeroOverride = StreetParkingAngleZeroOverride.Single
+    street_parking_angle_zero_override: Union[StreetParkingAngleZeroOverride, int] = StreetParkingAngleZeroOverride.Single
     """Parallel street parking line type"""
 
-    parking_space_material: ParkingSpaceMaterial = ParkingSpaceMaterial.MI_pavement_01
+    parking_space_material: Union[ParkingSpaceMaterial, int] = ParkingSpaceMaterial.MI_pavement_01
     """Material to show inside parking spaces"""
 
 

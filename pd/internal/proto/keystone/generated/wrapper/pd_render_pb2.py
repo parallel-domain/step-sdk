@@ -23,6 +23,9 @@ class KeystoneAttributes(ProtoMessageClass):
     def group(self, value: str):
         self.proto.group = value
 
+    def _update_proto_references(self, proto: pd_render_pb2.KeystoneAttributes):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_render_pb2.RenderInfo)
 class RenderInfo(ProtoMessageClass):
 
@@ -35,14 +38,14 @@ class RenderInfo(ProtoMessageClass):
         SPREAD: pd_render_pb2.RenderInfo.EnvironmentMode = pd_render_pb2.RenderInfo.EnvironmentMode.SPREAD
     _proto_message = pd_render_pb2.RenderInfo
 
-    def __init__(self, *, proto: Optional[pd_render_pb2.RenderInfo]=None, annotate_accessories_2d: Optional[bool]=None, annotate_accessories_3d: Optional[bool]=None, annotate_wing_mirrors_2d: Optional[bool]=None, annotate_wing_mirrors_3d: Optional[bool]=None, apply_lidar_noise: Optional[bool]=None, artifact_key: Optional[str]=None, batch_size: Optional[int]=None, bbox_2d_only_visible_pixels: Optional[bool]=None, box_non_visible_signal_bulbs: Optional[bool]=None, capture_all_frames: Optional[bool]=None, capture_rate: Optional[int]=None, code_build_artifact_uid: Optional[str]=None, disable_reflection: Optional[bool]=None, disable_specular: Optional[bool]=None, enable_radar_debug: Optional[bool]=None, end_scene: Optional[int]=None, environment_attr_list: Optional[List[RenderInfo.Environment]]=None, environment_mode: Optional[RenderInfo.EnvironmentMode]=None, generate_previews: Optional[bool]=None, hide_all_volumetrics: Optional[bool]=None, hide_crosswalk_segmentation_mesh: Optional[bool]=None, image_generator_core_artifact_uid: Optional[str]=None, keep_glass_transparent: Optional[bool]=None, level_pak_artifact_uid: Optional[Dict[str, str]]=None, merge_bikes_riders_3d: Optional[bool]=None, new_data_pipeline: Optional[bool]=None, output_artifact_uid: Optional[str]=None, output_instance_point_caches: Optional[bool]=None, output_telemetry: Optional[bool]=None, output_truncated_3d_annotations: Optional[bool]=None, physical_ground_truth: Optional[bool]=None, render_ego_vehicle: Optional[bool]=None, sensor_rig: Optional[_pd_sensor_pb2.SensorRigConfig]=None, sensor_splits_list: Optional[List[_pd_sensor_pb2.SensorList]]=None, start_scene: Optional[int]=None, state_file_archive_artifact_uid: Optional[str]=None, use_high_gpu_mem_render_node: Optional[bool]=None, use_instance_point_caches: Optional[bool]=None, use_linux: Optional[bool]=None, use_opaque_glass: Optional[int]=None, vehicle_color_offset: Optional[int]=None, volumetric_density_scale: Optional[float]=None):
+    def __init__(self, *, proto: Optional[pd_render_pb2.RenderInfo]=None, annotate_accessories_2d: Optional[bool]=None, annotate_accessories_3d: Optional[bool]=None, annotate_wing_mirrors_2d: Optional[bool]=None, annotate_wing_mirrors_3d: Optional[bool]=None, apply_lidar_noise: Optional[bool]=None, artifact_key: Optional[str]=None, batch_size: Optional[int]=None, bbox_2d_only_visible_pixels: Optional[bool]=None, box_non_visible_signal_bulbs: Optional[bool]=None, capture_all_frames: Optional[bool]=None, capture_rate: Optional[int]=None, code_build_artifact_uid: Optional[str]=None, disable_reflection: Optional[bool]=None, disable_specular: Optional[bool]=None, enable_radar_debug: Optional[bool]=None, end_scene: Optional[int]=None, environment_attr_list: Optional[List[RenderInfo.Environment]]=None, environment_mode: Optional[RenderInfo.EnvironmentMode]=None, generate_previews: Optional[bool]=None, hide_all_volumetrics: Optional[bool]=None, hide_crosswalk_segmentation_mesh: Optional[bool]=None, image_generator_core_artifact_uid: Optional[str]=None, keep_glass_transparent: Optional[bool]=None, level_pak_artifact_uid: Optional[Dict[str, str]]=None, merge_bikes_riders_3d: Optional[bool]=None, new_data_pipeline: Optional[bool]=None, output_artifact_uid: Optional[str]=None, output_instance_point_caches: Optional[bool]=None, output_telemetry: Optional[bool]=None, output_truncated_3d_annotations: Optional[bool]=None, physical_ground_truth: Optional[bool]=None, render_ego_vehicle: Optional[bool]=None, sensor_rig: Optional[_pd_sensor_pb2.SensorRigConfig]=None, sensor_splits_list: Optional[List[_pd_sensor_pb2.SensorList]]=None, start_scene: Optional[int]=None, state_file_archive_artifact_uid: Optional[str]=None, use_high_gpu_mem_render_node: Optional[bool]=None, use_instance_point_caches: Optional[bool]=None, use_lidar_rolling_shutter: Optional[bool]=None, use_linux: Optional[bool]=None, use_opaque_glass: Optional[int]=None, vehicle_color_offset: Optional[int]=None, volumetric_density_scale: Optional[float]=None):
         if proto is None:
             proto = pd_render_pb2.RenderInfo()
         self.proto = proto
-        self._environment_attr_list = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.environment_attr_list], attr_name='environment_attr_list', list_owner=proto)
-        self._level_pak_artifact_uid = ProtoDictWrapper(container={k: str(v) for (k, v) in proto.level_pak_artifact_uid.items()}, attr_name='level_pak_artifact_uid', dict_owner=proto)
+        self._environment_attr_list = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.environment_attr_list], attr_name='environment_attr_list', list_owner=self)
+        self._level_pak_artifact_uid = ProtoDictWrapper(container={k: str(v) for (k, v) in proto.level_pak_artifact_uid.items()}, attr_name='level_pak_artifact_uid', dict_owner=self)
         self._sensor_rig = get_wrapper(proto_type=proto.sensor_rig.__class__)(proto=proto.sensor_rig)
-        self._sensor_splits_list = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.sensor_splits_list], attr_name='sensor_splits_list', list_owner=proto)
+        self._sensor_splits_list = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.sensor_splits_list], attr_name='sensor_splits_list', list_owner=self)
         if annotate_accessories_2d is not None:
             self.annotate_accessories_2d = annotate_accessories_2d
         if annotate_accessories_3d is not None:
@@ -119,6 +122,8 @@ class RenderInfo(ProtoMessageClass):
             self.use_high_gpu_mem_render_node = use_high_gpu_mem_render_node
         if use_instance_point_caches is not None:
             self.use_instance_point_caches = use_instance_point_caches
+        if use_lidar_rolling_shutter is not None:
+            self.use_lidar_rolling_shutter = use_lidar_rolling_shutter
         if use_linux is not None:
             self.use_linux = use_linux
         if use_opaque_glass is not None:
@@ -393,7 +398,10 @@ class RenderInfo(ProtoMessageClass):
 
     @sensor_rig.setter
     def sensor_rig(self, value: _pd_sensor_pb2.SensorRigConfig):
-        self._sensor_rig.proto.CopyFrom(value.proto)
+        self.proto.sensor_rig.CopyFrom(value.proto)
+        
+        self._sensor_rig = value
+        self._sensor_rig._update_proto_references(self.proto.sensor_rig)
 
     @property
     def sensor_splits_list(self) -> List[_pd_sensor_pb2.SensorList]:
@@ -438,6 +446,14 @@ class RenderInfo(ProtoMessageClass):
         self.proto.use_instance_point_caches = value
 
     @property
+    def use_lidar_rolling_shutter(self) -> bool:
+        return self.proto.use_lidar_rolling_shutter
+
+    @use_lidar_rolling_shutter.setter
+    def use_lidar_rolling_shutter(self, value: bool):
+        self.proto.use_lidar_rolling_shutter = value
+
+    @property
     def use_linux(self) -> bool:
         return self.proto.use_linux
 
@@ -468,3 +484,11 @@ class RenderInfo(ProtoMessageClass):
     @volumetric_density_scale.setter
     def volumetric_density_scale(self, value: float):
         self.proto.volumetric_density_scale = value
+
+    def _update_proto_references(self, proto: pd_render_pb2.RenderInfo):
+        self.proto = proto
+        for i, v in enumerate(self.environment_attr_list):
+            v._update_proto_references(self.proto.environment_attr_list[i])
+        self._sensor_rig._update_proto_references(proto.sensor_rig)
+        for i, v in enumerate(self.sensor_splits_list):
+            v._update_proto_references(self.proto.sensor_splits_list[i])

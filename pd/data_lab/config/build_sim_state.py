@@ -95,7 +95,7 @@ class ScenarioGenConfig(
             batch_size=1,
             sim_update_time=0.01,
             environment=EnvironmentDefinition.encode_environment_configs(configs=[environment]),
-            spawn_config=SpawnConfig.default_spawn_config(),  # TODO TBD just return default spawn config for the moment
+            spawn_config=SpawnConfig.default_spawn_config(),
             sim_terminate_on_collision_within_radius_m=0.0,
             sim_terminate_on_pedestrian_collision_within_radius_m=0.0,
             check_offroad_vehicles=False,

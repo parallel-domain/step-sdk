@@ -143,8 +143,20 @@ def load_map(location: Location) -> UniversalMap:
             )
         return load_map_from_file(path=map_file)
     else:
+        location_name, location_version = location.name, location.version
+        if not location_version:
+            # No location version is provided, use the version from Data Lab context
+            location_version = context.version
+        else:
+            # Location version is provided, verify that it matches Data Lab context
+            if context.fail_on_version_mismatch and location_version != context.version:
+                raise PdError(
+                    f"There's a mismatch between the selected Data Lab version ({context.version}) "
+                    f"and the version of the requested map ({location_name} {location_version}). "
+                    "To disable this check, pass fail_on_version_mismatch=False to setup_datalab()."
+                )
         try:
-            return load_map_from_step(name=location.name, version=location.version)
+            return load_map_from_step(name=location_name, version=location_version)
         except PdError as e:
             raise PdError(
                 f"Couldn't load map {location.name} {location.version} from management API. "

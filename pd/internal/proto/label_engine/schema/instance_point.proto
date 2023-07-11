@@ -48,6 +48,7 @@ message InstancePoint2DMetadata
     }
 
     bool visibility = 9;
+    float distance_from_ego = 10;
 }
 
 message TrailerPointData

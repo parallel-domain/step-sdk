@@ -51,7 +51,7 @@ setup(
             'pytest',
             'pytest-repeat',
             'requests-mock',
-            'imgui[glfw]',
+            'imgui[glfw]>=2.0',
             'tqdm',
         ],
         'docs': [

@@ -53,8 +53,8 @@ class AbsolutePositionRequest(_message.Message):
 class AgentSpawnData(_message.Message):
     __slots__ = ["tags"]
     TAGS_FIELD_NUMBER: ClassVar[int]
-    tags: _containers.RepeatedScalarFieldContainer[SpecialAgentTag]
-    def __init__(self, tags: Optional[Iterable[Union[SpecialAgentTag, str]]] = ...) -> None: ...
+    tags: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, tags: Optional[Iterable[str]] = ...) -> None: ...
 
 class AtomicGeneratorParameters(_message.Message):
     __slots__ = ["debris", "drone", "ego_agent", "parked_vehicles", "pedestrian", "random_pedestrian", "static_agent", "traffic", "vehicle"]
@@ -105,7 +105,7 @@ class CenterSpreadProbabilityConfig(_message.Message):
     def __init__(self, probability: Optional[float] = ..., center: Optional[float] = ..., spread: Optional[float] = ...) -> None: ...
 
 class DebrisGeneratorParameters(_message.Message):
-    __slots__ = ["asset_distribution", "debris_asset_remove_tag", "debris_asset_tag", "debris_center_bias", "max_debris_distance", "min_debris_distance", "position_request", "spawn_probability"]
+    __slots__ = ["agent_spawn_data", "asset_distribution", "debris_asset_remove_tag", "debris_asset_tag", "debris_center_bias", "max_debris_distance", "min_debris_distance", "position_request", "spawn_probability"]
     class AssetDistributionEntry(_message.Message):
         __slots__ = ["key", "value"]
         KEY_FIELD_NUMBER: ClassVar[int]
@@ -113,6 +113,7 @@ class DebrisGeneratorParameters(_message.Message):
         key: str
         value: float
         def __init__(self, key: Optional[str] = ..., value: Optional[float] = ...) -> None: ...
+    AGENT_SPAWN_DATA_FIELD_NUMBER: ClassVar[int]
     ASSET_DISTRIBUTION_FIELD_NUMBER: ClassVar[int]
     DEBRIS_ASSET_REMOVE_TAG_FIELD_NUMBER: ClassVar[int]
     DEBRIS_ASSET_TAG_FIELD_NUMBER: ClassVar[int]
@@ -121,6 +122,7 @@ class DebrisGeneratorParameters(_message.Message):
     MIN_DEBRIS_DISTANCE_FIELD_NUMBER: ClassVar[int]
     POSITION_REQUEST_FIELD_NUMBER: ClassVar[int]
     SPAWN_PROBABILITY_FIELD_NUMBER: ClassVar[int]
+    agent_spawn_data: AgentSpawnData
     asset_distribution: _containers.ScalarMap[str, float]
     debris_asset_remove_tag: str
     debris_asset_tag: str
@@ -129,7 +131,7 @@ class DebrisGeneratorParameters(_message.Message):
     min_debris_distance: float
     position_request: PositionRequest
     spawn_probability: float
-    def __init__(self, spawn_probability: Optional[float] = ..., debris_center_bias: Optional[float] = ..., min_debris_distance: Optional[float] = ..., max_debris_distance: Optional[float] = ..., debris_asset_tag: Optional[str] = ..., debris_asset_remove_tag: Optional[str] = ..., position_request: Optional[Union[PositionRequest, Mapping]] = ..., asset_distribution: Optional[Mapping[str, float]] = ...) -> None: ...
+    def __init__(self, spawn_probability: Optional[float] = ..., debris_center_bias: Optional[float] = ..., min_debris_distance: Optional[float] = ..., max_debris_distance: Optional[float] = ..., debris_asset_tag: Optional[str] = ..., debris_asset_remove_tag: Optional[str] = ..., position_request: Optional[Union[PositionRequest, Mapping]] = ..., asset_distribution: Optional[Mapping[str, float]] = ..., agent_spawn_data: Optional[Union[AgentSpawnData, Mapping]] = ...) -> None: ...
 
 class DecorationData(_message.Message):
     __slots__ = ["decoration_preset"]
@@ -242,8 +244,9 @@ class LaneCurvatureSpawnPolicy(_message.Message):
     def __init__(self, curvature_bounds: Optional[Union[MinMaxConfigFloat, Mapping]] = ..., min_section_length: Optional[float] = ...) -> None: ...
 
 class LaneSpawnPolicy(_message.Message):
-    __slots__ = ["bicycles_only_in_bike_lanes", "lane_type", "lateral_offset", "min_length_behind", "min_num_lanes_in_opposite_direction", "min_num_lanes_in_same_direction", "min_path_length", "nearby_asset_policy", "position_of_interest_policy", "road_type"]
+    __slots__ = ["bicycles_only_in_bike_lanes", "lane_decoration_distribution", "lane_type", "lateral_offset", "min_length_behind", "min_num_lanes_in_opposite_direction", "min_num_lanes_in_same_direction", "min_path_length", "nearby_asset_policy", "on_road_parking_angle_distribution", "position_of_interest_policy", "road_type"]
     BICYCLES_ONLY_IN_BIKE_LANES_FIELD_NUMBER: ClassVar[int]
+    LANE_DECORATION_DISTRIBUTION_FIELD_NUMBER: ClassVar[int]
     LANE_TYPE_FIELD_NUMBER: ClassVar[int]
     LATERAL_OFFSET_FIELD_NUMBER: ClassVar[int]
     MIN_LENGTH_BEHIND_FIELD_NUMBER: ClassVar[int]
@@ -251,9 +254,11 @@ class LaneSpawnPolicy(_message.Message):
     MIN_NUM_LANES_IN_SAME_DIRECTION_FIELD_NUMBER: ClassVar[int]
     MIN_PATH_LENGTH_FIELD_NUMBER: ClassVar[int]
     NEARBY_ASSET_POLICY_FIELD_NUMBER: ClassVar[int]
+    ON_ROAD_PARKING_ANGLE_DISTRIBUTION_FIELD_NUMBER: ClassVar[int]
     POSITION_OF_INTEREST_POLICY_FIELD_NUMBER: ClassVar[int]
     ROAD_TYPE_FIELD_NUMBER: ClassVar[int]
     bicycles_only_in_bike_lanes: bool
+    lane_decoration_distribution: _pd_distributions_pb2.EnumDistribution
     lane_type: _pd_distributions_pb2.EnumDistribution
     lateral_offset: CenterSpreadConfig
     min_length_behind: CenterSpreadConfig
@@ -261,19 +266,20 @@ class LaneSpawnPolicy(_message.Message):
     min_num_lanes_in_same_direction: int
     min_path_length: CenterSpreadConfig
     nearby_asset_policy: NearbyAssetPolicy
+    on_road_parking_angle_distribution: _pd_distributions_pb2.EnumDistribution
     position_of_interest_policy: _containers.RepeatedCompositeFieldContainer[PositionOfInterestPolicy]
     road_type: _pd_distributions_pb2.EnumDistribution
-    def __init__(self, min_num_lanes_in_same_direction: Optional[int] = ..., lane_type: Optional[Union[_pd_distributions_pb2.EnumDistribution, Mapping]] = ..., min_num_lanes_in_opposite_direction: Optional[int] = ..., lateral_offset: Optional[Union[CenterSpreadConfig, Mapping]] = ..., bicycles_only_in_bike_lanes: bool = ..., nearby_asset_policy: Optional[Union[NearbyAssetPolicy, Mapping]] = ..., road_type: Optional[Union[_pd_distributions_pb2.EnumDistribution, Mapping]] = ..., position_of_interest_policy: Optional[Iterable[Union[PositionOfInterestPolicy, Mapping]]] = ..., min_path_length: Optional[Union[CenterSpreadConfig, Mapping]] = ..., min_length_behind: Optional[Union[CenterSpreadConfig, Mapping]] = ...) -> None: ...
+    def __init__(self, min_num_lanes_in_same_direction: Optional[int] = ..., lane_type: Optional[Union[_pd_distributions_pb2.EnumDistribution, Mapping]] = ..., min_num_lanes_in_opposite_direction: Optional[int] = ..., lateral_offset: Optional[Union[CenterSpreadConfig, Mapping]] = ..., bicycles_only_in_bike_lanes: bool = ..., nearby_asset_policy: Optional[Union[NearbyAssetPolicy, Mapping]] = ..., road_type: Optional[Union[_pd_distributions_pb2.EnumDistribution, Mapping]] = ..., position_of_interest_policy: Optional[Iterable[Union[PositionOfInterestPolicy, Mapping]]] = ..., min_path_length: Optional[Union[CenterSpreadConfig, Mapping]] = ..., min_length_behind: Optional[Union[CenterSpreadConfig, Mapping]] = ..., on_road_parking_angle_distribution: Optional[Union[_pd_distributions_pb2.EnumDistribution, Mapping]] = ..., lane_decoration_distribution: Optional[Union[_pd_distributions_pb2.EnumDistribution, Mapping]] = ...) -> None: ...
 
 class LocationRelativePositionRequest(_message.Message):
     __slots__ = ["agent_tags", "lane_spawn_policy", "max_spawn_radius"]
     AGENT_TAGS_FIELD_NUMBER: ClassVar[int]
     LANE_SPAWN_POLICY_FIELD_NUMBER: ClassVar[int]
     MAX_SPAWN_RADIUS_FIELD_NUMBER: ClassVar[int]
-    agent_tags: _containers.RepeatedScalarFieldContainer[SpecialAgentTag]
+    agent_tags: _containers.RepeatedScalarFieldContainer[str]
     lane_spawn_policy: LaneSpawnPolicy
     max_spawn_radius: float
-    def __init__(self, agent_tags: Optional[Iterable[Union[SpecialAgentTag, str]]] = ..., max_spawn_radius: Optional[float] = ..., lane_spawn_policy: Optional[Union[LaneSpawnPolicy, Mapping]] = ...) -> None: ...
+    def __init__(self, agent_tags: Optional[Iterable[str]] = ..., max_spawn_radius: Optional[float] = ..., lane_spawn_policy: Optional[Union[LaneSpawnPolicy, Mapping]] = ...) -> None: ...
 
 class MinMaxConfigFloat(_message.Message):
     __slots__ = ["max", "min"]
@@ -318,7 +324,7 @@ class ObjectDecorations(_message.Message):
     def __init__(self, object_id: Optional[int] = ..., decoration_data: Optional[Union[DecorationData, Mapping]] = ...) -> None: ...
 
 class ParkedVehicleGeneratorParameters(_message.Message):
-    __slots__ = ["position_request", "spawn_probability", "vehicle_distribution"]
+    __slots__ = ["agent_spawn_data", "position_request", "spawn_probability", "vehicle_distribution"]
     class VehicleDistributionEntry(_message.Message):
         __slots__ = ["key", "value"]
         KEY_FIELD_NUMBER: ClassVar[int]
@@ -326,44 +332,41 @@ class ParkedVehicleGeneratorParameters(_message.Message):
         key: str
         value: _pd_distributions_pb2.VehicleCategoryWeight
         def __init__(self, key: Optional[str] = ..., value: Optional[Union[_pd_distributions_pb2.VehicleCategoryWeight, Mapping]] = ...) -> None: ...
+    AGENT_SPAWN_DATA_FIELD_NUMBER: ClassVar[int]
     POSITION_REQUEST_FIELD_NUMBER: ClassVar[int]
     SPAWN_PROBABILITY_FIELD_NUMBER: ClassVar[int]
     VEHICLE_DISTRIBUTION_FIELD_NUMBER: ClassVar[int]
+    agent_spawn_data: AgentSpawnData
     position_request: PositionRequest
     spawn_probability: CenterSpreadConfig
     vehicle_distribution: _containers.MessageMap[str, _pd_distributions_pb2.VehicleCategoryWeight]
-    def __init__(self, position_request: Optional[Union[PositionRequest, Mapping]] = ..., spawn_probability: Optional[Union[CenterSpreadConfig, Mapping]] = ..., vehicle_distribution: Optional[Mapping[str, _pd_distributions_pb2.VehicleCategoryWeight]] = ...) -> None: ...
+    def __init__(self, position_request: Optional[Union[PositionRequest, Mapping]] = ..., spawn_probability: Optional[Union[CenterSpreadConfig, Mapping]] = ..., vehicle_distribution: Optional[Mapping[str, _pd_distributions_pb2.VehicleCategoryWeight]] = ..., agent_spawn_data: Optional[Union[AgentSpawnData, Mapping]] = ...) -> None: ...
 
 class ParkingSpaceData(_message.Message):
-    __slots__ = ["angle_distribution", "delineation_color", "delineation_wear_amount", "global_parking_decal_wear", "lot_parking_delineation_type", "parking_space_grunge_amount", "parking_space_material", "parking_space_tint", "street_parking_angle_zero_override", "street_parking_delineation_type"]
-    class AngleDistributionEntry(_message.Message):
-        __slots__ = ["key", "value"]
-        KEY_FIELD_NUMBER: ClassVar[int]
-        VALUE_FIELD_NUMBER: ClassVar[int]
-        key: int
-        value: float
-        def __init__(self, key: Optional[int] = ..., value: Optional[float] = ...) -> None: ...
-    ANGLE_DISTRIBUTION_FIELD_NUMBER: ClassVar[int]
+    __slots__ = ["delineation_color", "delineation_wear_amount", "global_parking_decal_wear", "lot_parking_delineation_type", "parking_lot_angle_distribution", "parking_space_decoration", "parking_space_grunge_amount", "parking_space_material", "parking_space_tint", "street_parking_angle_zero_override", "street_parking_delineation_type"]
     DELINEATION_COLOR_FIELD_NUMBER: ClassVar[int]
     DELINEATION_WEAR_AMOUNT_FIELD_NUMBER: ClassVar[int]
     GLOBAL_PARKING_DECAL_WEAR_FIELD_NUMBER: ClassVar[int]
     LOT_PARKING_DELINEATION_TYPE_FIELD_NUMBER: ClassVar[int]
+    PARKING_LOT_ANGLE_DISTRIBUTION_FIELD_NUMBER: ClassVar[int]
+    PARKING_SPACE_DECORATION_FIELD_NUMBER: ClassVar[int]
     PARKING_SPACE_GRUNGE_AMOUNT_FIELD_NUMBER: ClassVar[int]
     PARKING_SPACE_MATERIAL_FIELD_NUMBER: ClassVar[int]
     PARKING_SPACE_TINT_FIELD_NUMBER: ClassVar[int]
     STREET_PARKING_ANGLE_ZERO_OVERRIDE_FIELD_NUMBER: ClassVar[int]
     STREET_PARKING_DELINEATION_TYPE_FIELD_NUMBER: ClassVar[int]
-    angle_distribution: _containers.ScalarMap[int, float]
     delineation_color: _containers.RepeatedCompositeFieldContainer[_pd_types_pb2.Float3]
     delineation_wear_amount: CenterSpreadConfig
     global_parking_decal_wear: CenterSpreadConfig
     lot_parking_delineation_type: _pd_distributions_pb2.EnumDistribution
+    parking_lot_angle_distribution: _pd_distributions_pb2.EnumDistribution
+    parking_space_decoration: ObjectDecorationParams
     parking_space_grunge_amount: CenterSpreadConfig
     parking_space_material: _pd_distributions_pb2.EnumDistribution
     parking_space_tint: _containers.RepeatedCompositeFieldContainer[_pd_types_pb2.Float3]
     street_parking_angle_zero_override: _pd_distributions_pb2.EnumDistribution
     street_parking_delineation_type: _pd_distributions_pb2.EnumDistribution
-    def __init__(self, angle_distribution: Optional[Mapping[int, float]] = ..., lot_parking_delineation_type: Optional[Union[_pd_distributions_pb2.EnumDistribution, Mapping]] = ..., street_parking_delineation_type: Optional[Union[_pd_distributions_pb2.EnumDistribution, Mapping]] = ..., street_parking_angle_zero_override: Optional[Union[_pd_distributions_pb2.EnumDistribution, Mapping]] = ..., delineation_color: Optional[Iterable[Union[_pd_types_pb2.Float3, Mapping]]] = ..., delineation_wear_amount: Optional[Union[CenterSpreadConfig, Mapping]] = ..., parking_space_material: Optional[Union[_pd_distributions_pb2.EnumDistribution, Mapping]] = ..., parking_space_tint: Optional[Iterable[Union[_pd_types_pb2.Float3, Mapping]]] = ..., parking_space_grunge_amount: Optional[Union[CenterSpreadConfig, Mapping]] = ..., global_parking_decal_wear: Optional[Union[CenterSpreadConfig, Mapping]] = ...) -> None: ...
+    def __init__(self, parking_lot_angle_distribution: Optional[Union[_pd_distributions_pb2.EnumDistribution, Mapping]] = ..., lot_parking_delineation_type: Optional[Union[_pd_distributions_pb2.EnumDistribution, Mapping]] = ..., street_parking_delineation_type: Optional[Union[_pd_distributions_pb2.EnumDistribution, Mapping]] = ..., street_parking_angle_zero_override: Optional[Union[_pd_distributions_pb2.EnumDistribution, Mapping]] = ..., delineation_color: Optional[Iterable[Union[_pd_types_pb2.Float3, Mapping]]] = ..., delineation_wear_amount: Optional[Union[CenterSpreadConfig, Mapping]] = ..., parking_space_material: Optional[Union[_pd_distributions_pb2.EnumDistribution, Mapping]] = ..., parking_space_tint: Optional[Iterable[Union[_pd_types_pb2.Float3, Mapping]]] = ..., parking_space_grunge_amount: Optional[Union[CenterSpreadConfig, Mapping]] = ..., global_parking_decal_wear: Optional[Union[CenterSpreadConfig, Mapping]] = ..., parking_space_decoration: Optional[Union[ObjectDecorationParams, Mapping]] = ...) -> None: ...
 
 class ParkingTypeDistribution(_message.Message):
     __slots__ = ["forward", "parallel", "reverse"]
@@ -381,11 +384,11 @@ class PathTimeRelativePositionRequest(_message.Message):
     INCIDENT_ANGLE_FIELD_NUMBER: ClassVar[int]
     TIME_ALONG_PATH_FIELD_NUMBER: ClassVar[int]
     TIME_TO_PATH_FIELD_NUMBER: ClassVar[int]
-    agent_tags: _containers.RepeatedScalarFieldContainer[SpecialAgentTag]
+    agent_tags: _containers.RepeatedScalarFieldContainer[str]
     incident_angle: _pd_distributions_pb2.ContinousUniformDistribution
     time_along_path: _pd_distributions_pb2.ContinousUniformDistribution
     time_to_path: _pd_distributions_pb2.ContinousUniformDistribution
-    def __init__(self, agent_tags: Optional[Iterable[Union[SpecialAgentTag, str]]] = ..., time_to_path: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., time_along_path: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., incident_angle: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ...) -> None: ...
+    def __init__(self, agent_tags: Optional[Iterable[str]] = ..., time_to_path: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., time_along_path: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., incident_angle: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ...) -> None: ...
 
 class PedestrianGeneratorParameters(_message.Message):
     __slots__ = ["ped_spawn_data", "position_request"]
@@ -498,12 +501,14 @@ class SignalLightDistribution(_message.Message):
     def __init__(self, green: Optional[float] = ..., red: Optional[float] = ..., yellow: Optional[float] = ...) -> None: ...
 
 class StaticAgentGeneratorParameters(_message.Message):
-    __slots__ = ["model", "position_request"]
+    __slots__ = ["agent_spawn_data", "model", "position_request"]
+    AGENT_SPAWN_DATA_FIELD_NUMBER: ClassVar[int]
     MODEL_FIELD_NUMBER: ClassVar[int]
     POSITION_REQUEST_FIELD_NUMBER: ClassVar[int]
+    agent_spawn_data: AgentSpawnData
     model: str
     position_request: PositionRequest
-    def __init__(self, position_request: Optional[Union[PositionRequest, Mapping]] = ..., model: Optional[str] = ...) -> None: ...
+    def __init__(self, position_request: Optional[Union[PositionRequest, Mapping]] = ..., model: Optional[str] = ..., agent_spawn_data: Optional[Union[AgentSpawnData, Mapping]] = ...) -> None: ...
 
 class TrafficGeneratorParameters(_message.Message):
     __slots__ = ["position_request", "spawn_probability", "start_separation_time_map", "target_separation_time_map", "vehicle_distribution", "vehicle_spawn_data"]
@@ -565,7 +570,7 @@ class UnifiedGeneratorParameters(_message.Message):
     def __init__(self, atomics: Optional[Iterable[Union[AtomicGeneratorParameters, Mapping]]] = ..., use_merge_batches: bool = ..., default_params: Optional[Union[DefaultAtomicGeneratorParameters, Mapping]] = ..., environment_params: Optional[Union[EnvironmentParameters, Mapping]] = ...) -> None: ...
 
 class VehicleBehavior(_message.Message):
-    __slots__ = ["enable_dynamic_lane_selection", "ignore_obstacle_types", "ignore_speed_limit", "lane_change_cooldown", "lane_change_probability", "lane_drift_amplitude", "lane_drift_scale", "lane_offset", "start_gear", "start_separation_time", "start_speed", "target_separation_time", "target_speed", "vehicle_aggression"]
+    __slots__ = ["enable_dynamic_lane_selection", "ignore_obstacle_types", "ignore_speed_limit", "lane_change_cooldown", "lane_change_probability", "lane_drift_amplitude", "lane_drift_scale", "lane_offset", "parking_scenario_goal", "parking_scenario_time", "start_gear", "start_separation_time", "start_speed", "target_separation_time", "target_speed", "vehicle_aggression"]
     ENABLE_DYNAMIC_LANE_SELECTION_FIELD_NUMBER: ClassVar[int]
     IGNORE_OBSTACLE_TYPES_FIELD_NUMBER: ClassVar[int]
     IGNORE_SPEED_LIMIT_FIELD_NUMBER: ClassVar[int]
@@ -574,6 +579,8 @@ class VehicleBehavior(_message.Message):
     LANE_DRIFT_AMPLITUDE_FIELD_NUMBER: ClassVar[int]
     LANE_DRIFT_SCALE_FIELD_NUMBER: ClassVar[int]
     LANE_OFFSET_FIELD_NUMBER: ClassVar[int]
+    PARKING_SCENARIO_GOAL_FIELD_NUMBER: ClassVar[int]
+    PARKING_SCENARIO_TIME_FIELD_NUMBER: ClassVar[int]
     START_GEAR_FIELD_NUMBER: ClassVar[int]
     START_SEPARATION_TIME_FIELD_NUMBER: ClassVar[int]
     START_SPEED_FIELD_NUMBER: ClassVar[int]
@@ -588,13 +595,15 @@ class VehicleBehavior(_message.Message):
     lane_drift_amplitude: _pd_distributions_pb2.ContinousUniformDistribution
     lane_drift_scale: _pd_distributions_pb2.ContinousUniformDistribution
     lane_offset: _pd_distributions_pb2.ContinousUniformDistribution
+    parking_scenario_goal: PositionRequest
+    parking_scenario_time: _pd_distributions_pb2.ContinousUniformDistribution
     start_gear: Gear
     start_separation_time: _pd_distributions_pb2.ContinousUniformDistribution
     start_speed: _pd_distributions_pb2.ContinousUniformDistribution
     target_separation_time: _pd_distributions_pb2.ContinousUniformDistribution
     target_speed: _pd_distributions_pb2.ContinousUniformDistribution
     vehicle_aggression: _pd_distributions_pb2.ContinousUniformDistribution
-    def __init__(self, start_speed: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., target_speed: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., ignore_speed_limit: bool = ..., lane_offset: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., lane_drift_scale: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., lane_drift_amplitude: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., lane_change_probability: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., lane_change_cooldown: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., enable_dynamic_lane_selection: bool = ..., start_gear: Optional[Union[Gear, str]] = ..., start_separation_time: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., target_separation_time: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., vehicle_aggression: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., ignore_obstacle_types: Optional[Iterable[Union[ObstacleType, str]]] = ...) -> None: ...
+    def __init__(self, start_speed: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., target_speed: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., ignore_speed_limit: bool = ..., lane_offset: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., lane_drift_scale: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., lane_drift_amplitude: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., lane_change_probability: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., lane_change_cooldown: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., enable_dynamic_lane_selection: bool = ..., start_gear: Optional[Union[Gear, str]] = ..., start_separation_time: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., target_separation_time: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., vehicle_aggression: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., ignore_obstacle_types: Optional[Iterable[Union[ObstacleType, str]]] = ..., parking_scenario_goal: Optional[Union[PositionRequest, Mapping]] = ..., parking_scenario_time: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ...) -> None: ...
 
 class VehicleGeneratorParameters(_message.Message):
     __slots__ = ["model", "position_request", "vehicle_spawn_data"]

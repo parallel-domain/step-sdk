@@ -53,6 +53,9 @@ class Bucket(ProtoMessageClass):
     def string_value(self, value: str):
         self.proto.string_value = value
 
+    def _update_proto_references(self, proto: pd_distributions_pb2.Bucket):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_distributions_pb2.CategoricalDistribution)
 class CategoricalDistribution(ProtoMessageClass):
     _proto_message = pd_distributions_pb2.CategoricalDistribution
@@ -61,7 +64,7 @@ class CategoricalDistribution(ProtoMessageClass):
         if proto is None:
             proto = pd_distributions_pb2.CategoricalDistribution()
         self.proto = proto
-        self._buckets = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.buckets], attr_name='buckets', list_owner=proto)
+        self._buckets = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.buckets], attr_name='buckets', list_owner=self)
         if buckets is not None:
             self.buckets = buckets
 
@@ -74,6 +77,11 @@ class CategoricalDistribution(ProtoMessageClass):
         self._buckets.clear()
         for v in value:
             self._buckets.append(v)
+
+    def _update_proto_references(self, proto: pd_distributions_pb2.CategoricalDistribution):
+        self.proto = proto
+        for i, v in enumerate(self.buckets):
+            v._update_proto_references(self.proto.buckets[i])
 
 @register_wrapper(proto_type=pd_distributions_pb2.ConstantDistribution)
 class ConstantDistribution(ProtoMessageClass):
@@ -114,6 +122,9 @@ class ConstantDistribution(ProtoMessageClass):
     def string_value(self, value: str):
         self.proto.string_value = value
 
+    def _update_proto_references(self, proto: pd_distributions_pb2.ConstantDistribution):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_distributions_pb2.ContinousUniformDistribution)
 class ContinousUniformDistribution(ProtoMessageClass):
     _proto_message = pd_distributions_pb2.ContinousUniformDistribution
@@ -143,6 +154,9 @@ class ContinousUniformDistribution(ProtoMessageClass):
     def min(self, value: float):
         self.proto.min = value
 
+    def _update_proto_references(self, proto: pd_distributions_pb2.ContinousUniformDistribution):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_distributions_pb2.DiscreteUniformDistribution)
 class DiscreteUniformDistribution(ProtoMessageClass):
     _proto_message = pd_distributions_pb2.DiscreteUniformDistribution
@@ -151,7 +165,7 @@ class DiscreteUniformDistribution(ProtoMessageClass):
         if proto is None:
             proto = pd_distributions_pb2.DiscreteUniformDistribution()
         self.proto = proto
-        self._buckets = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.buckets], attr_name='buckets', list_owner=proto)
+        self._buckets = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.buckets], attr_name='buckets', list_owner=self)
         if buckets is not None:
             self.buckets = buckets
 
@@ -164,6 +178,11 @@ class DiscreteUniformDistribution(ProtoMessageClass):
         self._buckets.clear()
         for v in value:
             self._buckets.append(v)
+
+    def _update_proto_references(self, proto: pd_distributions_pb2.DiscreteUniformDistribution):
+        self.proto = proto
+        for i, v in enumerate(self.buckets):
+            v._update_proto_references(self.proto.buckets[i])
 
 @register_wrapper(proto_type=pd_distributions_pb2.Distribution)
 class Distribution(ProtoMessageClass):
@@ -198,7 +217,10 @@ class Distribution(ProtoMessageClass):
 
     @categorical.setter
     def categorical(self, value: CategoricalDistribution):
-        self._categorical.proto.CopyFrom(value.proto)
+        self.proto.categorical.CopyFrom(value.proto)
+        
+        self._categorical = value
+        self._categorical._update_proto_references(self.proto.categorical)
 
     @property
     def constant(self) -> ConstantDistribution:
@@ -206,7 +228,10 @@ class Distribution(ProtoMessageClass):
 
     @constant.setter
     def constant(self, value: ConstantDistribution):
-        self._constant.proto.CopyFrom(value.proto)
+        self.proto.constant.CopyFrom(value.proto)
+        
+        self._constant = value
+        self._constant._update_proto_references(self.proto.constant)
 
     @property
     def normal(self) -> NormalDistribution:
@@ -214,7 +239,10 @@ class Distribution(ProtoMessageClass):
 
     @normal.setter
     def normal(self, value: NormalDistribution):
-        self._normal.proto.CopyFrom(value.proto)
+        self.proto.normal.CopyFrom(value.proto)
+        
+        self._normal = value
+        self._normal._update_proto_references(self.proto.normal)
 
     @property
     def truncated_normal(self) -> TrucatedNormalDistribution:
@@ -222,7 +250,10 @@ class Distribution(ProtoMessageClass):
 
     @truncated_normal.setter
     def truncated_normal(self, value: TrucatedNormalDistribution):
-        self._truncated_normal.proto.CopyFrom(value.proto)
+        self.proto.truncated_normal.CopyFrom(value.proto)
+        
+        self._truncated_normal = value
+        self._truncated_normal._update_proto_references(self.proto.truncated_normal)
 
     @property
     def uniform_continous(self) -> ContinousUniformDistribution:
@@ -230,7 +261,10 @@ class Distribution(ProtoMessageClass):
 
     @uniform_continous.setter
     def uniform_continous(self, value: ContinousUniformDistribution):
-        self._uniform_continous.proto.CopyFrom(value.proto)
+        self.proto.uniform_continous.CopyFrom(value.proto)
+        
+        self._uniform_continous = value
+        self._uniform_continous._update_proto_references(self.proto.uniform_continous)
 
     @property
     def uniform_discrete(self) -> DiscreteUniformDistribution:
@@ -238,7 +272,19 @@ class Distribution(ProtoMessageClass):
 
     @uniform_discrete.setter
     def uniform_discrete(self, value: DiscreteUniformDistribution):
-        self._uniform_discrete.proto.CopyFrom(value.proto)
+        self.proto.uniform_discrete.CopyFrom(value.proto)
+        
+        self._uniform_discrete = value
+        self._uniform_discrete._update_proto_references(self.proto.uniform_discrete)
+
+    def _update_proto_references(self, proto: pd_distributions_pb2.Distribution):
+        self.proto = proto
+        self._categorical._update_proto_references(proto.categorical)
+        self._constant._update_proto_references(proto.constant)
+        self._normal._update_proto_references(proto.normal)
+        self._truncated_normal._update_proto_references(proto.truncated_normal)
+        self._uniform_continous._update_proto_references(proto.uniform_continous)
+        self._uniform_discrete._update_proto_references(proto.uniform_discrete)
 
 @register_wrapper(proto_type=pd_distributions_pb2.EnumDistribution)
 class EnumDistribution(ProtoMessageClass):
@@ -248,7 +294,7 @@ class EnumDistribution(ProtoMessageClass):
         if proto is None:
             proto = pd_distributions_pb2.EnumDistribution()
         self.proto = proto
-        self._probabilities = ProtoDictWrapper(container={k: float(v) for (k, v) in proto.probabilities.items()}, attr_name='probabilities', dict_owner=proto)
+        self._probabilities = ProtoDictWrapper(container={k: float(v) for (k, v) in proto.probabilities.items()}, attr_name='probabilities', dict_owner=self)
         if probabilities is not None:
             self.probabilities = probabilities
 
@@ -260,6 +306,9 @@ class EnumDistribution(ProtoMessageClass):
     def probabilities(self, value: Dict[str, float]):
         self._probabilities.clear()
         self._probabilities.update(value)
+
+    def _update_proto_references(self, proto: pd_distributions_pb2.EnumDistribution):
+        self.proto = proto
 
 @register_wrapper(proto_type=pd_distributions_pb2.NormalDistribution)
 class NormalDistribution(ProtoMessageClass):
@@ -289,6 +338,9 @@ class NormalDistribution(ProtoMessageClass):
     @variance.setter
     def variance(self, value: float):
         self.proto.variance = value
+
+    def _update_proto_references(self, proto: pd_distributions_pb2.NormalDistribution):
+        self.proto = proto
 
 @register_wrapper(proto_type=pd_distributions_pb2.TrucatedNormalDistribution)
 class TrucatedNormalDistribution(ProtoMessageClass):
@@ -339,6 +391,9 @@ class TrucatedNormalDistribution(ProtoMessageClass):
     def variance(self, value: float):
         self.proto.variance = value
 
+    def _update_proto_references(self, proto: pd_distributions_pb2.TrucatedNormalDistribution):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_distributions_pb2.VehicleCategoryWeight)
 class VehicleCategoryWeight(ProtoMessageClass):
     _proto_message = pd_distributions_pb2.VehicleCategoryWeight
@@ -347,7 +402,7 @@ class VehicleCategoryWeight(ProtoMessageClass):
         if proto is None:
             proto = pd_distributions_pb2.VehicleCategoryWeight()
         self.proto = proto
-        self._model_weights = ProtoDictWrapper(container={k: float(v) for (k, v) in proto.model_weights.items()}, attr_name='model_weights', dict_owner=proto)
+        self._model_weights = ProtoDictWrapper(container={k: float(v) for (k, v) in proto.model_weights.items()}, attr_name='model_weights', dict_owner=self)
         if model_weights is not None:
             self.model_weights = model_weights
         if weight is not None:
@@ -369,3 +424,6 @@ class VehicleCategoryWeight(ProtoMessageClass):
     @weight.setter
     def weight(self, value: float):
         self.proto.weight = value
+
+    def _update_proto_references(self, proto: pd_distributions_pb2.VehicleCategoryWeight):
+        self.proto = proto

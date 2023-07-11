@@ -48,6 +48,7 @@ class Area(_message.Message):
     UNCLASSIFIED: Area.AreaType
     USER_DATA_FIELD_NUMBER: ClassVar[int]
     WATER: Area.AreaType
+    YARD: Area.AreaType
     ZONE_BROWN: Area.AreaType
     ZONE_COMMERCIAL: Area.AreaType
     ZONE_GREEN: Area.AreaType

@@ -50,6 +50,7 @@ def test_deserialize_sample_states(resources):
         base_path / '20221114-SJ_237AndGreatAmerica_1.pd',
         base_path / '20230322-SF_6thAndMission_medium_1.pd',
         base_path / '20230503-SJ_237AndZanker_1.pd',
+        base_path / '20230604-SF_6thAndMission_medium_1.pd',
     ]
     for state_file_path in sample_state_files_path:
         with open(state_file_path, "rb") as f:
@@ -279,6 +280,22 @@ class TestSerializeNoiseParams:
         assert helpers.fisclose(result.fstop, 0.84)
         assert helpers.fisclose(result.max_exposure_time, 0.85)
         assert helpers.fisclose(result.quantum_efficiency, 0.86)
+
+    def test_serdes_enums_as_int(self, builder, helpers):
+        noise_params = NoiseParams(
+            denoise_filter=2,
+        )
+
+        # FB struct must be part of parent table
+        CameraConfigFB.CameraConfigFBStart(builder)
+        CameraConfigFB.CameraConfigFBAddNoiseParams(builder, SerializeNoiseParams.serialize(builder, noise_params))
+        builder.Finish(CameraConfigFB.CameraConfigFBEnd(builder))
+        fb_camera = CameraConfigFB.CameraConfigFB.GetRootAsCameraConfigFB(builder.Output(), 0)
+        fb = fb_camera.NoiseParams()
+        result = SerializeNoiseParams.deserialize(fb)
+
+        assert result
+        assert result.denoise_filter == DenoiseFilter.FastMedianFilter
 
 
 class TestSerializeDistortionParams:
@@ -755,6 +772,17 @@ class TestSerializePhaseBulbValue:
         assert helpers.fisclose(result.green, 1.3)
         assert result.logical_state == PhaseBulbLogicalState.RedFlashing
 
+    def test_serdes_enums_as_int(self, builder, helpers):
+        bulb = PhaseBulbValue(
+            logical_state=6
+        )
+        builder.Finish(SerializePhaseBulbValue.serialize(builder, bulb))
+        fb = PhaseBulbValuesFB.PhaseBulbValuesFB.GetRootAsPhaseBulbValuesFB(builder.Output(), 0)
+        result = SerializePhaseBulbValue.deserialize(fb)
+
+        assert result
+        assert result.logical_state == PhaseBulbLogicalState.GreenFlashing
+
     def test_deserialize_default(self, builder, helpers):
         PhaseBulbValuesFB.PhaseBulbValuesFBStart(builder)
         builder.Finish(PhaseBulbValuesFB.PhaseBulbValuesFBEnd(builder))
@@ -1052,6 +1080,21 @@ class TestSerializeAgent:
         assert result.indicator_state == VehicleIndicatorState.Hazards
         assert not result.is_parked
 
+    def test_serdes_vehicle_agent_enums_as_int(self, builder, helpers):
+        vehicle_agent = VehicleAgent(
+            id=22,
+            pose=Pose6D.from_translation(0.1, 0.2, 0.3),
+            velocity=(3.1, 3.2, 3.3),
+            vehicle_type='test vehicle',
+            indicator_state=2,
+        )
+        builder.Finish(SerializeAgent.serialize(builder, vehicle_agent))
+        fb = AgentStateFB.AgentStateFB.GetRootAsAgentStateFB(builder.Output(), 0)
+        result = SerializeAgent.deserialize(fb)
+
+        assert result
+        assert result.indicator_state == VehicleIndicatorState.Right
+
     def test_serdes_sensor_agent(self, builder, helpers):
         sensor_agent = SensorAgent(
             id=33,
@@ -1265,6 +1308,32 @@ class TestSerializeAgent:
         decorations = object_decorations.decorations.get(13, None)
         assert isinstance(decorations, ParkingSpaceDecal)
         assert decorations.decal_preset == "test decal preset"
+
+    def test_serdes_world_agent_enums_as_int(self, builder, helpers):
+        world_agent = WorldAgent(
+            id=1,
+            parking_config=ParkingConfig(
+                angle=0,
+                delineation_color=(0, 0, 0),
+                delineation_wear_amount=0,
+                parking_space_tint=(0, 0, 0),
+                parking_space_grunge_amount=0,
+                lot_parking_delineation_type=4,
+                street_parking_delineation_type=5,
+                street_parking_angle_zero_override=5,
+                parking_space_material=6
+            ),
+        )
+        builder.Finish(SerializeAgent.serialize(builder, world_agent))
+        fb = AgentStateFB.AgentStateFB.GetRootAsAgentStateFB(builder.Output(), 0)
+        result = SerializeAgent.deserialize(fb)
+
+        assert result
+        assert isinstance(result, WorldAgent)
+        assert result.parking_config.lot_parking_delineation_type == LotParkingDelineationType.DoubleRound
+        assert result.parking_config.street_parking_delineation_type == StreetParkingDelineationType.DoubleRound
+        assert result.parking_config.street_parking_angle_zero_override == StreetParkingAngleZeroOverride.DoubleRound
+        assert result.parking_config.parking_space_material == ParkingSpaceMaterial.MI_ParkingTiles_CobbleStone_02
 
     def test_deserialize_default(self, builder):
         AgentStateFB.AgentStateFBStart(builder)
@@ -1696,6 +1765,26 @@ class TestSerializeObjectDecorationsInfo:
         assert helpers.fisclose(decorations.color_rgb[1], 6.7)
         assert helpers.fisclose(decorations.color_rgb[2], 7.8)
         assert helpers.fisclose(decorations.wear, 0.84)
+
+    def test_serdes_enums_as_int(self, builder, helpers):
+        object_decorations_info = SerializeObjectDecorationsInfo.ObjectDecorationsInfoData(
+            object_decorations={
+                10756: ObjectDecorations(
+                    type=0,
+                    object_id=56,
+                    decorations={}
+                ),
+            }
+        )
+        builder.Finish(SerializeObjectDecorationsInfo.serialize(builder, object_decorations_info))
+        fb = ObjectDecorationsInfoFB.ObjectDecorationsInfoFB.GetRootAsObjectDecorationsInfoFB(builder.Output(), 0)
+        result = SerializeObjectDecorationsInfo.deserialize(fb)
+
+        assert result
+        assert result.object_decorations
+        object_decorations = result.object_decorations.get(10756, None)
+        assert object_decorations
+        assert object_decorations.type == DecorationObjectType.Lane
 
     def test_deserialize_default(self, builder, helpers):
         ObjectDecorationsInfoFB.ObjectDecorationsInfoFBStart(builder)

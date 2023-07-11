@@ -216,7 +216,7 @@ message Area
         ZONE_WATER			    = 27;
         SPEEDBUMP               = 28;
         CONSTRUCTION            = 30;
-        // etc...
+        YARD					= 31;
     }
 
     required uint64     id          = 1;

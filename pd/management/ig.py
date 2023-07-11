@@ -61,11 +61,17 @@ class Ig:
     ig_url: Optional[str]
     """Address of the Step IG server instance in the form ``protocol://host:port``"""
 
+    le_url: Optional[str]
+    """Address of the Step Label Engine server instance in the form ``protocol://host:port``"""
+
     sim_version: Optional[str]
     """Version of the Step Sim server instance"""
 
     ig_version: str
     """Version of the Step IG server instance"""
+
+    le_version: Optional[str]
+    """Version of the Step Label Engine server instance"""
 
     created_at: datetime
     """Creation time for the Step server instance"""
@@ -99,6 +105,7 @@ class Ig:
     def create(cls: Type[T],
                sim_version: Optional[str] = None,
                ig_version: Optional[str] = None,
+               le_version: Optional[str] = None,
                quality: IgQuality = IgQuality.High,
                levelpaks: Optional[Dict[str, str]] = None,
                ttl: Optional[int] = None) -> T:
@@ -108,6 +115,7 @@ class Ig:
         Args:
             sim_version: Sim version
             ig_version: Ig version
+            ig_version: Label Engine version
             quality: Ig quality
             levelpaks: :obj:`dict` specifying versions of Levelpaks that will be available in the Ig.
                        Only the Levelpaks specified will be available.
@@ -115,7 +123,7 @@ class Ig:
                        the Levelpak version.
             ttl: Time-to-live in seconds. After this time the Ig will automatically be shutdown.
                  This time begins when Ig moves to the Running state.
-                 If ttl is not specified, a ttl of 24-hours will be set by default.
+                 If ttl is not specified, a ttl of 4-hours will be set by default.
 
         Returns:
             The created Ig
@@ -127,6 +135,8 @@ class Ig:
             data['sim_version'] = sim_version
         if ig_version:
             data['ig_version'] = ig_version
+        if le_version:
+            data['le_version'] = le_version
         data['levelpak'] = levelpaks or {}
         if ttl:
             data['ttl'] = ttl

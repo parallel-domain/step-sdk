@@ -25,7 +25,10 @@ class AABB(ProtoMessageClass):
 
     @max.setter
     def max(self, value: Point_ENU):
-        self._max.proto.CopyFrom(value.proto)
+        self.proto.max.CopyFrom(value.proto)
+        
+        self._max = value
+        self._max._update_proto_references(self.proto.max)
 
     @property
     def min(self) -> Point_ENU:
@@ -33,7 +36,15 @@ class AABB(ProtoMessageClass):
 
     @min.setter
     def min(self, value: Point_ENU):
-        self._min.proto.CopyFrom(value.proto)
+        self.proto.min.CopyFrom(value.proto)
+        
+        self._min = value
+        self._min._update_proto_references(self.proto.min)
+
+    def _update_proto_references(self, proto: UMD_pb2.AABB):
+        self.proto = proto
+        self._max._update_proto_references(proto.max)
+        self._min._update_proto_references(proto.min)
 
 @register_wrapper(proto_type=UMD_pb2.Area)
 class Area(ProtoMessageClass):
@@ -61,6 +72,7 @@ class Area(ProtoMessageClass):
         POWER: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.POWER
         RAIL: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.RAIL
         SPEEDBUMP: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.SPEEDBUMP
+        YARD: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.YARD
         ZONE_BROWN: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.ZONE_BROWN
         ZONE_COMMERCIAL: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.ZONE_COMMERCIAL
         ZONE_GREEN: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.ZONE_GREEN
@@ -74,7 +86,7 @@ class Area(ProtoMessageClass):
         if proto is None:
             proto = UMD_pb2.Area()
         self.proto = proto
-        self._edges = ProtoListWrapper(container=[int(v) for v in proto.edges], attr_name='edges', list_owner=proto)
+        self._edges = ProtoListWrapper(container=[int(v) for v in proto.edges], attr_name='edges', list_owner=self)
         if edges is not None:
             self.edges = edges
         if floors is not None:
@@ -138,6 +150,9 @@ class Area(ProtoMessageClass):
     def user_data(self, value: str):
         self.proto.user_data = value
 
+    def _update_proto_references(self, proto: UMD_pb2.Area):
+        self.proto = proto
+
 @register_wrapper(proto_type=UMD_pb2.Edge)
 class Edge(ProtoMessageClass):
     _proto_message = UMD_pb2.Edge
@@ -146,7 +161,7 @@ class Edge(ProtoMessageClass):
         if proto is None:
             proto = UMD_pb2.Edge()
         self.proto = proto
-        self._points = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.points], attr_name='points', list_owner=proto)
+        self._points = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.points], attr_name='points', list_owner=self)
         if id is not None:
             self.id = id
         if open is not None:
@@ -190,6 +205,11 @@ class Edge(ProtoMessageClass):
     def user_data(self, value: str):
         self.proto.user_data = value
 
+    def _update_proto_references(self, proto: UMD_pb2.Edge):
+        self.proto = proto
+        for i, v in enumerate(self.points):
+            v._update_proto_references(self.proto.points[i])
+
 @register_wrapper(proto_type=UMD_pb2.Info)
 class Info(ProtoMessageClass):
     _proto_message = UMD_pb2.Info
@@ -228,7 +248,14 @@ class Info(ProtoMessageClass):
 
     @origin.setter
     def origin(self, value: Point_LLA):
-        self._origin.proto.CopyFrom(value.proto)
+        self.proto.origin.CopyFrom(value.proto)
+        
+        self._origin = value
+        self._origin._update_proto_references(self.proto.origin)
+
+    def _update_proto_references(self, proto: UMD_pb2.Info):
+        self.proto = proto
+        self._origin._update_proto_references(proto.origin)
 
 @register_wrapper(proto_type=UMD_pb2.Junction)
 class Junction(ProtoMessageClass):
@@ -238,10 +265,10 @@ class Junction(ProtoMessageClass):
         if proto is None:
             proto = UMD_pb2.Junction()
         self.proto = proto
-        self._corners = ProtoListWrapper(container=[int(v) for v in proto.corners], attr_name='corners', list_owner=proto)
-        self._crosswalk_lanes = ProtoListWrapper(container=[int(v) for v in proto.crosswalk_lanes], attr_name='crosswalk_lanes', list_owner=proto)
-        self._lane_segments = ProtoListWrapper(container=[int(v) for v in proto.lane_segments], attr_name='lane_segments', list_owner=proto)
-        self._road_segments = ProtoListWrapper(container=[int(v) for v in proto.road_segments], attr_name='road_segments', list_owner=proto)
+        self._corners = ProtoListWrapper(container=[int(v) for v in proto.corners], attr_name='corners', list_owner=self)
+        self._crosswalk_lanes = ProtoListWrapper(container=[int(v) for v in proto.crosswalk_lanes], attr_name='crosswalk_lanes', list_owner=self)
+        self._lane_segments = ProtoListWrapper(container=[int(v) for v in proto.lane_segments], attr_name='lane_segments', list_owner=self)
+        self._road_segments = ProtoListWrapper(container=[int(v) for v in proto.road_segments], attr_name='road_segments', list_owner=self)
         if corners is not None:
             self.corners = corners
         if crosswalk_lanes is not None:
@@ -331,6 +358,9 @@ class Junction(ProtoMessageClass):
     def user_data(self, value: str):
         self.proto.user_data = value
 
+    def _update_proto_references(self, proto: UMD_pb2.Junction):
+        self.proto = proto
+
 @register_wrapper(proto_type=UMD_pb2.LaneSegment)
 class LaneSegment(ProtoMessageClass):
 
@@ -369,8 +399,8 @@ class LaneSegment(ProtoMessageClass):
         if proto is None:
             proto = UMD_pb2.LaneSegment()
         self.proto = proto
-        self._predecessors = ProtoListWrapper(container=[int(v) for v in proto.predecessors], attr_name='predecessors', list_owner=proto)
-        self._successors = ProtoListWrapper(container=[int(v) for v in proto.successors], attr_name='successors', list_owner=proto)
+        self._predecessors = ProtoListWrapper(container=[int(v) for v in proto.predecessors], attr_name='predecessors', list_owner=self)
+        self._successors = ProtoListWrapper(container=[int(v) for v in proto.successors], attr_name='successors', list_owner=self)
         if compass_angle is not None:
             self.compass_angle = compass_angle
         if direction is not None:
@@ -526,6 +556,9 @@ class LaneSegment(ProtoMessageClass):
     def user_data(self, value: str):
         self.proto.user_data = value
 
+    def _update_proto_references(self, proto: UMD_pb2.LaneSegment):
+        self.proto = proto
+
 @register_wrapper(proto_type=UMD_pb2.Object)
 class Object(ProtoMessageClass):
     _proto_message = UMD_pb2.Object
@@ -565,7 +598,10 @@ class Object(ProtoMessageClass):
 
     @bounding_box.setter
     def bounding_box(self, value: AABB):
-        self._bounding_box.proto.CopyFrom(value.proto)
+        self.proto.bounding_box.CopyFrom(value.proto)
+        
+        self._bounding_box = value
+        self._bounding_box._update_proto_references(self.proto.bounding_box)
 
     @property
     def exclusion_radius(self) -> float:
@@ -589,7 +625,10 @@ class Object(ProtoMessageClass):
 
     @orientation.setter
     def orientation(self, value: Quaternion):
-        self._orientation.proto.CopyFrom(value.proto)
+        self.proto.orientation.CopyFrom(value.proto)
+        
+        self._orientation = value
+        self._orientation._update_proto_references(self.proto.orientation)
 
     @property
     def origin(self) -> Point_ENU:
@@ -597,7 +636,10 @@ class Object(ProtoMessageClass):
 
     @origin.setter
     def origin(self, value: Point_ENU):
-        self._origin.proto.CopyFrom(value.proto)
+        self.proto.origin.CopyFrom(value.proto)
+        
+        self._origin = value
+        self._origin._update_proto_references(self.proto.origin)
 
     @property
     def prop_data(self) -> PropData:
@@ -605,7 +647,10 @@ class Object(ProtoMessageClass):
 
     @prop_data.setter
     def prop_data(self, value: PropData):
-        self._prop_data.proto.CopyFrom(value.proto)
+        self.proto.prop_data.CopyFrom(value.proto)
+        
+        self._prop_data = value
+        self._prop_data._update_proto_references(self.proto.prop_data)
 
     @property
     def traffic_light_data(self) -> TrafficLightData:
@@ -613,7 +658,10 @@ class Object(ProtoMessageClass):
 
     @traffic_light_data.setter
     def traffic_light_data(self, value: TrafficLightData):
-        self._traffic_light_data.proto.CopyFrom(value.proto)
+        self.proto.traffic_light_data.CopyFrom(value.proto)
+        
+        self._traffic_light_data = value
+        self._traffic_light_data._update_proto_references(self.proto.traffic_light_data)
 
     @property
     def traffic_sign_data(self) -> TrafficSignData:
@@ -621,7 +669,10 @@ class Object(ProtoMessageClass):
 
     @traffic_sign_data.setter
     def traffic_sign_data(self, value: TrafficSignData):
-        self._traffic_sign_data.proto.CopyFrom(value.proto)
+        self.proto.traffic_sign_data.CopyFrom(value.proto)
+        
+        self._traffic_sign_data = value
+        self._traffic_sign_data._update_proto_references(self.proto.traffic_sign_data)
 
     @property
     def user_data(self) -> str:
@@ -631,6 +682,15 @@ class Object(ProtoMessageClass):
     def user_data(self, value: str):
         self.proto.user_data = value
 
+    def _update_proto_references(self, proto: UMD_pb2.Object):
+        self.proto = proto
+        self._bounding_box._update_proto_references(proto.bounding_box)
+        self._orientation._update_proto_references(proto.orientation)
+        self._origin._update_proto_references(proto.origin)
+        self._prop_data._update_proto_references(proto.prop_data)
+        self._traffic_light_data._update_proto_references(proto.traffic_light_data)
+        self._traffic_sign_data._update_proto_references(proto.traffic_sign_data)
+
 @register_wrapper(proto_type=UMD_pb2.Phase)
 class Phase(ProtoMessageClass):
     _proto_message = UMD_pb2.Phase
@@ -639,8 +699,8 @@ class Phase(ProtoMessageClass):
         if proto is None:
             proto = UMD_pb2.Phase()
         self.proto = proto
-        self._controlled_lanes = ProtoListWrapper(container=[int(v) for v in proto.controlled_lanes], attr_name='controlled_lanes', list_owner=proto)
-        self._phase_timing = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.phase_timing], attr_name='phase_timing', list_owner=proto)
+        self._controlled_lanes = ProtoListWrapper(container=[int(v) for v in proto.controlled_lanes], attr_name='controlled_lanes', list_owner=self)
+        self._phase_timing = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.phase_timing], attr_name='phase_timing', list_owner=self)
         if controlled_lanes is not None:
             self.controlled_lanes = controlled_lanes
         if id is not None:
@@ -675,6 +735,11 @@ class Phase(ProtoMessageClass):
         self._phase_timing.clear()
         for v in value:
             self._phase_timing.append(v)
+
+    def _update_proto_references(self, proto: UMD_pb2.Phase):
+        self.proto = proto
+        for i, v in enumerate(self.phase_timing):
+            v._update_proto_references(self.proto.phase_timing[i])
 
 @register_wrapper(proto_type=UMD_pb2.Point_ECEF)
 class Point_ECEF(ProtoMessageClass):
@@ -715,6 +780,9 @@ class Point_ECEF(ProtoMessageClass):
     def z(self, value: float):
         self.proto.z = value
 
+    def _update_proto_references(self, proto: UMD_pb2.Point_ECEF):
+        self.proto = proto
+
 @register_wrapper(proto_type=UMD_pb2.Point_ENU)
 class Point_ENU(ProtoMessageClass):
     _proto_message = UMD_pb2.Point_ENU
@@ -754,6 +822,9 @@ class Point_ENU(ProtoMessageClass):
     def z(self, value: float):
         self.proto.z = value
 
+    def _update_proto_references(self, proto: UMD_pb2.Point_ENU):
+        self.proto = proto
+
 @register_wrapper(proto_type=UMD_pb2.Point_LLA)
 class Point_LLA(ProtoMessageClass):
     _proto_message = UMD_pb2.Point_LLA
@@ -792,6 +863,9 @@ class Point_LLA(ProtoMessageClass):
     @lon.setter
     def lon(self, value: float):
         self.proto.lon = value
+
+    def _update_proto_references(self, proto: UMD_pb2.Point_LLA):
+        self.proto = proto
 
 @register_wrapper(proto_type=UMD_pb2.PropData)
 class PropData(ProtoMessageClass):
@@ -834,6 +908,9 @@ class PropData(ProtoMessageClass):
     @type.setter
     def type(self, value: int):
         self.proto.type = value
+
+    def _update_proto_references(self, proto: UMD_pb2.PropData):
+        self.proto = proto
 
 @register_wrapper(proto_type=UMD_pb2.Quaternion)
 class Quaternion(ProtoMessageClass):
@@ -883,6 +960,9 @@ class Quaternion(ProtoMessageClass):
     @z.setter
     def z(self, value: float):
         self.proto.z = value
+
+    def _update_proto_references(self, proto: UMD_pb2.Quaternion):
+        self.proto = proto
 
 @register_wrapper(proto_type=UMD_pb2.RoadMarking)
 class RoadMarking(ProtoMessageClass):
@@ -991,6 +1071,9 @@ class RoadMarking(ProtoMessageClass):
     def width(self, value: float):
         self.proto.width = value
 
+    def _update_proto_references(self, proto: UMD_pb2.RoadMarking):
+        self.proto = proto
+
 @register_wrapper(proto_type=UMD_pb2.RoadSegment)
 class RoadSegment(ProtoMessageClass):
 
@@ -1024,10 +1107,10 @@ class RoadSegment(ProtoMessageClass):
         if proto is None:
             proto = UMD_pb2.RoadSegment()
         self.proto = proto
-        self._lane_segments = ProtoListWrapper(container=[int(v) for v in proto.lane_segments], attr_name='lane_segments', list_owner=proto)
-        self._predecessors = ProtoListWrapper(container=[int(v) for v in proto.predecessors], attr_name='predecessors', list_owner=proto)
+        self._lane_segments = ProtoListWrapper(container=[int(v) for v in proto.lane_segments], attr_name='lane_segments', list_owner=self)
+        self._predecessors = ProtoListWrapper(container=[int(v) for v in proto.predecessors], attr_name='predecessors', list_owner=self)
         self._speed_limit = get_wrapper(proto_type=proto.speed_limit.__class__)(proto=proto.speed_limit)
-        self._successors = ProtoListWrapper(container=[int(v) for v in proto.successors], attr_name='successors', list_owner=proto)
+        self._successors = ProtoListWrapper(container=[int(v) for v in proto.successors], attr_name='successors', list_owner=self)
         if ground_type is not None:
             self.ground_type = ground_type
         if id is not None:
@@ -1117,7 +1200,10 @@ class RoadSegment(ProtoMessageClass):
 
     @speed_limit.setter
     def speed_limit(self, value: SpeedLimit):
-        self._speed_limit.proto.CopyFrom(value.proto)
+        self.proto.speed_limit.CopyFrom(value.proto)
+        
+        self._speed_limit = value
+        self._speed_limit._update_proto_references(self.proto.speed_limit)
 
     @property
     def successors(self) -> List[int]:
@@ -1144,6 +1230,10 @@ class RoadSegment(ProtoMessageClass):
     @user_data.setter
     def user_data(self, value: str):
         self.proto.user_data = value
+
+    def _update_proto_references(self, proto: UMD_pb2.RoadSegment):
+        self.proto = proto
+        self._speed_limit._update_proto_references(proto.speed_limit)
 
 @register_wrapper(proto_type=UMD_pb2.SignalOnset)
 class SignalOnset(ProtoMessageClass):
@@ -1292,6 +1382,9 @@ class SignalOnset(ProtoMessageClass):
     def yellow_solid(self, value: int):
         self.proto.yellow_solid = value
 
+    def _update_proto_references(self, proto: UMD_pb2.SignalOnset):
+        self.proto = proto
+
 @register_wrapper(proto_type=UMD_pb2.SignaledIntersection)
 class SignaledIntersection(ProtoMessageClass):
     _proto_message = UMD_pb2.SignaledIntersection
@@ -1300,7 +1393,7 @@ class SignaledIntersection(ProtoMessageClass):
         if proto is None:
             proto = UMD_pb2.SignaledIntersection()
         self.proto = proto
-        self._phase_timings = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.phase_timings], attr_name='phase_timings', list_owner=proto)
+        self._phase_timings = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.phase_timings], attr_name='phase_timings', list_owner=self)
         if cycle_time is not None:
             self.cycle_time = cycle_time
         if id is not None:
@@ -1344,6 +1437,11 @@ class SignaledIntersection(ProtoMessageClass):
         for v in value:
             self._phase_timings.append(v)
 
+    def _update_proto_references(self, proto: UMD_pb2.SignaledIntersection):
+        self.proto = proto
+        for i, v in enumerate(self.phase_timings):
+            v._update_proto_references(self.proto.phase_timings[i])
+
 @register_wrapper(proto_type=UMD_pb2.SignedIntersection)
 class SignedIntersection(ProtoMessageClass):
     _proto_message = UMD_pb2.SignedIntersection
@@ -1352,8 +1450,8 @@ class SignedIntersection(ProtoMessageClass):
         if proto is None:
             proto = UMD_pb2.SignedIntersection()
         self.proto = proto
-        self._stop_sign_lane_ids = ProtoListWrapper(container=[int(v) for v in proto.stop_sign_lane_ids], attr_name='stop_sign_lane_ids', list_owner=proto)
-        self._yield_sign_lane_ids = ProtoListWrapper(container=[int(v) for v in proto.yield_sign_lane_ids], attr_name='yield_sign_lane_ids', list_owner=proto)
+        self._stop_sign_lane_ids = ProtoListWrapper(container=[int(v) for v in proto.stop_sign_lane_ids], attr_name='stop_sign_lane_ids', list_owner=self)
+        self._yield_sign_lane_ids = ProtoListWrapper(container=[int(v) for v in proto.yield_sign_lane_ids], attr_name='yield_sign_lane_ids', list_owner=self)
         if id is not None:
             self.id = id
         if junction is not None:
@@ -1399,6 +1497,9 @@ class SignedIntersection(ProtoMessageClass):
         for v in value:
             self._yield_sign_lane_ids.append(v)
 
+    def _update_proto_references(self, proto: UMD_pb2.SignedIntersection):
+        self.proto = proto
+
 @register_wrapper(proto_type=UMD_pb2.SpeedLimit)
 class SpeedLimit(ProtoMessageClass):
 
@@ -1433,6 +1534,9 @@ class SpeedLimit(ProtoMessageClass):
     @units.setter
     def units(self, value: int):
         self.proto.units = value
+
+    def _update_proto_references(self, proto: UMD_pb2.SpeedLimit):
+        self.proto = proto
 
 @register_wrapper(proto_type=UMD_pb2.TrafficLightBulb)
 class TrafficLightBulb(ProtoMessageClass):
@@ -1505,6 +1609,9 @@ class TrafficLightBulb(ProtoMessageClass):
     def shape(self, value: int):
         self.proto.shape = value
 
+    def _update_proto_references(self, proto: UMD_pb2.TrafficLightBulb):
+        self.proto = proto
+
 @register_wrapper(proto_type=UMD_pb2.TrafficLightData)
 class TrafficLightData(ProtoMessageClass):
     _proto_message = UMD_pb2.TrafficLightData
@@ -1513,7 +1620,7 @@ class TrafficLightData(ProtoMessageClass):
         if proto is None:
             proto = UMD_pb2.TrafficLightData()
         self.proto = proto
-        self._bulbs = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.bulbs], attr_name='bulbs', list_owner=proto)
+        self._bulbs = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.bulbs], attr_name='bulbs', list_owner=self)
         if asset_name is not None:
             self.asset_name = asset_name
         if bulbs is not None:
@@ -1546,6 +1653,11 @@ class TrafficLightData(ProtoMessageClass):
     @signaled_intersection_id.setter
     def signaled_intersection_id(self, value: int):
         self.proto.signaled_intersection_id = value
+
+    def _update_proto_references(self, proto: UMD_pb2.TrafficLightData):
+        self.proto = proto
+        for i, v in enumerate(self.bulbs):
+            v._update_proto_references(self.proto.bulbs[i])
 
 @register_wrapper(proto_type=UMD_pb2.TrafficSignData)
 class TrafficSignData(ProtoMessageClass):
@@ -1683,6 +1795,9 @@ class TrafficSignData(ProtoMessageClass):
     def type(self, value: int):
         self.proto.type = value
 
+    def _update_proto_references(self, proto: UMD_pb2.TrafficSignData):
+        self.proto = proto
+
 @register_wrapper(proto_type=UMD_pb2.UniversalMap)
 class UniversalMap(ProtoMessageClass):
     _proto_message = UMD_pb2.UniversalMap
@@ -1691,16 +1806,16 @@ class UniversalMap(ProtoMessageClass):
         if proto is None:
             proto = UMD_pb2.UniversalMap()
         self.proto = proto
-        self._areas = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.areas.items()}, attr_name='areas', dict_owner=proto)
-        self._edges = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.edges.items()}, attr_name='edges', dict_owner=proto)
+        self._areas = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.areas.items()}, attr_name='areas', dict_owner=self)
+        self._edges = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.edges.items()}, attr_name='edges', dict_owner=self)
         self._info = get_wrapper(proto_type=proto.info.__class__)(proto=proto.info)
-        self._junctions = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.junctions.items()}, attr_name='junctions', dict_owner=proto)
-        self._lane_segments = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.lane_segments.items()}, attr_name='lane_segments', dict_owner=proto)
-        self._objects = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.objects.items()}, attr_name='objects', dict_owner=proto)
-        self._road_markings = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.road_markings.items()}, attr_name='road_markings', dict_owner=proto)
-        self._road_segments = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.road_segments.items()}, attr_name='road_segments', dict_owner=proto)
-        self._signaled_intersections = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.signaled_intersections.items()}, attr_name='signaled_intersections', dict_owner=proto)
-        self._signed_intersections = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.signed_intersections.items()}, attr_name='signed_intersections', dict_owner=proto)
+        self._junctions = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.junctions.items()}, attr_name='junctions', dict_owner=self)
+        self._lane_segments = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.lane_segments.items()}, attr_name='lane_segments', dict_owner=self)
+        self._objects = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.objects.items()}, attr_name='objects', dict_owner=self)
+        self._road_markings = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.road_markings.items()}, attr_name='road_markings', dict_owner=self)
+        self._road_segments = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.road_segments.items()}, attr_name='road_segments', dict_owner=self)
+        self._signaled_intersections = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.signaled_intersections.items()}, attr_name='signaled_intersections', dict_owner=self)
+        self._signed_intersections = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.signed_intersections.items()}, attr_name='signed_intersections', dict_owner=self)
         self._zone_grid = get_wrapper(proto_type=proto.zone_grid.__class__)(proto=proto.zone_grid)
         if areas is not None:
             self.areas = areas
@@ -1749,7 +1864,10 @@ class UniversalMap(ProtoMessageClass):
 
     @info.setter
     def info(self, value: Info):
-        self._info.proto.CopyFrom(value.proto)
+        self.proto.info.CopyFrom(value.proto)
+        
+        self._info = value
+        self._info._update_proto_references(self.proto.info)
 
     @property
     def junctions(self) -> Dict[int, Junction]:
@@ -1820,7 +1938,33 @@ class UniversalMap(ProtoMessageClass):
 
     @zone_grid.setter
     def zone_grid(self, value: ZoneGrid):
-        self._zone_grid.proto.CopyFrom(value.proto)
+        self.proto.zone_grid.CopyFrom(value.proto)
+        
+        self._zone_grid = value
+        self._zone_grid._update_proto_references(self.proto.zone_grid)
+
+    def _update_proto_references(self, proto: UMD_pb2.UniversalMap):
+        self.proto = proto
+        for k, v in self.areas.items():
+            v._update_proto_references(self.proto.areas[k])
+        for k, v in self.edges.items():
+            v._update_proto_references(self.proto.edges[k])
+        self._info._update_proto_references(proto.info)
+        for k, v in self.junctions.items():
+            v._update_proto_references(self.proto.junctions[k])
+        for k, v in self.lane_segments.items():
+            v._update_proto_references(self.proto.lane_segments[k])
+        for k, v in self.objects.items():
+            v._update_proto_references(self.proto.objects[k])
+        for k, v in self.road_markings.items():
+            v._update_proto_references(self.proto.road_markings[k])
+        for k, v in self.road_segments.items():
+            v._update_proto_references(self.proto.road_segments[k])
+        for k, v in self.signaled_intersections.items():
+            v._update_proto_references(self.proto.signaled_intersections[k])
+        for k, v in self.signed_intersections.items():
+            v._update_proto_references(self.proto.signed_intersections[k])
+        self._zone_grid._update_proto_references(proto.zone_grid)
 
 @register_wrapper(proto_type=UMD_pb2.ZoneGrid)
 class ZoneGrid(ProtoMessageClass):
@@ -1845,7 +1989,7 @@ class ZoneGrid(ProtoMessageClass):
         self.proto = proto
         self._bound_NE = get_wrapper(proto_type=proto.bound_NE.__class__)(proto=proto.bound_NE)
         self._bound_SW = get_wrapper(proto_type=proto.bound_SW.__class__)(proto=proto.bound_SW)
-        self._points = ProtoListWrapper(container=[int(v) for v in proto.points], attr_name='points', list_owner=proto)
+        self._points = ProtoListWrapper(container=[int(v) for v in proto.points], attr_name='points', list_owner=self)
         if bound_NE is not None:
             self.bound_NE = bound_NE
         if bound_SW is not None:
@@ -1863,7 +2007,10 @@ class ZoneGrid(ProtoMessageClass):
 
     @bound_NE.setter
     def bound_NE(self, value: Point_ENU):
-        self._bound_NE.proto.CopyFrom(value.proto)
+        self.proto.bound_NE.CopyFrom(value.proto)
+        
+        self._bound_NE = value
+        self._bound_NE._update_proto_references(self.proto.bound_NE)
 
     @property
     def bound_SW(self) -> Point_ENU:
@@ -1871,7 +2018,10 @@ class ZoneGrid(ProtoMessageClass):
 
     @bound_SW.setter
     def bound_SW(self, value: Point_ENU):
-        self._bound_SW.proto.CopyFrom(value.proto)
+        self.proto.bound_SW.CopyFrom(value.proto)
+        
+        self._bound_SW = value
+        self._bound_SW._update_proto_references(self.proto.bound_SW)
 
     @property
     def lat_samples(self) -> int:
@@ -1898,3 +2048,8 @@ class ZoneGrid(ProtoMessageClass):
         self._points.clear()
         for v in value:
             self._points.append(v)
+
+    def _update_proto_references(self, proto: UMD_pb2.ZoneGrid):
+        self.proto = proto
+        self._bound_NE._update_proto_references(proto.bound_NE)
+        self._bound_SW._update_proto_references(proto.bound_SW)

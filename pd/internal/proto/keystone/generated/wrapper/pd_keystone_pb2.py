@@ -12,7 +12,7 @@ class KeystoneBuildMessage(ProtoMessageClass):
         if proto is None:
             proto = pd_keystone_pb2.KeystoneBuildMessage()
         self.proto = proto
-        self._stages = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.stages], attr_name='stages', list_owner=proto)
+        self._stages = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.stages], attr_name='stages', list_owner=self)
         if stages is not None:
             self.stages = stages
 
@@ -25,3 +25,8 @@ class KeystoneBuildMessage(ProtoMessageClass):
         self._stages.clear()
         for v in value:
             self._stages.append(v)
+
+    def _update_proto_references(self, proto: pd_keystone_pb2.KeystoneBuildMessage):
+        self.proto = proto
+        for i, v in enumerate(self.stages):
+            v._update_proto_references(self.proto.stages[i])

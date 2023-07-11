@@ -46,6 +46,12 @@ class StepScriptContext:
     May not be set if the script doesn't require Sim
     """
 
+    label_engine: Optional[str]
+    """
+    Address for Label Engine instance
+    May not be set if the script doesn't require Label Engine
+    """
+
     org: Optional[str] = None
     """
     Org name. Only valid when :attr:`internal_dev` is :obj:`False`
@@ -118,7 +124,7 @@ class StepScriptContext:
         return UniversalMap(proto=self.load_umd_map(location_name, location_version))
 
 
-def common_step_options(require_sim=False):
+def common_step_options(require_sim=False, require_label_engine=False):
     """
     Decorator for click commands that adds common options for Step SDK scripts.
 
@@ -144,6 +150,7 @@ def common_step_options(require_sim=False):
 
     Args:
         require_sim: Adds an input for Sim name/address
+        require_label_engine: Adds an input for Label Engine name/address
     """
     # The following callback function is used to capture the unexposed option values
     def _callback(ctx, param, value):
@@ -167,8 +174,10 @@ def common_step_options(require_sim=False):
     def _validate_step_options(option_values: Dict[str, str]) -> StepScriptContext:
         ig = option_values.get('ig', None)
         sim = option_values.get('sim', None) if require_sim else None
+        label_engine = option_values.get('label_engine', None) if require_label_engine else None
         org = option_values.get('org', None)
         api_key = option_values.get('apikey', None)
+        env = option_values.get('env', None)
         client_cert_file = option_values.get('client_cert_file', None)
         if is_server_url(ig):
             internal_dev = True
@@ -176,15 +185,9 @@ def common_step_options(require_sim=False):
                 raise ValueError(
                     f"Since --ig is a url, --sim must also be a url as well."
                 )
-            if org:
+            if label_engine and not is_server_url(label_engine):
                 raise ValueError(
-                    f"--org is not needed when using an Ig server address. "
-                    f"Please remove it."
-                )
-            if api_key:
-                raise ValueError(
-                    f"--apikey is not needed when using an Ig server address. "
-                    f"Please remove it."
+                    f"Since --ig is a url, --label-engine must also be a url as well."
                 )
             local_asset_registry_path = Path(os.environ.get("PD_ROOT", "")) / 'assets' / 'asset_registry.db'
             if not local_asset_registry_path.is_file():
@@ -199,6 +202,10 @@ def common_step_options(require_sim=False):
                 raise ValueError(
                     f"Since --ig is a cloud instance name, --sim must be the same instance name."
                 )
+            if label_engine and label_engine != ig:
+                raise ValueError(
+                    f"Since --ig is a cloud instance name, --label-engine must be the same instance name."
+                )
             if not org:
                 raise ValueError(
                     f"--org is required when connecting to a named Ig server"
@@ -209,11 +216,19 @@ def common_step_options(require_sim=False):
                 )
             pd.management.org = org
             pd.management.api_key = api_key
+            if env:
+                api_urls = {
+                    'prod': pd.management._API_URL_PROD,
+                    'stage': pd.management._API_URL_STAGE,
+                    'dev': pd.management._API_URL_DEV
+                }
+                pd.management.api_url = api_urls[env]
             try:
                 ig_instance = Ig.read(ig)
                 ig_version = ig_instance.ig_version
                 ig = ig_instance.ig_url
                 sim = ig_instance.sim_url
+                label_engine = ig_instance.le_url
             except HTTPError:
                 raise ValueError(
                     f"Couldn't find an Ig by the name '{ig}'. Please check the value passed in '--ig'"
@@ -224,6 +239,7 @@ def common_step_options(require_sim=False):
             internal_dev=internal_dev,
             ig=ig,
             sim=sim,
+            label_engine=label_engine,
             org=org,
             api_key=api_key,
             ig_version=ig_version,
@@ -238,16 +254,27 @@ def common_step_options(require_sim=False):
             help="Name of the IG server or address of IG server's url",
             show_default=True
         ),
-        unexposed_option('--client-cert-file', help="Path to .pem certificate file", type=click.Path(exists=True)),
-        unexposed_option('--org', help="Step Management org name. Required with named IG server."),
-        unexposed_option('--apikey', help="Step Management API key. Required with named IG server."),
+        unexposed_option('--client-cert-file', help="Path to .pem certificate file", type=click.Path(exists=True),
+                         envvar='PD_CLIENT_CREDENTIALS_PATH_ENV'),
+        unexposed_option('--org', help="Step Management org name. Required with named IG server.",
+                         envvar='PD_CLIENT_ORG_ENV'),
+        unexposed_option('--apikey', help="Step Management API key. Required with named IG server.",
+                         envvar='PD_CLIENT_STEP_API_KEY_ENV'),
+        unexposed_option('--env', help="Step Environment", type=click.Choice(['prod', 'stage', 'dev'])),
     ]
     if require_sim:
         _common_step_options.append(
             unexposed_option(
                 '--sim',
-                default='tcp://127.0.0.1:9002',
                 help="Name of the Sim server or address of Sim server's url",
+                show_default=True
+            )
+        )
+    if require_label_engine:
+        _common_step_options.append(
+            unexposed_option(
+                '--label-engine',
+                help="Name of the Label Engine server or address of Label Engine server's url",
                 show_default=True
             )
         )

@@ -50,10 +50,12 @@ from pd.internal.fb.generated.python import (
     pdResponseCode,
     pdRaycastQuery,
     pdRaycastHits,
-    pdFloat3
+    pdFloat3, pdConfigLabelEngine, pdQueryLabelEngineAnnotationStatus, pdReturnLabelEngineAnnotationStatus,
+    pdRequestLabelEngineAnnotationData, pdReturnLabelEngineAnnotationData, pdUpdateLabelEngineAnnotationData
 )
 from pd.internal.fb.generated.python.pdMessageType import pdMessageType
 from pd.internal.fb.generated.python.pdPerformanceFeature import pdPerformanceFeature
+from pd.label_engine import LabelData
 from pd.session.transport import TlsProxyForZmqTransport, ZmqTransport
 from pd.state.sensor import LidarSensorData, SensorBuffer, SensorData
 from pd.state.serialize import state_to_bytes, bytes_to_state
@@ -141,57 +143,79 @@ class PdMessageMixin:
         msg = pdMessage.pdMessageEnd(builder)
         return msg
 
+    @staticmethod
+    def _parse_resp_msg(resp_bytes: bytes) -> pdMessage:
+        resp_bytearray = bytearray()
+        resp_bytearray.extend(resp_bytes)
+        resp_msg = pdMessage.pdMessage.GetRootAspdMessage(resp_bytearray, 0)
+        return resp_msg
+
     @classmethod
-    def _consume_ack(cls, resp_bytes: bytes):
-        ack_bytes = bytearray()
-        ack_bytes.extend(resp_bytes)
-        ack_msg = pdMessage.pdMessage.GetRootAspdMessage(ack_bytes, 0)
-        msg_type = ack_msg.MessageType()
-
-        if msg_type == pdMessageType.pdAck:
-            cls._raise_error_for_ack(ack_msg)
+    def _consume_ack_or_unknown(cls, resp_msg: pdMessage, request_type: int):
+        resp_type = resp_msg.MessageType()
+        if resp_type == pdMessageType.pdAck:
+            ack = pdAck.pdAck()
+            ack.Init(resp_msg.Message().Bytes, resp_msg.Message().Pos)
+            ack_type = ack.MessageType()
+            if request_type != ack_type:
+                raise PdError(
+                    "Server sent an unexpected response. "
+                    f"Expecting Ack for type {request_type} but received Ack for type {ack_type}. "
+                    "Please contact support@paralleldomain.com for support."
+                )
+            response = ack.Response().decode()
+            code = ack.Code()
+            logger.debug(f"Ack response: {response}")
+            if code == pdResponseCode.pdResponseCode.CONFIG_ERROR:
+                raise PdError(
+                    f"Given configuration is invalid. "
+                    f"Reason: {response}"
+                )
+            elif code == pdResponseCode.pdResponseCode.SERVER_ERROR:
+                raise PdError(
+                    f"Server experienced an error. "
+                    f"Reason: {response}"
+                )
+            elif code == pdResponseCode.pdResponseCode.UNHANDLED_MESSAGE_TYPE:
+                raise PdError(
+                    f"Server couldn't handle this request. "
+                    f"Reason: {response}"
+                )
+            elif code != pdResponseCode.pdResponseCode.OK:
+                raise PdError(
+                    f"Error occurred while processing the request. "
+                    f"Reason: {response}"
+                )
         else:
-            cls._raise_error_for_unknown_message()
-
-    @staticmethod
-    def _raise_error_for_ack(ack_msg):
-        ack = pdAck.pdAck()
-        ack.Init(ack_msg.Message().Bytes, ack_msg.Message().Pos)
-        response = ack.Response().decode()
-        code = ack.Code()
-        logger.debug(f"Ack response: {response}")
-        if code == pdResponseCode.pdResponseCode.CONFIG_ERROR:
             raise PdError(
-                f"Given configuration is invalid. "
-                f"Reason: {response}"
-            )
-        elif code == pdResponseCode.pdResponseCode.SERVER_ERROR:
-            raise PdError(
-                f"Server experienced an error. "
-                f"Reason: {response}"
-            )
-        elif code == pdResponseCode.pdResponseCode.UNHANDLED_MESSAGE_TYPE:
-            raise PdError(
-                f"Server couldn't handle this request. "
-                f"Reason: {response}"
-            )
-        elif code != pdResponseCode.pdResponseCode.OK:
-            raise PdError(
-                f"Error occurred while processing the request. "
-                f"Reason: {response}"
+                "Server sent an unexpected response. "
+                "Please contact support@paralleldomain.com for support."
             )
 
     @staticmethod
-    def _raise_error_for_unknown_message():
-        raise PdError(
-            "Server sent an unexpected response. "
-            "Please contact support@paralleldomain.com for support."
-        )
+    def _build_ack_message(builder, message_type:int , response: str, code: int = 0):
+        ack_response_fb = builder.CreateString(response)
+        pdAck.pdAckStart(builder)
+        pdAck.pdAckAddMessageType(builder, message_type)
+        pdAck.pdAckAddResponse(builder, ack_response_fb)
+        pdAck.pdAckAddCode(builder, code)
+        ack_msg = pdAck.pdAckEnd(builder)
+        msg = PdMessageMixin._build_pd_message(builder, ack_msg, pdMessageType.pdAck)
+        return msg
 
 
-class IgSession(PdMessageMixin):
+class BaseSession(PdMessageMixin):
     """
-    Base class for communication with Step IG and Stream IG servers
+    Base class for communication with servers that implement Step API
+
+    This class combines the Zmq transport functionality with the PdMessage format.
+    It also provides context management semantics to derived classes.
+
+    Derived classes should implement one method for each PdMessage call supported by the server.
+    The method should do the following:
+     * Use :class:`PdMessageMixin` helpers to construct a PdMessage
+     * Use the transport to send the message and receive a response
+     * Use :class:`PdMessageMixin` helpers to validate and parse the response
     """
 
     def __init__(self, request_addr: str, state_addr: Optional[str] = None, client_cert_file: Optional[str] = None):
@@ -226,19 +250,39 @@ class IgSession(PdMessageMixin):
             self.transport = TlsProxyForZmqTransport(hostname, port, client_cert_file)
         else:
             self.transport = ZmqTransport(request_addr, state_addr)
+
+    def __enter__(self):
+        self.transport.__enter__()
+        return self
+
+    def __exit__(self, *args):
+        return self.transport.__exit__(*args)
+
+
+class IgSession(BaseSession):
+    """
+    Base class for communication with Step IG and Stream IG servers
+    """
+
+    def __init__(self, request_addr: str, state_addr: Optional[str] = None, client_cert_file: Optional[str] = None):
+        """
+        Args:
+            request_addr: Address for request socket.
+            state_addr: Address for state socket.
+                        If :obj:`None`, uses request socket for :class:`~pd.state.State` messages.
+            client_cert_file: Path to credentials file for SSL/TLS protocol
+        """
+        super().__init__(request_addr=request_addr, state_addr=state_addr, client_cert_file=client_cert_file)
         self.stream_addr = state_addr
         self._system_info = None
 
     def __enter__(self):
-        self.transport.__enter__()
+        super().__enter__()
 
         # Query system info from server
         self._system_info = self._query_system_info()
 
         return self
-
-    def __exit__(self, *args):
-        return self.transport.__exit__(*args)
 
     @property
     def system_info(self) -> SystemInfo:
@@ -270,7 +314,8 @@ class IgSession(PdMessageMixin):
         msg = self._build_pd_location(builder, location_name, time_of_day)
         builder.Finish(msg)
         resp_bytes = self.transport.send_request_msg(builder.Output())
-        self._consume_ack(resp_bytes)
+        resp_msg = self._parse_resp_msg(resp_bytes)
+        self._consume_ack_or_unknown(resp_msg, pdMessageType.pdLoadLocation)
 
     def _update_state(self, state: State, step_mode=False):
         self._update_state_bytes(state_to_bytes(state), step_mode)
@@ -282,7 +327,8 @@ class IgSession(PdMessageMixin):
         self.transport.send_state_msg(builder.Output())
 
         if step_mode:
-            self._consume_ack(self.transport.receive_state_msg())
+            resp_msg = self._parse_resp_msg(self.transport.receive_state_msg())
+            self._consume_ack_or_unknown(resp_msg, pdMessageType.pdUpdateState)
 
     def query_sensor_data(
         self, agent_id: int, sensor_name: str, buffer: SensorBuffer
@@ -304,14 +350,12 @@ class IgSession(PdMessageMixin):
         builder.Finish(msg)
         resp_bytes = self.transport.send_request_msg(builder.Output())
 
-        ack_bytes = bytearray()
-        ack_bytes.extend(resp_bytes)
-        ack_msg = pdMessage.pdMessage.GetRootAspdMessage(ack_bytes, 0)
-        msg_type = ack_msg.MessageType()
+        resp_msg = self._parse_resp_msg(resp_bytes)
+        msg_type = resp_msg.MessageType()
 
         if msg_type == pdMessageType.pdReturnSensorData:
             return_msg = pdReturnSensorData.pdReturnSensorData()
-            return_msg.Init(ack_msg.Message().Bytes, ack_msg.Message().Pos)
+            return_msg.Init(resp_msg.Message().Bytes, resp_msg.Message().Pos)
             width, height = return_msg.Width(), return_msg.Height()
             data = return_msg.DataAsNumpy()
             if width > 0 and height > 0:
@@ -323,7 +367,7 @@ class IgSession(PdMessageMixin):
 
         elif msg_type == pdMessageType.pdReturnLidarSensorData:
             return_msg = pdReturnLidarSensorData.pdReturnLidarSensorData()
-            return_msg.Init(ack_msg.Message().Bytes, ack_msg.Message().Pos)
+            return_msg.Init(resp_msg.Message().Bytes, resp_msg.Message().Pos)
             num_points, point_size = return_msg.NumPoints(), return_msg.PointSize()
 
             data_bytes = return_msg.DataAsNumpy().tobytes()
@@ -335,24 +379,24 @@ class IgSession(PdMessageMixin):
             sensor_data = LidarSensorData(num_points=num_points, data=data)
             return sensor_data
 
-        elif msg_type == pdMessageType.pdAck:
-            self._raise_error_for_ack(ack_msg)
         else:
-            self._raise_error_for_unknown_message()
+            self._consume_ack_or_unknown(resp_msg, pdMessageType.pdQuerySensorData)
 
     def _set_global_params(self, use_zmq, performance_type):
         builder = flatbuffers.Builder(1024)
         msg = self._build_pd_set_global_params(builder, use_zmq, performance_type)
         builder.Finish(msg)
         resp_bytes = self.transport.send_request_msg(builder.Output())
-        self._consume_ack(resp_bytes)
+        resp_msg = self._parse_resp_msg(resp_bytes)
+        self._consume_ack_or_unknown(resp_msg, pdMessageType.pdSetGlobalParams)
 
     def _set_capture_parameters(self, agent_id, sensor_name, frame_rate, bit_rate):
         builder = flatbuffers.Builder(1024)
         msg = self._build_pd_set_capture_parameters(builder, agent_id, sensor_name, frame_rate, bit_rate)
         builder.Finish(msg)
         resp_bytes = self.transport.send_request_msg(builder.Output())
-        self._consume_ack(resp_bytes)
+        resp_msg = self._parse_resp_msg(resp_bytes)
+        self._consume_ack_or_unknown(resp_msg, pdMessageType.pdSetCaptureParameters)
 
     def _enable_state_stream(self):
         """
@@ -362,7 +406,8 @@ class IgSession(PdMessageMixin):
         msg = self._build_pd_enable_state_stream(builder, self.stream_addr)
         builder.Finish(msg)
         resp_bytes = self.transport.send_request_msg(builder.Output())
-        self._consume_ack(resp_bytes)
+        resp_msg = self._parse_resp_msg(resp_bytes)
+        self._consume_ack_or_unknown(resp_msg, pdMessageType.pdEnableStateStream)
 
     def query_runtime_state(self) -> RuntimeState:
         """
@@ -376,14 +421,12 @@ class IgSession(PdMessageMixin):
         builder.Finish(msg)
         resp_bytes = self.transport.send_request_msg(builder.Output())
 
-        ack_bytes = bytearray()
-        ack_bytes.extend(resp_bytes)
-        ack_msg = pdMessage.pdMessage.GetRootAspdMessage(ack_bytes, 0)
-        msg_type = ack_msg.MessageType()
+        resp_msg = self._parse_resp_msg(resp_bytes)
+        msg_type = resp_msg.MessageType()
 
         if msg_type == pdMessageType.pdReturnRuntimeInfo:
             return_msg = pdReturnRuntimeInfo.pdReturnRuntimeInfo()
-            return_msg.Init(ack_msg.Message().Bytes, ack_msg.Message().Pos)
+            return_msg.Init(resp_msg.Message().Bytes, resp_msg.Message().Pos)
             info_type, info = return_msg.InfoType(), return_msg.Info()
             if info_type == pdRuntimeInfo.pdRuntimeInfo.pdIgState:
                 ig_state = pdIgState.pdIgState()
@@ -400,10 +443,8 @@ class IgSession(PdMessageMixin):
                 return lut[ig_state.IgState()]
             else:
                 raise PdError("Invalid response received: unexpected runtime info type")
-        elif msg_type == pdMessageType.pdAck:
-            self._raise_error_for_ack(ack_msg)
         else:
-            self._raise_error_for_unknown_message()
+            self._consume_ack_or_unknown(resp_msg, pdMessageType.pdQueryRuntimeInfo)
 
     def _query_system_info(self) -> SystemInfo:
         builder = flatbuffers.Builder(1024)
@@ -411,14 +452,12 @@ class IgSession(PdMessageMixin):
         builder.Finish(msg)
         resp_bytes = self.transport.send_request_msg(builder.Output())
 
-        ack_bytes = bytearray()
-        ack_bytes.extend(resp_bytes)
-        ack_msg = pdMessage.pdMessage.GetRootAspdMessage(ack_bytes, 0)
-        msg_type = ack_msg.MessageType()
+        resp_msg = self._parse_resp_msg(resp_bytes)
+        msg_type = resp_msg.MessageType()
 
         if msg_type == pdMessageType.pdReturnSystemInfo:
             return_msg = pdReturnSystemInfo.pdReturnSystemInfo()
-            return_msg.Init(ack_msg.Message().Bytes, ack_msg.Message().Pos)
+            return_msg.Init(resp_msg.Message().Bytes, resp_msg.Message().Pos)
             return SystemInfo(
                 version=Version(
                     major=int(return_msg.VersionMajor()),
@@ -427,10 +466,8 @@ class IgSession(PdMessageMixin):
                     build=return_msg.VersionBuild().decode("utf8", "replace"),
                 )
             )
-        elif msg_type == pdMessageType.pdAck:
-            self._raise_error_for_ack(ack_msg)
         else:
-            self._raise_error_for_unknown_message()
+            self._consume_ack_or_unknown(resp_msg, pdMessageType.pdQuerySystemInfo)
 
     @staticmethod
     def _build_pd_location(builder, location_name, time_of_day):
@@ -529,13 +566,6 @@ class StepIgSession(IgSession):
         """
         super().__init__(request_addr=request_addr, client_cert_file=client_cert_file)
 
-    def __enter__(self):
-        super().__enter__()
-        return self
-
-    def __exit__(self, *args):
-        return super().__exit__(*args)
-
     def update_state(self, state: State):
         """
         Send a state update to the Step server
@@ -577,9 +607,6 @@ class StreamIgSession(IgSession):
         self._enable_state_stream()
         return self
 
-    def __exit__(self, *args):
-        return super().__exit__(*args)
-
     def update_state(self, state: State):
         """
         Send a state update to the Stream server
@@ -602,9 +629,9 @@ class StreamIgSession(IgSession):
         self._set_capture_parameters(agent_id, sensor_name, frame_rate, bit_rate)
 
 
-class SimSession(PdMessageMixin):
+class SimSession(BaseSession):
     """
-    Base class for communication with Step and Stream servers
+    Base class for communication with Step Sim servers
     """
 
     def __init__(self, request_addr: str, client_cert_file: Optional[str] = None):
@@ -613,31 +640,7 @@ class SimSession(PdMessageMixin):
             request_addr: Address for request socket.
             client_cert_file: Path to credentials file for SSL/TLS protocol
         """
-        if not request_addr:
-            raise PdError("request_addr is required.")
-        addr_re = re.compile(_SERVER_URL_REGEX)
-        request_addr_match = addr_re.match(request_addr)
-        if not request_addr_match:
-            raise pd.core.errors.PdError(
-                f"Invalid request address provided: {request_addr}. "
-                "Must be of the form tcp://hostname:port or ssl://hostname:port"
-            )
-        if request_addr_match.group("protocol") == "ssl" and not client_cert_file:
-            raise pd.core.errors.PdError("TLS certificate path missing: required when using ssl protocol")
-
-        if request_addr_match.group("protocol") == "ssl":
-            hostname = request_addr_match.group("hostname")
-            port = int(request_addr_match.group("port"))
-            self.transport = TlsProxyForZmqTransport(hostname, port, client_cert_file)
-        else:
-            self.transport = ZmqTransport(request_addr)
-
-    def __enter__(self):
-        self.transport.__enter__()
-        return self
-
-    def __exit__(self, *args):
-        return self.transport.__exit__(*args)
+        super().__init__(request_addr=request_addr, client_cert_file=client_cert_file)
 
     def load_scenario_generation(self, scenario_gen: str, location_index: int = 0) -> Tuple[str, int]:
         """
@@ -655,21 +658,17 @@ class SimSession(PdMessageMixin):
         builder.Finish(msg)
         resp_bytes = self.transport.send_request_msg(builder.Output())
 
-        ack_bytes = bytearray()
-        ack_bytes.extend(resp_bytes)
-        ack_msg = pdMessage.pdMessage.GetRootAspdMessage(ack_bytes, 0)
-        msg_type = ack_msg.MessageType()
+        resp_msg = self._parse_resp_msg(resp_bytes)
+        msg_type = resp_msg.MessageType()
 
         if msg_type == pdMessageType.pdReturnScenarioData:
             return_scenario_msg = pdReturnScenarioData.pdReturnScenarioData()
-            return_scenario_msg.Init(ack_msg.Message().Bytes, ack_msg.Message().Pos)
+            return_scenario_msg.Init(resp_msg.Message().Bytes, resp_msg.Message().Pos)
             location = return_scenario_msg.LocationName().decode()
             ego_id = return_scenario_msg.EgoId()
             return location, ego_id
-        elif msg_type == pdMessageType.pdAck:
-            self._raise_error_for_ack(ack_msg)
         else:
-            self._raise_error_for_unknown_message()
+            self._consume_ack_or_unknown(resp_msg, pdMessageType.pdSubmitScenarioGenConfig)
 
     def query_state_data(self) -> State:
         """
@@ -684,21 +683,17 @@ class SimSession(PdMessageMixin):
         builder.Finish(msg)
         resp_bytes = self.transport.send_request_msg(builder.Output())
 
-        ack_bytes = bytearray()
-        ack_bytes.extend(resp_bytes)
-        ack_msg = pdMessage.pdMessage.GetRootAspdMessage(ack_bytes, 0)
-        msg_type = ack_msg.MessageType()
+        resp_msg = self._parse_resp_msg(resp_bytes)
+        msg_type = resp_msg.MessageType()
 
         if msg_type == pdMessageType.pdReturnStateData:
             return_state_msg = pdReturnStateData.pdReturnStateData()
-            return_state_msg.Init(ack_msg.Message().Bytes, ack_msg.Message().Pos)
+            return_state_msg.Init(resp_msg.Message().Bytes, resp_msg.Message().Pos)
             state_data = return_state_msg.StateDataAsNumpy().tobytes()
 
             return bytes_to_state(state_data)
-        elif msg_type == pdMessageType.pdAck:
-            self._raise_error_for_ack(ack_msg)
         else:
-            self._raise_error_for_unknown_message()
+            self._consume_ack_or_unknown(resp_msg, pdMessageType.pdQueryStateData)
 
     def raycast(self, requests: List[Raycast]) -> List[List[RaycastHit]]:
         """
@@ -724,14 +719,12 @@ class SimSession(PdMessageMixin):
         builder.Finish(msg)
         resp_bytes = self.transport.send_request_msg(builder.Output())
 
-        ack_bytes = bytearray()
-        ack_bytes.extend(resp_bytes)
-        ack_msg = pdMessage.pdMessage.GetRootAspdMessage(ack_bytes, 0)
-        msg_type = ack_msg.MessageType()
+        resp_msg = self._parse_resp_msg(resp_bytes)
+        msg_type = resp_msg.MessageType()
 
         if msg_type == pdMessageType.pdRaycastHits:
             return_msg = pdRaycastHits.pdRaycastHits()
-            return_msg.Init(ack_msg.Message().Bytes, ack_msg.Message().Pos)
+            return_msg.Init(resp_msg.Message().Bytes, resp_msg.Message().Pos)
             hits_for_all_requests = []
             for i in range(return_msg.HitsLength()):
                 hits_for_request = []
@@ -747,10 +740,8 @@ class SimSession(PdMessageMixin):
                     ))
                 hits_for_all_requests.append(hits_for_request)
             return hits_for_all_requests
-        elif msg_type == pdMessageType.pdAck:
-            self._raise_error_for_ack(ack_msg)
         else:
-            self._raise_error_for_unknown_message()
+            self._consume_ack_or_unknown(resp_msg, pdMessageType.pdRaycastQuery)
 
     @staticmethod
     def _build_pd_scenario_generation_configuration(builder, scenario_gen_str: str, location_index: int):
@@ -789,6 +780,163 @@ class SimSession(PdMessageMixin):
         raycast_msg = pdRaycastQuery.pdRaycastQueryEnd(builder)
         return SimSession._build_pd_message(builder, raycast_msg, pdMessageType.pdRaycastQuery)
 
+
+class LabelEngineSession(BaseSession):
+    """
+    Base class for communication with Step Label Engine servers
+    """
+
+    def __init__(self, request_addr: str, client_cert_file: Optional[str] = None):
+        """
+        Args:
+            request_addr: Address for request socket.
+            client_cert_file: Path to credentials file for SSL/TLS protocol
+        """
+        super().__init__(request_addr=request_addr, client_cert_file=client_cert_file)
+
+    def configure(self, config: str):
+        """
+        Configure the label engine with a given pipeline config
+
+        Args:
+            config: String representation of pipeline config JSON
+        """
+        builder = flatbuffers.Builder(1024)
+        msg = self._build_pd_config_label_engine(builder, config)
+        builder.Finish(msg)
+        resp_bytes = self.transport.send_request_msg(builder.Output())
+        resp_msg = self._parse_resp_msg(resp_bytes)
+        self._consume_ack_or_unknown(resp_msg, pdMessageType.pdConfigLabelEngine)
+
+    def query_annotation_status(self, timestamp: str, label: str) -> bool:
+        """
+        Query the status of an annotation data object
+
+        Args:
+            timestamp: Timestamp of the data object
+            label: Name of the data stream
+
+        Returns:
+            :obj:`True` if annotation data is ready, :obj:`False` otherwise
+        """
+        builder = flatbuffers.Builder(1024)
+        msg = self._build_pd_query_annotation_status(builder, timestamp, label)
+        builder.Finish(msg)
+        resp_bytes = self.transport.send_request_msg(builder.Output())
+
+        resp_msg = self._parse_resp_msg(resp_bytes)
+        msg_type = resp_msg.MessageType()
+
+        if msg_type == pdMessageType.pdReturnLabelEngineAnnotationStatus:
+            return_annotation_status_msg = pdReturnLabelEngineAnnotationStatus.pdReturnLabelEngineAnnotationStatus()
+            return_annotation_status_msg.Init(resp_msg.Message().Bytes, resp_msg.Message().Pos)
+            return bool(return_annotation_status_msg.Status())
+        else:
+            self._consume_ack_or_unknown(resp_msg, pdMessageType.pdQueryLabelEngineAnnotationStatus)
+
+    def request_annotation_data(self, timestamp: str, label: str) -> List[LabelData]:
+        """
+        Request annotation data for an annotation data object
+
+        Args:
+            timestamp: Timestamp of the data object
+            label: Name of the data stream
+
+        Returns:
+            Label data across all available sensors
+        """
+        builder = flatbuffers.Builder(1024)
+        msg = self._build_pd_request_annotation_data(builder, timestamp, label)
+        builder.Finish(msg)
+        resp_bytes = self.transport.send_request_msg(builder.Output())
+
+        resp_msg = self._parse_resp_msg(resp_bytes)
+        msg_type = resp_msg.MessageType()
+
+        if msg_type == pdMessageType.pdReturnLabelEngineAnnotationData:
+            return_annotation_data_msg = pdReturnLabelEngineAnnotationData.pdReturnLabelEngineAnnotationData()
+            return_annotation_data_msg.Init(resp_msg.Message().Bytes, resp_msg.Message().Pos)
+            label_data = []
+            for i in range(return_annotation_data_msg.LabelDataLength()):
+                label_data_i = return_annotation_data_msg.LabelData(i)
+                label_data_bytes_i = label_data_i.LabelDataAsNumpy().tobytes()
+                label_data.append(
+                    LabelData(
+                        timestamp=timestamp,
+                        label=label,
+                        sensor_name=label_data_i.Sensor().decode(),
+                        data=label_data_bytes_i
+                    )
+                )
+            return label_data
+        else:
+            self._consume_ack_or_unknown(resp_msg, pdMessageType.pdRequestLabelEngineAnnotationData)
+
+    def update_annotation_data(self, timestamp: str, label: str, sensor: str, data_type: int, data: bytes):
+        """
+        Send an annotation data object to the label engine server
+
+        Args:
+            timestamp: Timestamp of the data object
+            label: Name of the data stream
+            sensor: Name of sensor to which the data object belongs
+            data_type: Data object type
+            data: Data as bytes
+        """
+        builder = flatbuffers.Builder(1024)
+        msg = self._build_pd_update_annotation_data(builder, timestamp, label, sensor, data_type, data)
+        builder.Finish(msg)
+        resp_bytes = self.transport.send_request_msg(builder.Output())
+        resp_msg = self._parse_resp_msg(resp_bytes)
+        self._consume_ack_or_unknown(resp_msg, pdMessageType.pdUpdateLabelEngineAnnotationData)
+
+    @staticmethod
+    def _build_pd_config_label_engine(builder, config: str):
+        config_fb = builder.CreateString(config)
+        pdConfigLabelEngine.pdConfigLabelEngineStart(builder)
+        pdConfigLabelEngine.pdConfigLabelEngineAddConfig(builder, config_fb)
+        config_label_engine_msg = pdConfigLabelEngine.pdConfigLabelEngineEnd(builder)
+        return LabelEngineSession._build_pd_message(builder, config_label_engine_msg, pdMessageType.pdConfigLabelEngine)
+
+    @staticmethod
+    def _build_pd_query_annotation_status(builder, timestamp: str, label: str):
+        timestamp_fb = builder.CreateString(timestamp)
+        label_fb = builder.CreateString(label)
+        pdQueryLabelEngineAnnotationStatus.pdQueryLabelEngineAnnotationStatusStart(builder)
+        pdQueryLabelEngineAnnotationStatus.pdQueryLabelEngineAnnotationStatusAddTimestamp(builder, timestamp_fb)
+        pdQueryLabelEngineAnnotationStatus.pdQueryLabelEngineAnnotationStatusAddLabel(builder, label_fb)
+        query_annotation_status_msg = pdQueryLabelEngineAnnotationStatus.pdQueryLabelEngineAnnotationStatusEnd(builder)
+        return LabelEngineSession._build_pd_message(builder, query_annotation_status_msg, pdMessageType.pdQueryLabelEngineAnnotationStatus)
+
+    @staticmethod
+    def _build_pd_request_annotation_data(builder, timestamp: str, label: str):
+        timestamp_fb = builder.CreateString(timestamp)
+        label_fb = builder.CreateString(label)
+        pdRequestLabelEngineAnnotationData.pdRequestLabelEngineAnnotationDataStart(builder)
+        pdRequestLabelEngineAnnotationData.pdRequestLabelEngineAnnotationDataAddTimestamp(builder, timestamp_fb)
+        pdRequestLabelEngineAnnotationData.pdRequestLabelEngineAnnotationDataAddLabel(builder, label_fb)
+        request_annotation_data_msg = pdRequestLabelEngineAnnotationData.pdRequestLabelEngineAnnotationDataEnd(builder)
+        return LabelEngineSession._build_pd_message(builder, request_annotation_data_msg, pdMessageType.pdRequestLabelEngineAnnotationData)
+
+    @staticmethod
+    def _build_pd_update_annotation_data(builder, timestamp: str, label: str, sensor: str, data_type: int, data: bytes):
+        timestamp_fb = builder.CreateString(timestamp)
+        label_fb = builder.CreateString(label)
+        sensor_fb = builder.CreateString(sensor)
+
+        pdUpdateLabelEngineAnnotationData.pdUpdateLabelEngineAnnotationDataStartLabelDataVector(builder, len(data))
+        builder.head = builder.head - len(data)
+        builder.Bytes[builder.head: (builder.head + len(data))] = data
+        label_data_bytes_fb = builder.EndVector(len(data))
+
+        pdUpdateLabelEngineAnnotationData.pdUpdateLabelEngineAnnotationDataStart(builder)
+        pdUpdateLabelEngineAnnotationData.pdUpdateLabelEngineAnnotationDataAddTimestamp(builder, timestamp_fb)
+        pdUpdateLabelEngineAnnotationData.pdUpdateLabelEngineAnnotationDataAddLabel(builder, label_fb)
+        pdUpdateLabelEngineAnnotationData.pdUpdateLabelEngineAnnotationDataAddSensor(builder, sensor_fb)
+        pdUpdateLabelEngineAnnotationData.pdUpdateLabelEngineAnnotationDataAddDataType(builder, data_type)
+        pdUpdateLabelEngineAnnotationData.pdUpdateLabelEngineAnnotationDataAddLabelData(builder, label_data_bytes_fb)
+        update_annotation_data_msg = pdUpdateLabelEngineAnnotationData.pdUpdateLabelEngineAnnotationDataEnd(builder)
+        return LabelEngineSession._build_pd_message(builder, update_annotation_data_msg, pdMessageType.pdUpdateLabelEngineAnnotationData)
 
 
 def create_step_ig_session(*args, **kwargs) -> StepIgSession:
@@ -846,6 +994,26 @@ def stop_sim_session(session: SimSession):
     """
     Stop Sim session
     This function makes it easier to work with a SimSession in interactive shell by eliminating the
+    need for a `with` block.
+    """
+    session.__exit__()
+
+
+def create_label_engine_session(*args, **kwargs) -> LabelEngineSession:
+    """
+    Create and start a Label Engine session
+    This function makes it easier to work with a LabelEngineSession in interactive shell by eliminating the
+    need for a `with` block.
+    """
+    session = LabelEngineSession(*args, **kwargs)
+    session.__enter__()
+    return session
+
+
+def stop_label_engine_session(session: LabelEngineSession):
+    """
+    Stop Label Engine session
+    This function makes it easier to work with a LabelEngineSession in interactive shell by eliminating the
     need for a `with` block.
     """
     session.__exit__()

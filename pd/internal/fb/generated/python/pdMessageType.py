@@ -33,4 +33,11 @@ class pdMessageType(object):
     pdReturnStateData = 27
     pdRaycastQuery = 28
     pdRaycastHits = 29
+    pdConfigLabelEngine = 30
+    pdRequestLabelEngineTimestamp = 31
+    pdQueryLabelEngineAnnotationStatus = 32
+    pdReturnLabelEngineAnnotationStatus = 33
+    pdRequestLabelEngineAnnotationData = 34
+    pdReturnLabelEngineAnnotationData = 35
+    pdUpdateLabelEngineAnnotationData = 36
 

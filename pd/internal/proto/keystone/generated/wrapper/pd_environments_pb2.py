@@ -13,7 +13,7 @@ class EnvironmentDefinition(ProtoMessageClass):
             proto = pd_environments_pb2.EnvironmentDefinition()
         self.proto = proto
         self._preset_distribution = get_wrapper(proto_type=proto.preset_distribution.__class__)(proto=proto.preset_distribution)
-        self._presets = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.presets], attr_name='presets', list_owner=proto)
+        self._presets = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.presets], attr_name='presets', list_owner=self)
         if preset_distribution is not None:
             self.preset_distribution = preset_distribution
         if presets is not None:
@@ -25,7 +25,10 @@ class EnvironmentDefinition(ProtoMessageClass):
 
     @preset_distribution.setter
     def preset_distribution(self, value: _pd_distributions_pb2.CategoricalDistribution):
-        self._preset_distribution.proto.CopyFrom(value.proto)
+        self.proto.preset_distribution.CopyFrom(value.proto)
+        
+        self._preset_distribution = value
+        self._preset_distribution._update_proto_references(self.proto.preset_distribution)
 
     @property
     def presets(self) -> List[EnvironmentPreset]:
@@ -36,6 +39,12 @@ class EnvironmentDefinition(ProtoMessageClass):
         self._presets.clear()
         for v in value:
             self._presets.append(v)
+
+    def _update_proto_references(self, proto: pd_environments_pb2.EnvironmentDefinition):
+        self.proto = proto
+        self._preset_distribution._update_proto_references(proto.preset_distribution)
+        for i, v in enumerate(self.presets):
+            v._update_proto_references(self.proto.presets[i])
 
 @register_wrapper(proto_type=pd_environments_pb2.EnvironmentPreset)
 class EnvironmentPreset(ProtoMessageClass):
@@ -69,7 +78,10 @@ class EnvironmentPreset(ProtoMessageClass):
 
     @cloud_coverage.setter
     def cloud_coverage(self, value: _pd_distributions_pb2.Distribution):
-        self._cloud_coverage.proto.CopyFrom(value.proto)
+        self.proto.cloud_coverage.CopyFrom(value.proto)
+        
+        self._cloud_coverage = value
+        self._cloud_coverage._update_proto_references(self.proto.cloud_coverage)
 
     @property
     def fog_intensity(self) -> _pd_distributions_pb2.Distribution:
@@ -77,7 +89,10 @@ class EnvironmentPreset(ProtoMessageClass):
 
     @fog_intensity.setter
     def fog_intensity(self, value: _pd_distributions_pb2.Distribution):
-        self._fog_intensity.proto.CopyFrom(value.proto)
+        self.proto.fog_intensity.CopyFrom(value.proto)
+        
+        self._fog_intensity = value
+        self._fog_intensity._update_proto_references(self.proto.fog_intensity)
 
     @property
     def independent_wetness(self) -> bool:
@@ -93,7 +108,10 @@ class EnvironmentPreset(ProtoMessageClass):
 
     @rain_intensity.setter
     def rain_intensity(self, value: _pd_distributions_pb2.Distribution):
-        self._rain_intensity.proto.CopyFrom(value.proto)
+        self.proto.rain_intensity.CopyFrom(value.proto)
+        
+        self._rain_intensity = value
+        self._rain_intensity._update_proto_references(self.proto.rain_intensity)
 
     @property
     def time_of_day(self) -> _pd_distributions_pb2.CategoricalDistribution:
@@ -101,7 +119,10 @@ class EnvironmentPreset(ProtoMessageClass):
 
     @time_of_day.setter
     def time_of_day(self, value: _pd_distributions_pb2.CategoricalDistribution):
-        self._time_of_day.proto.CopyFrom(value.proto)
+        self.proto.time_of_day.CopyFrom(value.proto)
+        
+        self._time_of_day = value
+        self._time_of_day._update_proto_references(self.proto.time_of_day)
 
     @property
     def wetness(self) -> _pd_distributions_pb2.Distribution:
@@ -109,4 +130,15 @@ class EnvironmentPreset(ProtoMessageClass):
 
     @wetness.setter
     def wetness(self, value: _pd_distributions_pb2.Distribution):
-        self._wetness.proto.CopyFrom(value.proto)
+        self.proto.wetness.CopyFrom(value.proto)
+        
+        self._wetness = value
+        self._wetness._update_proto_references(self.proto.wetness)
+
+    def _update_proto_references(self, proto: pd_environments_pb2.EnvironmentPreset):
+        self.proto = proto
+        self._cloud_coverage._update_proto_references(proto.cloud_coverage)
+        self._fog_intensity._update_proto_references(proto.fog_intensity)
+        self._rain_intensity._update_proto_references(proto.rain_intensity)
+        self._time_of_day._update_proto_references(proto.time_of_day)
+        self._wetness._update_proto_references(proto.wetness)

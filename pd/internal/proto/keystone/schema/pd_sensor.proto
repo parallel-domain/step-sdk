@@ -247,19 +247,20 @@ message CameraIntrinsic
 
 message RadarBasicParameters
 {
-    optional float max_range = 1 [default = 204.8];
-    optional float range_resolution = 2 [default = 0.8];
-    optional float max_doppler = 3 [default = 30.0];
-    optional float doppler_resolution = 4 [default = 0.2];
-    optional float azimuth_fov = 5 [default = 110.0];
-    optional float azimuth_resolution = 6 [default = 1.0];
+    required float max_range = 1 [default = 204.8];
+    required float range_resolution = 2 [default = 0.8];
+    required float max_doppler = 3 [default = 30.0];
+    required float doppler_resolution = 4 [default = 0.2];
+    required float azimuth_fov = 5 [default = 110.0];
+    required float azimuth_resolution = 6 [default = 1.0];
     optional float elevation_fov = 7 [default = 32.0];
     optional float elevation_resolution = 8 [default = 2.0];
     optional bool radar_output_2d = 9 [default = false];
     optional bool use_random_raycast = 10 [default = true];
     optional int32 number_rays_per_frame = 11 [default = 30000];
-	optional float azimuth_accuracy = 12 [default = 0.5];
-	optional float elevation_accuracy = 13 [default = 1.0];
+    optional float azimuth_accuracy = 12 [default = 0.5];
+    optional float elevation_accuracy = 13 [default = 1.0];
+    optional string prf_profile_file = 14 [default = ""];
 }
 
 message RadarEnergyParameters
@@ -267,7 +268,7 @@ message RadarEnergyParameters
     optional float nominal_gain = 1 [default = 120.0];
     optional float gain_jitter_std = 2 [default = 5.0];
     optional float radiometric_coefficient = 3 [default = 4.0];
-    optional string beam_pattern_file_path = 4 [default = "../tools/beam_pattern_77ghz_radians.csv"];
+    optional string beam_pattern_file = 4 [default = "beam_pattern_77ghz_radians.csv"];
     optional bool enable_beam_pattern = 5 [default = true];
 }
 

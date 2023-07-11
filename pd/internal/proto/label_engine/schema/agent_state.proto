@@ -20,7 +20,22 @@ message InstanceStateMetadata
         VehicleState vehicle_state = 2;
         ParkingSpotState parking_spot_state = 3;
         HumanState human_state = 4;
+        SignState sign_state = 5;
+		ParkingMarkerState parking_marker_state = 6;
     }
+}
+
+message SignState
+{
+    string name = 1;
+    string sign_code = 2;
+    string parent_sign_name = 3;
+    string country = 4;
+    string speed_limit = 5;
+    string segment = 6;
+    string implicitness = 7;
+    string sign_type = 8;
+    uint32 parent_instance_id = 9;
 }
 
 message VehicleState
@@ -62,14 +77,17 @@ message VehicleState
 
 message ParkingSpotState
 {
-    uint32 parking_spot_angle = 1;
-    ParkingSpotColor color = 2;
-    float wear = 3;
-    string material_type = 4;
-    string delineation_type = 5;
-    ParkingSpotColor delineation_color = 6;
-    double marker_wear = 7;
-    string marker_type = 8;
+	float width = 1;
+	float depth = 2;
+	float angle = 3;
+	uint64 lane_id = 4;
+	bool parking_allowed = 5;
+	string surface_type = 6;
+	ParkingSpotColor surface_color = 7;
+	float surface_wear = 8;
+	string delineation_type = 9;
+	ParkingSpotColor delineation_color = 10;
+	float delineation_wear = 11;
 }
 
 // TODO: refactor to merge all Color messages into one
@@ -79,6 +97,13 @@ message ParkingSpotColor
     float green = 2;
     float blue = 3;
 };
+
+message ParkingMarkerState
+{
+	string marker_type = 1;
+	float marker_wear = 2;
+	uint64 lane_id = 3;
+}
 
 message HumanState
 {

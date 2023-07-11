@@ -12,6 +12,7 @@ from .session import (
     StepIgSession,
     StreamIgSession,
     SimSession,
+    LabelEngineSession,
     Version,
     SystemInfo,
     create_step_ig_session,

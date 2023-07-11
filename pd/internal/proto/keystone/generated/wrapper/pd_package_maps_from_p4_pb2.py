@@ -12,7 +12,7 @@ class PackageMapsFromP4(ProtoMessageClass):
         if proto is None:
             proto = pd_package_maps_from_p4_pb2.PackageMapsFromP4()
         self.proto = proto
-        self._map_list = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.map_list], attr_name='map_list', list_owner=proto)
+        self._map_list = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.map_list], attr_name='map_list', list_owner=self)
         if artifact_key is not None:
             self.artifact_key = artifact_key
         if base_changelist is not None:
@@ -75,3 +75,8 @@ class PackageMapsFromP4(ProtoMessageClass):
     @unshelve_changelist.setter
     def unshelve_changelist(self, value: str):
         self.proto.unshelve_changelist = value
+
+    def _update_proto_references(self, proto: pd_package_maps_from_p4_pb2.PackageMapsFromP4):
+        self.proto = proto
+        for i, v in enumerate(self.map_list):
+            v._update_proto_references(self.proto.map_list[i])

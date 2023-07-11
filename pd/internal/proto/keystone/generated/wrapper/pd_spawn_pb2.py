@@ -83,6 +83,9 @@ class AgentStateProbabilityConfig(ProtoMessageClass):
     def timeSpread(self, value: float):
         self.proto.timeSpread = value
 
+    def _update_proto_references(self, proto: pd_spawn_pb2.AgentStateProbabilityConfig):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_spawn_pb2.AllVehicleTestScenarioGeneratorInfo)
 class AllVehicleTestScenarioGeneratorInfo(ProtoMessageClass):
     _proto_message = pd_spawn_pb2.AllVehicleTestScenarioGeneratorInfo
@@ -91,9 +94,9 @@ class AllVehicleTestScenarioGeneratorInfo(ProtoMessageClass):
         if proto is None:
             proto = pd_spawn_pb2.AllVehicleTestScenarioGeneratorInfo()
         self.proto = proto
-        self._assetExcludeList = ProtoListWrapper(container=[str(v) for v in proto.assetExcludeList], attr_name='assetExcludeList', list_owner=proto)
-        self._assetIncludeList = ProtoListWrapper(container=[str(v) for v in proto.assetIncludeList], attr_name='assetIncludeList', list_owner=proto)
-        self._vehicleExclusionList = ProtoListWrapper(container=[str(v) for v in proto.vehicleExclusionList], attr_name='vehicleExclusionList', list_owner=proto)
+        self._assetExcludeList = ProtoListWrapper(container=[str(v) for v in proto.assetExcludeList], attr_name='assetExcludeList', list_owner=self)
+        self._assetIncludeList = ProtoListWrapper(container=[str(v) for v in proto.assetIncludeList], attr_name='assetIncludeList', list_owner=self)
+        self._vehicleExclusionList = ProtoListWrapper(container=[str(v) for v in proto.vehicleExclusionList], attr_name='vehicleExclusionList', list_owner=self)
         if articulatedTrailerTest is not None:
             self.articulatedTrailerTest = articulatedTrailerTest
         if assetExcludeList is not None:
@@ -251,6 +254,9 @@ class AllVehicleTestScenarioGeneratorInfo(ProtoMessageClass):
         for v in value:
             self._vehicleExclusionList.append(v)
 
+    def _update_proto_references(self, proto: pd_spawn_pb2.AllVehicleTestScenarioGeneratorInfo):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_spawn_pb2.CurveScenarioGeneratorInfo)
 class CurveScenarioGeneratorInfo(ProtoMessageClass):
     _proto_message = pd_spawn_pb2.CurveScenarioGeneratorInfo
@@ -329,6 +335,9 @@ class CurveScenarioGeneratorInfo(ProtoMessageClass):
     @placeOccluders.setter
     def placeOccluders(self, value: bool):
         self.proto.placeOccluders = value
+
+    def _update_proto_references(self, proto: pd_spawn_pb2.CurveScenarioGeneratorInfo):
+        self.proto = proto
 
 @register_wrapper(proto_type=pd_spawn_pb2.DebrisScenarioGeneratorInfo)
 class DebrisScenarioGeneratorInfo(ProtoMessageClass):
@@ -539,6 +548,9 @@ class DebrisScenarioGeneratorInfo(ProtoMessageClass):
     def smallDebrisDensity(self, value: float):
         self.proto.smallDebrisDensity = value
 
+    def _update_proto_references(self, proto: pd_spawn_pb2.DebrisScenarioGeneratorInfo):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_spawn_pb2.DrivewayScenarioGeneratorInfo)
 class DrivewayScenarioGeneratorInfo(ProtoMessageClass):
     _proto_message = pd_spawn_pb2.DrivewayScenarioGeneratorInfo
@@ -597,7 +609,10 @@ class DrivewayScenarioGeneratorInfo(ProtoMessageClass):
 
     @brakeUntilEgoTimeToAgentS.setter
     def brakeUntilEgoTimeToAgentS(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._brakeUntilEgoTimeToAgentS.proto.CopyFrom(value.proto)
+        self.proto.brakeUntilEgoTimeToAgentS.CopyFrom(value.proto)
+        
+        self._brakeUntilEgoTimeToAgentS = value
+        self._brakeUntilEgoTimeToAgentS._update_proto_references(self.proto.brakeUntilEgoTimeToAgentS)
 
     @property
     def drivewayVehiclesFacingRoadProbability(self) -> float:
@@ -613,7 +628,10 @@ class DrivewayScenarioGeneratorInfo(ProtoMessageClass):
 
     @egoSpawnLocationProbability.setter
     def egoSpawnLocationProbability(self, value: _pd_distributions_pb2.EnumDistribution):
-        self._egoSpawnLocationProbability.proto.CopyFrom(value.proto)
+        self.proto.egoSpawnLocationProbability.CopyFrom(value.proto)
+        
+        self._egoSpawnLocationProbability = value
+        self._egoSpawnLocationProbability._update_proto_references(self.proto.egoSpawnLocationProbability)
 
     @property
     def enablePropOcclusions(self) -> bool:
@@ -701,7 +719,10 @@ class DrivewayScenarioGeneratorInfo(ProtoMessageClass):
 
     @occlusionOffsetDist.setter
     def occlusionOffsetDist(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._occlusionOffsetDist.proto.CopyFrom(value.proto)
+        self.proto.occlusionOffsetDist.CopyFrom(value.proto)
+        
+        self._occlusionOffsetDist = value
+        self._occlusionOffsetDist._update_proto_references(self.proto.occlusionOffsetDist)
 
     @property
     def placeEgoOnClosestCrossRoadLane(self) -> bool:
@@ -717,7 +738,10 @@ class DrivewayScenarioGeneratorInfo(ProtoMessageClass):
 
     @propOcclusionCountDist.setter
     def propOcclusionCountDist(self, value: _pd_unified_generator_pb2.CenterSpreadConfigInt):
-        self._propOcclusionCountDist.proto.CopyFrom(value.proto)
+        self.proto.propOcclusionCountDist.CopyFrom(value.proto)
+        
+        self._propOcclusionCountDist = value
+        self._propOcclusionCountDist._update_proto_references(self.proto.propOcclusionCountDist)
 
     @property
     def propOcclusionSpacingDist(self) -> _pd_unified_generator_pb2.CenterSpreadConfig:
@@ -725,7 +749,10 @@ class DrivewayScenarioGeneratorInfo(ProtoMessageClass):
 
     @propOcclusionSpacingDist.setter
     def propOcclusionSpacingDist(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._propOcclusionSpacingDist.proto.CopyFrom(value.proto)
+        self.proto.propOcclusionSpacingDist.CopyFrom(value.proto)
+        
+        self._propOcclusionSpacingDist = value
+        self._propOcclusionSpacingDist._update_proto_references(self.proto.propOcclusionSpacingDist)
 
     @property
     def useBrakeUntilEgoTimeToAgent(self) -> bool:
@@ -742,6 +769,14 @@ class DrivewayScenarioGeneratorInfo(ProtoMessageClass):
     @vehicleDepartsDrivewayProbability.setter
     def vehicleDepartsDrivewayProbability(self, value: float):
         self.proto.vehicleDepartsDrivewayProbability = value
+
+    def _update_proto_references(self, proto: pd_spawn_pb2.DrivewayScenarioGeneratorInfo):
+        self.proto = proto
+        self._brakeUntilEgoTimeToAgentS._update_proto_references(proto.brakeUntilEgoTimeToAgentS)
+        self._egoSpawnLocationProbability._update_proto_references(proto.egoSpawnLocationProbability)
+        self._occlusionOffsetDist._update_proto_references(proto.occlusionOffsetDist)
+        self._propOcclusionCountDist._update_proto_references(proto.propOcclusionCountDist)
+        self._propOcclusionSpacingDist._update_proto_references(proto.propOcclusionSpacingDist)
 
 @register_wrapper(proto_type=pd_spawn_pb2.DroneFlightScenarioGeneratorInfo)
 class DroneFlightScenarioGeneratorInfo(ProtoMessageClass):
@@ -772,6 +807,9 @@ class DroneFlightScenarioGeneratorInfo(ProtoMessageClass):
     def maxRadiusFromTarget(self, value: float):
         self.proto.maxRadiusFromTarget = value
 
+    def _update_proto_references(self, proto: pd_spawn_pb2.DroneFlightScenarioGeneratorInfo):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_spawn_pb2.GeneratorConfig)
 class GeneratorConfig(ProtoMessageClass):
     _proto_message = pd_spawn_pb2.GeneratorConfig
@@ -781,7 +819,7 @@ class GeneratorConfig(ProtoMessageClass):
             proto = pd_spawn_pb2.GeneratorConfig()
         self.proto = proto
         self._preset_distribution = get_wrapper(proto_type=proto.preset_distribution.__class__)(proto=proto.preset_distribution)
-        self._presets = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.presets], attr_name='presets', list_owner=proto)
+        self._presets = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.presets], attr_name='presets', list_owner=self)
         if preset_distribution is not None:
             self.preset_distribution = preset_distribution
         if presets is not None:
@@ -793,7 +831,10 @@ class GeneratorConfig(ProtoMessageClass):
 
     @preset_distribution.setter
     def preset_distribution(self, value: _pd_distributions_pb2.CategoricalDistribution):
-        self._preset_distribution.proto.CopyFrom(value.proto)
+        self.proto.preset_distribution.CopyFrom(value.proto)
+        
+        self._preset_distribution = value
+        self._preset_distribution._update_proto_references(self.proto.preset_distribution)
 
     @property
     def presets(self) -> List[GeneratorConfigPreset]:
@@ -804,6 +845,12 @@ class GeneratorConfig(ProtoMessageClass):
         self._presets.clear()
         for v in value:
             self._presets.append(v)
+
+    def _update_proto_references(self, proto: pd_spawn_pb2.GeneratorConfig):
+        self.proto = proto
+        self._preset_distribution._update_proto_references(proto.preset_distribution)
+        for i, v in enumerate(self.presets):
+            v._update_proto_references(self.proto.presets[i])
 
 @register_wrapper(proto_type=pd_spawn_pb2.GeneratorConfigPreset)
 class GeneratorConfigPreset(ProtoMessageClass):
@@ -868,7 +915,10 @@ class GeneratorConfigPreset(ProtoMessageClass):
 
     @all_vehicle_test_generator.setter
     def all_vehicle_test_generator(self, value: AllVehicleTestScenarioGeneratorInfo):
-        self._all_vehicle_test_generator.proto.CopyFrom(value.proto)
+        self.proto.all_vehicle_test_generator.CopyFrom(value.proto)
+        
+        self._all_vehicle_test_generator = value
+        self._all_vehicle_test_generator._update_proto_references(self.proto.all_vehicle_test_generator)
 
     @property
     def curve_generator(self) -> CurveScenarioGeneratorInfo:
@@ -876,7 +926,10 @@ class GeneratorConfigPreset(ProtoMessageClass):
 
     @curve_generator.setter
     def curve_generator(self, value: CurveScenarioGeneratorInfo):
-        self._curve_generator.proto.CopyFrom(value.proto)
+        self.proto.curve_generator.CopyFrom(value.proto)
+        
+        self._curve_generator = value
+        self._curve_generator._update_proto_references(self.proto.curve_generator)
 
     @property
     def debris_generator(self) -> DebrisScenarioGeneratorInfo:
@@ -884,7 +937,10 @@ class GeneratorConfigPreset(ProtoMessageClass):
 
     @debris_generator.setter
     def debris_generator(self, value: DebrisScenarioGeneratorInfo):
-        self._debris_generator.proto.CopyFrom(value.proto)
+        self.proto.debris_generator.CopyFrom(value.proto)
+        
+        self._debris_generator = value
+        self._debris_generator._update_proto_references(self.proto.debris_generator)
 
     @property
     def driveway_generator(self) -> DrivewayScenarioGeneratorInfo:
@@ -892,7 +948,10 @@ class GeneratorConfigPreset(ProtoMessageClass):
 
     @driveway_generator.setter
     def driveway_generator(self, value: DrivewayScenarioGeneratorInfo):
-        self._driveway_generator.proto.CopyFrom(value.proto)
+        self.proto.driveway_generator.CopyFrom(value.proto)
+        
+        self._driveway_generator = value
+        self._driveway_generator._update_proto_references(self.proto.driveway_generator)
 
     @property
     def drone_generator(self) -> DroneFlightScenarioGeneratorInfo:
@@ -900,7 +959,10 @@ class GeneratorConfigPreset(ProtoMessageClass):
 
     @drone_generator.setter
     def drone_generator(self, value: DroneFlightScenarioGeneratorInfo):
-        self._drone_generator.proto.CopyFrom(value.proto)
+        self.proto.drone_generator.CopyFrom(value.proto)
+        
+        self._drone_generator = value
+        self._drone_generator._update_proto_references(self.proto.drone_generator)
 
     @property
     def jaywalking_generator(self) -> JaywalkingScenarioGeneratorInfo:
@@ -908,7 +970,10 @@ class GeneratorConfigPreset(ProtoMessageClass):
 
     @jaywalking_generator.setter
     def jaywalking_generator(self, value: JaywalkingScenarioGeneratorInfo):
-        self._jaywalking_generator.proto.CopyFrom(value.proto)
+        self.proto.jaywalking_generator.CopyFrom(value.proto)
+        
+        self._jaywalking_generator = value
+        self._jaywalking_generator._update_proto_references(self.proto.jaywalking_generator)
 
     @property
     def junction_generator(self) -> JunctionScenarioGeneratorInfo:
@@ -916,7 +981,10 @@ class GeneratorConfigPreset(ProtoMessageClass):
 
     @junction_generator.setter
     def junction_generator(self, value: JunctionScenarioGeneratorInfo):
-        self._junction_generator.proto.CopyFrom(value.proto)
+        self.proto.junction_generator.CopyFrom(value.proto)
+        
+        self._junction_generator = value
+        self._junction_generator._update_proto_references(self.proto.junction_generator)
 
     @property
     def kitti_generator(self) -> KittiScenarioGeneratorInfo:
@@ -924,7 +992,10 @@ class GeneratorConfigPreset(ProtoMessageClass):
 
     @kitti_generator.setter
     def kitti_generator(self, value: KittiScenarioGeneratorInfo):
-        self._kitti_generator.proto.CopyFrom(value.proto)
+        self.proto.kitti_generator.CopyFrom(value.proto)
+        
+        self._kitti_generator = value
+        self._kitti_generator._update_proto_references(self.proto.kitti_generator)
 
     @property
     def lane_generator(self) -> LaneTypeScenarioGeneratorInfo:
@@ -932,7 +1003,10 @@ class GeneratorConfigPreset(ProtoMessageClass):
 
     @lane_generator.setter
     def lane_generator(self, value: LaneTypeScenarioGeneratorInfo):
-        self._lane_generator.proto.CopyFrom(value.proto)
+        self.proto.lane_generator.CopyFrom(value.proto)
+        
+        self._lane_generator = value
+        self._lane_generator._update_proto_references(self.proto.lane_generator)
 
     @property
     def parking_generator(self) -> ParkingScenarioGeneratorInfo:
@@ -940,7 +1014,10 @@ class GeneratorConfigPreset(ProtoMessageClass):
 
     @parking_generator.setter
     def parking_generator(self, value: ParkingScenarioGeneratorInfo):
-        self._parking_generator.proto.CopyFrom(value.proto)
+        self.proto.parking_generator.CopyFrom(value.proto)
+        
+        self._parking_generator = value
+        self._parking_generator._update_proto_references(self.proto.parking_generator)
 
     @property
     def position_generator(self) -> VehiclePositionScenarioGeneratorInfo:
@@ -948,7 +1025,10 @@ class GeneratorConfigPreset(ProtoMessageClass):
 
     @position_generator.setter
     def position_generator(self, value: VehiclePositionScenarioGeneratorInfo):
-        self._position_generator.proto.CopyFrom(value.proto)
+        self.proto.position_generator.CopyFrom(value.proto)
+        
+        self._position_generator = value
+        self._position_generator._update_proto_references(self.proto.position_generator)
 
     @property
     def prop_generator(self) -> PropScenarioGeneratorInfo:
@@ -956,7 +1036,10 @@ class GeneratorConfigPreset(ProtoMessageClass):
 
     @prop_generator.setter
     def prop_generator(self, value: PropScenarioGeneratorInfo):
-        self._prop_generator.proto.CopyFrom(value.proto)
+        self.proto.prop_generator.CopyFrom(value.proto)
+        
+        self._prop_generator = value
+        self._prop_generator._update_proto_references(self.proto.prop_generator)
 
     @property
     def random_generator(self) -> RandomLaneScenarioGeneratorInfo:
@@ -964,7 +1047,10 @@ class GeneratorConfigPreset(ProtoMessageClass):
 
     @random_generator.setter
     def random_generator(self, value: RandomLaneScenarioGeneratorInfo):
-        self._random_generator.proto.CopyFrom(value.proto)
+        self.proto.random_generator.CopyFrom(value.proto)
+        
+        self._random_generator = value
+        self._random_generator._update_proto_references(self.proto.random_generator)
 
     @property
     def static_cam_generator(self) -> StaticCamScenarioGeneratorInfo:
@@ -972,7 +1058,10 @@ class GeneratorConfigPreset(ProtoMessageClass):
 
     @static_cam_generator.setter
     def static_cam_generator(self, value: StaticCamScenarioGeneratorInfo):
-        self._static_cam_generator.proto.CopyFrom(value.proto)
+        self.proto.static_cam_generator.CopyFrom(value.proto)
+        
+        self._static_cam_generator = value
+        self._static_cam_generator._update_proto_references(self.proto.static_cam_generator)
 
     @property
     def unified_generator(self) -> _pd_unified_generator_pb2.UnifiedGeneratorParameters:
@@ -980,7 +1069,10 @@ class GeneratorConfigPreset(ProtoMessageClass):
 
     @unified_generator.setter
     def unified_generator(self, value: _pd_unified_generator_pb2.UnifiedGeneratorParameters):
-        self._unified_generator.proto.CopyFrom(value.proto)
+        self.proto.unified_generator.CopyFrom(value.proto)
+        
+        self._unified_generator = value
+        self._unified_generator._update_proto_references(self.proto.unified_generator)
 
     @property
     def voi_generator(self) -> VehicleOfInterestScenarioGeneratorInfo:
@@ -988,7 +1080,29 @@ class GeneratorConfigPreset(ProtoMessageClass):
 
     @voi_generator.setter
     def voi_generator(self, value: VehicleOfInterestScenarioGeneratorInfo):
-        self._voi_generator.proto.CopyFrom(value.proto)
+        self.proto.voi_generator.CopyFrom(value.proto)
+        
+        self._voi_generator = value
+        self._voi_generator._update_proto_references(self.proto.voi_generator)
+
+    def _update_proto_references(self, proto: pd_spawn_pb2.GeneratorConfigPreset):
+        self.proto = proto
+        self._all_vehicle_test_generator._update_proto_references(proto.all_vehicle_test_generator)
+        self._curve_generator._update_proto_references(proto.curve_generator)
+        self._debris_generator._update_proto_references(proto.debris_generator)
+        self._driveway_generator._update_proto_references(proto.driveway_generator)
+        self._drone_generator._update_proto_references(proto.drone_generator)
+        self._jaywalking_generator._update_proto_references(proto.jaywalking_generator)
+        self._junction_generator._update_proto_references(proto.junction_generator)
+        self._kitti_generator._update_proto_references(proto.kitti_generator)
+        self._lane_generator._update_proto_references(proto.lane_generator)
+        self._parking_generator._update_proto_references(proto.parking_generator)
+        self._position_generator._update_proto_references(proto.position_generator)
+        self._prop_generator._update_proto_references(proto.prop_generator)
+        self._random_generator._update_proto_references(proto.random_generator)
+        self._static_cam_generator._update_proto_references(proto.static_cam_generator)
+        self._unified_generator._update_proto_references(proto.unified_generator)
+        self._voi_generator._update_proto_references(proto.voi_generator)
 
 @register_wrapper(proto_type=pd_spawn_pb2.JaywalkingScenarioGeneratorInfo)
 class JaywalkingScenarioGeneratorInfo(ProtoMessageClass):
@@ -1140,7 +1254,10 @@ class JaywalkingScenarioGeneratorInfo(ProtoMessageClass):
 
     @signal_light_distribution.setter
     def signal_light_distribution(self, value: _pd_unified_generator_pb2.SignalLightDistribution):
-        self._signal_light_distribution.proto.CopyFrom(value.proto)
+        self.proto.signal_light_distribution.CopyFrom(value.proto)
+        
+        self._signal_light_distribution = value
+        self._signal_light_distribution._update_proto_references(self.proto.signal_light_distribution)
 
     @property
     def vehicleOccluderPreference(self) -> float:
@@ -1150,6 +1267,10 @@ class JaywalkingScenarioGeneratorInfo(ProtoMessageClass):
     def vehicleOccluderPreference(self, value: float):
         self.proto.vehicleOccluderPreference = value
 
+    def _update_proto_references(self, proto: pd_spawn_pb2.JaywalkingScenarioGeneratorInfo):
+        self.proto = proto
+        self._signal_light_distribution._update_proto_references(proto.signal_light_distribution)
+
 @register_wrapper(proto_type=pd_spawn_pb2.JunctionScenarioGenerator)
 class JunctionScenarioGenerator(ProtoMessageClass):
     _proto_message = pd_spawn_pb2.JunctionScenarioGenerator
@@ -1158,7 +1279,7 @@ class JunctionScenarioGenerator(ProtoMessageClass):
         if proto is None:
             proto = pd_spawn_pb2.JunctionScenarioGenerator()
         self.proto = proto
-        self._junction_ids = ProtoListWrapper(container=[int(v) for v in proto.junction_ids], attr_name='junction_ids', list_owner=proto)
+        self._junction_ids = ProtoListWrapper(container=[int(v) for v in proto.junction_ids], attr_name='junction_ids', list_owner=self)
         self._signal_light_distribution = get_wrapper(proto_type=proto.signal_light_distribution.__class__)(proto=proto.signal_light_distribution)
         self._turn_type_distribution = get_wrapper(proto_type=proto.turn_type_distribution.__class__)(proto=proto.turn_type_distribution)
         if crowd_density is not None:
@@ -1224,7 +1345,10 @@ class JunctionScenarioGenerator(ProtoMessageClass):
 
     @signal_light_distribution.setter
     def signal_light_distribution(self, value: _pd_unified_generator_pb2.SignalLightDistribution):
-        self._signal_light_distribution.proto.CopyFrom(value.proto)
+        self.proto.signal_light_distribution.CopyFrom(value.proto)
+        
+        self._signal_light_distribution = value
+        self._signal_light_distribution._update_proto_references(self.proto.signal_light_distribution)
 
     @property
     def turn_type_distribution(self) -> _pd_unified_generator_pb2.TurnTypeDistribution:
@@ -1232,7 +1356,15 @@ class JunctionScenarioGenerator(ProtoMessageClass):
 
     @turn_type_distribution.setter
     def turn_type_distribution(self, value: _pd_unified_generator_pb2.TurnTypeDistribution):
-        self._turn_type_distribution.proto.CopyFrom(value.proto)
+        self.proto.turn_type_distribution.CopyFrom(value.proto)
+        
+        self._turn_type_distribution = value
+        self._turn_type_distribution._update_proto_references(self.proto.turn_type_distribution)
+
+    def _update_proto_references(self, proto: pd_spawn_pb2.JunctionScenarioGenerator):
+        self.proto = proto
+        self._signal_light_distribution._update_proto_references(proto.signal_light_distribution)
+        self._turn_type_distribution._update_proto_references(proto.turn_type_distribution)
 
 @register_wrapper(proto_type=pd_spawn_pb2.JunctionScenarioGeneratorInfo)
 class JunctionScenarioGeneratorInfo(ProtoMessageClass):
@@ -1245,7 +1377,7 @@ class JunctionScenarioGeneratorInfo(ProtoMessageClass):
         self._control_type_distribution = get_wrapper(proto_type=proto.control_type_distribution.__class__)(proto=proto.control_type_distribution)
         self._cross_road_speed_limit_mps = get_wrapper(proto_type=proto.cross_road_speed_limit_mps.__class__)(proto=proto.cross_road_speed_limit_mps)
         self._geometry_type_distribution = get_wrapper(proto_type=proto.geometry_type_distribution.__class__)(proto=proto.geometry_type_distribution)
-        self._junction_ids = ProtoListWrapper(container=[int(v) for v in proto.junction_ids], attr_name='junction_ids', list_owner=proto)
+        self._junction_ids = ProtoListWrapper(container=[int(v) for v in proto.junction_ids], attr_name='junction_ids', list_owner=self)
         self._occlusion_offset_dist = get_wrapper(proto_type=proto.occlusion_offset_dist.__class__)(proto=proto.occlusion_offset_dist)
         self._prop_occlusion_count_dist = get_wrapper(proto_type=proto.prop_occlusion_count_dist.__class__)(proto=proto.prop_occlusion_count_dist)
         self._prop_occlusion_spacing_dist = get_wrapper(proto_type=proto.prop_occlusion_spacing_dist.__class__)(proto=proto.prop_occlusion_spacing_dist)
@@ -1329,7 +1461,10 @@ class JunctionScenarioGeneratorInfo(ProtoMessageClass):
 
     @control_type_distribution.setter
     def control_type_distribution(self, value: _pd_distributions_pb2.EnumDistribution):
-        self._control_type_distribution.proto.CopyFrom(value.proto)
+        self.proto.control_type_distribution.CopyFrom(value.proto)
+        
+        self._control_type_distribution = value
+        self._control_type_distribution._update_proto_references(self.proto.control_type_distribution)
 
     @property
     def cross_road_speed_limit_mps(self) -> _pd_unified_generator_pb2.MinMaxConfigFloat:
@@ -1337,7 +1472,10 @@ class JunctionScenarioGeneratorInfo(ProtoMessageClass):
 
     @cross_road_speed_limit_mps.setter
     def cross_road_speed_limit_mps(self, value: _pd_unified_generator_pb2.MinMaxConfigFloat):
-        self._cross_road_speed_limit_mps.proto.CopyFrom(value.proto)
+        self.proto.cross_road_speed_limit_mps.CopyFrom(value.proto)
+        
+        self._cross_road_speed_limit_mps = value
+        self._cross_road_speed_limit_mps._update_proto_references(self.proto.cross_road_speed_limit_mps)
 
     @property
     def crowd_density(self) -> float:
@@ -1385,7 +1523,10 @@ class JunctionScenarioGeneratorInfo(ProtoMessageClass):
 
     @geometry_type_distribution.setter
     def geometry_type_distribution(self, value: _pd_distributions_pb2.EnumDistribution):
-        self._geometry_type_distribution.proto.CopyFrom(value.proto)
+        self.proto.geometry_type_distribution.CopyFrom(value.proto)
+        
+        self._geometry_type_distribution = value
+        self._geometry_type_distribution._update_proto_references(self.proto.geometry_type_distribution)
 
     @property
     def junction_id(self) -> int:
@@ -1427,7 +1568,10 @@ class JunctionScenarioGeneratorInfo(ProtoMessageClass):
 
     @occlusion_offset_dist.setter
     def occlusion_offset_dist(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._occlusion_offset_dist.proto.CopyFrom(value.proto)
+        self.proto.occlusion_offset_dist.CopyFrom(value.proto)
+        
+        self._occlusion_offset_dist = value
+        self._occlusion_offset_dist._update_proto_references(self.proto.occlusion_offset_dist)
 
     @property
     def prop_occlusion_count_dist(self) -> _pd_unified_generator_pb2.CenterSpreadConfigInt:
@@ -1435,7 +1579,10 @@ class JunctionScenarioGeneratorInfo(ProtoMessageClass):
 
     @prop_occlusion_count_dist.setter
     def prop_occlusion_count_dist(self, value: _pd_unified_generator_pb2.CenterSpreadConfigInt):
-        self._prop_occlusion_count_dist.proto.CopyFrom(value.proto)
+        self.proto.prop_occlusion_count_dist.CopyFrom(value.proto)
+        
+        self._prop_occlusion_count_dist = value
+        self._prop_occlusion_count_dist._update_proto_references(self.proto.prop_occlusion_count_dist)
 
     @property
     def prop_occlusion_spacing_dist(self) -> _pd_unified_generator_pb2.CenterSpreadConfig:
@@ -1443,7 +1590,10 @@ class JunctionScenarioGeneratorInfo(ProtoMessageClass):
 
     @prop_occlusion_spacing_dist.setter
     def prop_occlusion_spacing_dist(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._prop_occlusion_spacing_dist.proto.CopyFrom(value.proto)
+        self.proto.prop_occlusion_spacing_dist.CopyFrom(value.proto)
+        
+        self._prop_occlusion_spacing_dist = value
+        self._prop_occlusion_spacing_dist._update_proto_references(self.proto.prop_occlusion_spacing_dist)
 
     @property
     def road_type_distribution(self) -> _pd_distributions_pb2.EnumDistribution:
@@ -1451,7 +1601,10 @@ class JunctionScenarioGeneratorInfo(ProtoMessageClass):
 
     @road_type_distribution.setter
     def road_type_distribution(self, value: _pd_distributions_pb2.EnumDistribution):
-        self._road_type_distribution.proto.CopyFrom(value.proto)
+        self.proto.road_type_distribution.CopyFrom(value.proto)
+        
+        self._road_type_distribution = value
+        self._road_type_distribution._update_proto_references(self.proto.road_type_distribution)
 
     @property
     def signal_light_distribution(self) -> _pd_unified_generator_pb2.SignalLightDistribution:
@@ -1459,7 +1612,10 @@ class JunctionScenarioGeneratorInfo(ProtoMessageClass):
 
     @signal_light_distribution.setter
     def signal_light_distribution(self, value: _pd_unified_generator_pb2.SignalLightDistribution):
-        self._signal_light_distribution.proto.CopyFrom(value.proto)
+        self.proto.signal_light_distribution.CopyFrom(value.proto)
+        
+        self._signal_light_distribution = value
+        self._signal_light_distribution._update_proto_references(self.proto.signal_light_distribution)
 
     @property
     def turn_type_distribution(self) -> _pd_unified_generator_pb2.TurnTypeDistribution:
@@ -1467,7 +1623,10 @@ class JunctionScenarioGeneratorInfo(ProtoMessageClass):
 
     @turn_type_distribution.setter
     def turn_type_distribution(self, value: _pd_unified_generator_pb2.TurnTypeDistribution):
-        self._turn_type_distribution.proto.CopyFrom(value.proto)
+        self.proto.turn_type_distribution.CopyFrom(value.proto)
+        
+        self._turn_type_distribution = value
+        self._turn_type_distribution._update_proto_references(self.proto.turn_type_distribution)
 
     @property
     def use_cross_road_speed_limit(self) -> bool:
@@ -1484,6 +1643,18 @@ class JunctionScenarioGeneratorInfo(ProtoMessageClass):
     @use_only_cross_roads_with_straight_turn_type.setter
     def use_only_cross_roads_with_straight_turn_type(self, value: bool):
         self.proto.use_only_cross_roads_with_straight_turn_type = value
+
+    def _update_proto_references(self, proto: pd_spawn_pb2.JunctionScenarioGeneratorInfo):
+        self.proto = proto
+        self._control_type_distribution._update_proto_references(proto.control_type_distribution)
+        self._cross_road_speed_limit_mps._update_proto_references(proto.cross_road_speed_limit_mps)
+        self._geometry_type_distribution._update_proto_references(proto.geometry_type_distribution)
+        self._occlusion_offset_dist._update_proto_references(proto.occlusion_offset_dist)
+        self._prop_occlusion_count_dist._update_proto_references(proto.prop_occlusion_count_dist)
+        self._prop_occlusion_spacing_dist._update_proto_references(proto.prop_occlusion_spacing_dist)
+        self._road_type_distribution._update_proto_references(proto.road_type_distribution)
+        self._signal_light_distribution._update_proto_references(proto.signal_light_distribution)
+        self._turn_type_distribution._update_proto_references(proto.turn_type_distribution)
 
 @register_wrapper(proto_type=pd_spawn_pb2.KittiScenarioGenerator)
 class KittiScenarioGenerator(ProtoMessageClass):
@@ -1523,7 +1694,14 @@ class KittiScenarioGenerator(ProtoMessageClass):
 
     @turn_type_distribution.setter
     def turn_type_distribution(self, value: _pd_unified_generator_pb2.TurnTypeDistribution):
-        self._turn_type_distribution.proto.CopyFrom(value.proto)
+        self.proto.turn_type_distribution.CopyFrom(value.proto)
+        
+        self._turn_type_distribution = value
+        self._turn_type_distribution._update_proto_references(self.proto.turn_type_distribution)
+
+    def _update_proto_references(self, proto: pd_spawn_pb2.KittiScenarioGenerator):
+        self.proto = proto
+        self._turn_type_distribution._update_proto_references(proto.turn_type_distribution)
 
 @register_wrapper(proto_type=pd_spawn_pb2.KittiScenarioGeneratorInfo)
 class KittiScenarioGeneratorInfo(ProtoMessageClass):
@@ -1563,7 +1741,14 @@ class KittiScenarioGeneratorInfo(ProtoMessageClass):
 
     @turn_type_distribution.setter
     def turn_type_distribution(self, value: _pd_unified_generator_pb2.TurnTypeDistribution):
-        self._turn_type_distribution.proto.CopyFrom(value.proto)
+        self.proto.turn_type_distribution.CopyFrom(value.proto)
+        
+        self._turn_type_distribution = value
+        self._turn_type_distribution._update_proto_references(self.proto.turn_type_distribution)
+
+    def _update_proto_references(self, proto: pd_spawn_pb2.KittiScenarioGeneratorInfo):
+        self.proto = proto
+        self._turn_type_distribution._update_proto_references(proto.turn_type_distribution)
 
 @register_wrapper(proto_type=pd_spawn_pb2.LaneTypeScenarioGeneratorInfo)
 class LaneTypeScenarioGeneratorInfo(ProtoMessageClass):
@@ -1594,7 +1779,10 @@ class LaneTypeScenarioGeneratorInfo(ProtoMessageClass):
 
     @asset_search_radius.setter
     def asset_search_radius(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._asset_search_radius.proto.CopyFrom(value.proto)
+        self.proto.asset_search_radius.CopyFrom(value.proto)
+        
+        self._asset_search_radius = value
+        self._asset_search_radius._update_proto_references(self.proto.asset_search_radius)
 
     @property
     def asset_tags(self) -> str:
@@ -1634,7 +1822,15 @@ class LaneTypeScenarioGeneratorInfo(ProtoMessageClass):
 
     @num_instances.setter
     def num_instances(self, value: _pd_unified_generator_pb2.MinMaxConfigInt):
-        self._num_instances.proto.CopyFrom(value.proto)
+        self.proto.num_instances.CopyFrom(value.proto)
+        
+        self._num_instances = value
+        self._num_instances._update_proto_references(self.proto.num_instances)
+
+    def _update_proto_references(self, proto: pd_spawn_pb2.LaneTypeScenarioGeneratorInfo):
+        self.proto = proto
+        self._asset_search_radius._update_proto_references(proto.asset_search_radius)
+        self._num_instances._update_proto_references(proto.num_instances)
 
 @register_wrapper(proto_type=pd_spawn_pb2.ParkingScenarioGeneratorInfo)
 class ParkingScenarioGeneratorInfo(ProtoMessageClass):
@@ -1689,7 +1885,10 @@ class ParkingScenarioGeneratorInfo(ProtoMessageClass):
 
     @aisleLateralOffsetBackIn.setter
     def aisleLateralOffsetBackIn(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._aisleLateralOffsetBackIn.proto.CopyFrom(value.proto)
+        self.proto.aisleLateralOffsetBackIn.CopyFrom(value.proto)
+        
+        self._aisleLateralOffsetBackIn = value
+        self._aisleLateralOffsetBackIn._update_proto_references(self.proto.aisleLateralOffsetBackIn)
 
     @property
     def aisleLateralOffsetNoseIn(self) -> _pd_unified_generator_pb2.CenterSpreadConfig:
@@ -1697,7 +1896,10 @@ class ParkingScenarioGeneratorInfo(ProtoMessageClass):
 
     @aisleLateralOffsetNoseIn.setter
     def aisleLateralOffsetNoseIn(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._aisleLateralOffsetNoseIn.proto.CopyFrom(value.proto)
+        self.proto.aisleLateralOffsetNoseIn.CopyFrom(value.proto)
+        
+        self._aisleLateralOffsetNoseIn = value
+        self._aisleLateralOffsetNoseIn._update_proto_references(self.proto.aisleLateralOffsetNoseIn)
 
     @property
     def egoParkPerturbationAngle(self) -> _pd_unified_generator_pb2.CenterSpreadConfig:
@@ -1705,7 +1907,10 @@ class ParkingScenarioGeneratorInfo(ProtoMessageClass):
 
     @egoParkPerturbationAngle.setter
     def egoParkPerturbationAngle(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._egoParkPerturbationAngle.proto.CopyFrom(value.proto)
+        self.proto.egoParkPerturbationAngle.CopyFrom(value.proto)
+        
+        self._egoParkPerturbationAngle = value
+        self._egoParkPerturbationAngle._update_proto_references(self.proto.egoParkPerturbationAngle)
 
     @property
     def egoParkPerturbationLateralOffset(self) -> _pd_unified_generator_pb2.CenterSpreadConfig:
@@ -1713,7 +1918,10 @@ class ParkingScenarioGeneratorInfo(ProtoMessageClass):
 
     @egoParkPerturbationLateralOffset.setter
     def egoParkPerturbationLateralOffset(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._egoParkPerturbationLateralOffset.proto.CopyFrom(value.proto)
+        self.proto.egoParkPerturbationLateralOffset.CopyFrom(value.proto)
+        
+        self._egoParkPerturbationLateralOffset = value
+        self._egoParkPerturbationLateralOffset._update_proto_references(self.proto.egoParkPerturbationLateralOffset)
 
     @property
     def egoParkPerturbationLongitudinalOffset(self) -> _pd_unified_generator_pb2.CenterSpreadConfig:
@@ -1721,7 +1929,10 @@ class ParkingScenarioGeneratorInfo(ProtoMessageClass):
 
     @egoParkPerturbationLongitudinalOffset.setter
     def egoParkPerturbationLongitudinalOffset(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._egoParkPerturbationLongitudinalOffset.proto.CopyFrom(value.proto)
+        self.proto.egoParkPerturbationLongitudinalOffset.CopyFrom(value.proto)
+        
+        self._egoParkPerturbationLongitudinalOffset = value
+        self._egoParkPerturbationLongitudinalOffset._update_proto_references(self.proto.egoParkPerturbationLongitudinalOffset)
 
     @property
     def exitAfterParking(self) -> bool:
@@ -1761,7 +1972,10 @@ class ParkingScenarioGeneratorInfo(ProtoMessageClass):
 
     @parkingSpacePedestrianDensity.setter
     def parkingSpacePedestrianDensity(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._parkingSpacePedestrianDensity.proto.CopyFrom(value.proto)
+        self.proto.parkingSpacePedestrianDensity.CopyFrom(value.proto)
+        
+        self._parkingSpacePedestrianDensity = value
+        self._parkingSpacePedestrianDensity._update_proto_references(self.proto.parkingSpacePedestrianDensity)
 
     @property
     def parkingTypeDistribution(self) -> _pd_distributions_pb2.EnumDistribution:
@@ -1769,7 +1983,10 @@ class ParkingScenarioGeneratorInfo(ProtoMessageClass):
 
     @parkingTypeDistribution.setter
     def parkingTypeDistribution(self, value: _pd_distributions_pb2.EnumDistribution):
-        self._parkingTypeDistribution.proto.CopyFrom(value.proto)
+        self.proto.parkingTypeDistribution.CopyFrom(value.proto)
+        
+        self._parkingTypeDistribution = value
+        self._parkingTypeDistribution._update_proto_references(self.proto.parkingTypeDistribution)
 
     @property
     def perpendicularOnRoadProbability(self) -> float:
@@ -1801,7 +2018,21 @@ class ParkingScenarioGeneratorInfo(ProtoMessageClass):
 
     @timeToParkingSpace.setter
     def timeToParkingSpace(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._timeToParkingSpace.proto.CopyFrom(value.proto)
+        self.proto.timeToParkingSpace.CopyFrom(value.proto)
+        
+        self._timeToParkingSpace = value
+        self._timeToParkingSpace._update_proto_references(self.proto.timeToParkingSpace)
+
+    def _update_proto_references(self, proto: pd_spawn_pb2.ParkingScenarioGeneratorInfo):
+        self.proto = proto
+        self._aisleLateralOffsetBackIn._update_proto_references(proto.aisleLateralOffsetBackIn)
+        self._aisleLateralOffsetNoseIn._update_proto_references(proto.aisleLateralOffsetNoseIn)
+        self._egoParkPerturbationAngle._update_proto_references(proto.egoParkPerturbationAngle)
+        self._egoParkPerturbationLateralOffset._update_proto_references(proto.egoParkPerturbationLateralOffset)
+        self._egoParkPerturbationLongitudinalOffset._update_proto_references(proto.egoParkPerturbationLongitudinalOffset)
+        self._parkingSpacePedestrianDensity._update_proto_references(proto.parkingSpacePedestrianDensity)
+        self._parkingTypeDistribution._update_proto_references(proto.parkingTypeDistribution)
+        self._timeToParkingSpace._update_proto_references(proto.timeToParkingSpace)
 
 @register_wrapper(proto_type=pd_spawn_pb2.PositionGenerator)
 class PositionGenerator(ProtoMessageClass):
@@ -1811,8 +2042,8 @@ class PositionGenerator(ProtoMessageClass):
         if proto is None:
             proto = pd_spawn_pb2.PositionGenerator()
         self.proto = proto
-        self._junction_ids = ProtoListWrapper(container=[int(v) for v in proto.junction_ids], attr_name='junction_ids', list_owner=proto)
-        self._star_vehicles = ProtoListWrapper(container=[str(v) for v in proto.star_vehicles], attr_name='star_vehicles', list_owner=proto)
+        self._junction_ids = ProtoListWrapper(container=[int(v) for v in proto.junction_ids], attr_name='junction_ids', list_owner=self)
+        self._star_vehicles = ProtoListWrapper(container=[str(v) for v in proto.star_vehicles], attr_name='star_vehicles', list_owner=self)
         if ego_behind_star is not None:
             self.ego_behind_star = ego_behind_star
         if face_same_direction is not None:
@@ -1877,6 +2108,9 @@ class PositionGenerator(ProtoMessageClass):
         self._star_vehicles.clear()
         for v in value:
             self._star_vehicles.append(v)
+
+    def _update_proto_references(self, proto: pd_spawn_pb2.PositionGenerator):
+        self.proto = proto
 
 @register_wrapper(proto_type=pd_spawn_pb2.PropScenarioGeneratorInfo)
 class PropScenarioGeneratorInfo(ProtoMessageClass):
@@ -1990,7 +2224,10 @@ class PropScenarioGeneratorInfo(ProtoMessageClass):
 
     @closureConeLength.setter
     def closureConeLength(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._closureConeLength.proto.CopyFrom(value.proto)
+        self.proto.closureConeLength.CopyFrom(value.proto)
+        
+        self._closureConeLength = value
+        self._closureConeLength._update_proto_references(self.proto.closureConeLength)
 
     @property
     def closureConeLengthForSingleLaneClosure(self) -> _pd_unified_generator_pb2.CenterSpreadConfig:
@@ -1998,7 +2235,10 @@ class PropScenarioGeneratorInfo(ProtoMessageClass):
 
     @closureConeLengthForSingleLaneClosure.setter
     def closureConeLengthForSingleLaneClosure(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._closureConeLengthForSingleLaneClosure.proto.CopyFrom(value.proto)
+        self.proto.closureConeLengthForSingleLaneClosure.CopyFrom(value.proto)
+        
+        self._closureConeLengthForSingleLaneClosure = value
+        self._closureConeLengthForSingleLaneClosure._update_proto_references(self.proto.closureConeLengthForSingleLaneClosure)
 
     @property
     def closureConeSpacing(self) -> _pd_unified_generator_pb2.CenterSpreadConfig:
@@ -2006,7 +2246,10 @@ class PropScenarioGeneratorInfo(ProtoMessageClass):
 
     @closureConeSpacing.setter
     def closureConeSpacing(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._closureConeSpacing.proto.CopyFrom(value.proto)
+        self.proto.closureConeSpacing.CopyFrom(value.proto)
+        
+        self._closureConeSpacing = value
+        self._closureConeSpacing._update_proto_references(self.proto.closureConeSpacing)
 
     @property
     def coneAssetTag(self) -> str:
@@ -2022,7 +2265,10 @@ class PropScenarioGeneratorInfo(ProtoMessageClass):
 
     @coneSpacing.setter
     def coneSpacing(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._coneSpacing.proto.CopyFrom(value.proto)
+        self.proto.coneSpacing.CopyFrom(value.proto)
+        
+        self._coneSpacing = value
+        self._coneSpacing._update_proto_references(self.proto.coneSpacing)
 
     @property
     def initialMessageBoardAssetTag(self) -> str:
@@ -2070,7 +2316,10 @@ class PropScenarioGeneratorInfo(ProtoMessageClass):
 
     @leadConeLength.setter
     def leadConeLength(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._leadConeLength.proto.CopyFrom(value.proto)
+        self.proto.leadConeLength.CopyFrom(value.proto)
+        
+        self._leadConeLength = value
+        self._leadConeLength._update_proto_references(self.proto.leadConeLength)
 
     @property
     def leadConeLengthForSingleLaneClosure(self) -> _pd_unified_generator_pb2.CenterSpreadConfig:
@@ -2078,7 +2327,10 @@ class PropScenarioGeneratorInfo(ProtoMessageClass):
 
     @leadConeLengthForSingleLaneClosure.setter
     def leadConeLengthForSingleLaneClosure(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._leadConeLengthForSingleLaneClosure.proto.CopyFrom(value.proto)
+        self.proto.leadConeLengthForSingleLaneClosure.CopyFrom(value.proto)
+        
+        self._leadConeLengthForSingleLaneClosure = value
+        self._leadConeLengthForSingleLaneClosure._update_proto_references(self.proto.leadConeLengthForSingleLaneClosure)
 
     @property
     def leadConeSpacing(self) -> _pd_unified_generator_pb2.CenterSpreadConfig:
@@ -2086,7 +2338,10 @@ class PropScenarioGeneratorInfo(ProtoMessageClass):
 
     @leadConeSpacing.setter
     def leadConeSpacing(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._leadConeSpacing.proto.CopyFrom(value.proto)
+        self.proto.leadConeSpacing.CopyFrom(value.proto)
+        
+        self._leadConeSpacing = value
+        self._leadConeSpacing._update_proto_references(self.proto.leadConeSpacing)
 
     @property
     def maxConeAngleDeviation(self) -> float:
@@ -2166,7 +2421,10 @@ class PropScenarioGeneratorInfo(ProtoMessageClass):
 
     @num_fallen_cone_groups.setter
     def num_fallen_cone_groups(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._num_fallen_cone_groups.proto.CopyFrom(value.proto)
+        self.proto.num_fallen_cone_groups.CopyFrom(value.proto)
+        
+        self._num_fallen_cone_groups = value
+        self._num_fallen_cone_groups._update_proto_references(self.proto.num_fallen_cone_groups)
 
     @property
     def placeClosureCones(self) -> bool:
@@ -2278,7 +2536,10 @@ class PropScenarioGeneratorInfo(ProtoMessageClass):
 
     @size_fallen_cone_groups.setter
     def size_fallen_cone_groups(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._size_fallen_cone_groups.proto.CopyFrom(value.proto)
+        self.proto.size_fallen_cone_groups.CopyFrom(value.proto)
+        
+        self._size_fallen_cone_groups = value
+        self._size_fallen_cone_groups._update_proto_references(self.proto.size_fallen_cone_groups)
 
     @property
     def suffix_fallen_cone_assets(self) -> str:
@@ -2336,6 +2597,18 @@ class PropScenarioGeneratorInfo(ProtoMessageClass):
     def vehiclePlacementProbability(self, value: float):
         self.proto.vehiclePlacementProbability = value
 
+    def _update_proto_references(self, proto: pd_spawn_pb2.PropScenarioGeneratorInfo):
+        self.proto = proto
+        self._closureConeLength._update_proto_references(proto.closureConeLength)
+        self._closureConeLengthForSingleLaneClosure._update_proto_references(proto.closureConeLengthForSingleLaneClosure)
+        self._closureConeSpacing._update_proto_references(proto.closureConeSpacing)
+        self._coneSpacing._update_proto_references(proto.coneSpacing)
+        self._leadConeLength._update_proto_references(proto.leadConeLength)
+        self._leadConeLengthForSingleLaneClosure._update_proto_references(proto.leadConeLengthForSingleLaneClosure)
+        self._leadConeSpacing._update_proto_references(proto.leadConeSpacing)
+        self._num_fallen_cone_groups._update_proto_references(proto.num_fallen_cone_groups)
+        self._size_fallen_cone_groups._update_proto_references(proto.size_fallen_cone_groups)
+
 @register_wrapper(proto_type=pd_spawn_pb2.RandomLaneScenarioGeneratorInfo)
 class RandomLaneScenarioGeneratorInfo(ProtoMessageClass):
     _proto_message = pd_spawn_pb2.RandomLaneScenarioGeneratorInfo
@@ -2343,6 +2616,9 @@ class RandomLaneScenarioGeneratorInfo(ProtoMessageClass):
     def __init__(self, *, proto: Optional[pd_spawn_pb2.RandomLaneScenarioGeneratorInfo]=None):
         if proto is None:
             proto = pd_spawn_pb2.RandomLaneScenarioGeneratorInfo()
+        self.proto = proto
+
+    def _update_proto_references(self, proto: pd_spawn_pb2.RandomLaneScenarioGeneratorInfo):
         self.proto = proto
 
 @register_wrapper(proto_type=pd_spawn_pb2.RandomScenarioGenerator)
@@ -2354,6 +2630,9 @@ class RandomScenarioGenerator(ProtoMessageClass):
             proto = pd_spawn_pb2.RandomScenarioGenerator()
         self.proto = proto
 
+    def _update_proto_references(self, proto: pd_spawn_pb2.RandomScenarioGenerator):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_spawn_pb2.SpawnConfig)
 class SpawnConfig(ProtoMessageClass):
     _proto_message = pd_spawn_pb2.SpawnConfig
@@ -2363,7 +2642,7 @@ class SpawnConfig(ProtoMessageClass):
             proto = pd_spawn_pb2.SpawnConfig()
         self.proto = proto
         self._preset_distribution = get_wrapper(proto_type=proto.preset_distribution.__class__)(proto=proto.preset_distribution)
-        self._presets = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.presets], attr_name='presets', list_owner=proto)
+        self._presets = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.presets], attr_name='presets', list_owner=self)
         if preset_distribution is not None:
             self.preset_distribution = preset_distribution
         if presets is not None:
@@ -2375,7 +2654,10 @@ class SpawnConfig(ProtoMessageClass):
 
     @preset_distribution.setter
     def preset_distribution(self, value: _pd_distributions_pb2.CategoricalDistribution):
-        self._preset_distribution.proto.CopyFrom(value.proto)
+        self.proto.preset_distribution.CopyFrom(value.proto)
+        
+        self._preset_distribution = value
+        self._preset_distribution._update_proto_references(self.proto.preset_distribution)
 
     @property
     def presets(self) -> List[SpawnConfigPreset]:
@@ -2386,6 +2668,12 @@ class SpawnConfig(ProtoMessageClass):
         self._presets.clear()
         for v in value:
             self._presets.append(v)
+
+    def _update_proto_references(self, proto: pd_spawn_pb2.SpawnConfig):
+        self.proto = proto
+        self._preset_distribution._update_proto_references(proto.preset_distribution)
+        for i, v in enumerate(self.presets):
+            v._update_proto_references(self.proto.presets[i])
 
 @register_wrapper(proto_type=pd_spawn_pb2.SpawnConfigPreset)
 class SpawnConfigPreset(ProtoMessageClass):
@@ -2414,33 +2702,33 @@ class SpawnConfigPreset(ProtoMessageClass):
         if proto is None:
             proto = pd_spawn_pb2.SpawnConfigPreset()
         self.proto = proto
-        self._agentStateProbabilities = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.agentStateProbabilities], attr_name='agentStateProbabilities', list_owner=proto)
+        self._agentStateProbabilities = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.agentStateProbabilities], attr_name='agentStateProbabilities', list_owner=self)
         self._crosswalkSignDensity = get_wrapper(proto_type=proto.crosswalkSignDensity.__class__)(proto=proto.crosswalkSignDensity)
-        self._egoIgnoreObstacleTypes = ProtoListWrapper(container=[str(v) for v in proto.egoIgnoreObstacleTypes], attr_name='egoIgnoreObstacleTypes', list_owner=proto)
+        self._egoIgnoreObstacleTypes = ProtoListWrapper(container=[str(v) for v in proto.egoIgnoreObstacleTypes], attr_name='egoIgnoreObstacleTypes', list_owner=self)
         self._egoMinLaneCountDist = get_wrapper(proto_type=proto.egoMinLaneCountDist.__class__)(proto=proto.egoMinLaneCountDist)
-        self._egoRoadTypes = ProtoListWrapper(container=[int(v) for v in proto.egoRoadTypes], attr_name='egoRoadTypes', list_owner=proto)
+        self._egoRoadTypes = ProtoListWrapper(container=[int(v) for v in proto.egoRoadTypes], attr_name='egoRoadTypes', list_owner=self)
         self._ego_parking_space_decoration_params = get_wrapper(proto_type=proto.ego_parking_space_decoration_params.__class__)(proto=proto.ego_parking_space_decoration_params)
         self._junction_generator = get_wrapper(proto_type=proto.junction_generator.__class__)(proto=proto.junction_generator)
         self._kitti_generator = get_wrapper(proto_type=proto.kitti_generator.__class__)(proto=proto.kitti_generator)
         self._laneStartOffset = get_wrapper(proto_type=proto.laneStartOffset.__class__)(proto=proto.laneStartOffset)
         self._lightFlashingPeriod = get_wrapper(proto_type=proto.lightFlashingPeriod.__class__)(proto=proto.lightFlashingPeriod)
         self._lightIlluminatedPercentage = get_wrapper(proto_type=proto.lightIlluminatedPercentage.__class__)(proto=proto.lightIlluminatedPercentage)
-        self._markerDataMap = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.markerDataMap.items()}, attr_name='markerDataMap', dict_owner=proto)
+        self._markerDataMap = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.markerDataMap.items()}, attr_name='markerDataMap', dict_owner=self)
         self._object_decoration_params = get_wrapper(proto_type=proto.object_decoration_params.__class__)(proto=proto.object_decoration_params)
         self._parkingTypeDistribution = get_wrapper(proto_type=proto.parkingTypeDistribution.__class__)(proto=proto.parkingTypeDistribution)
         self._parking_space_data = get_wrapper(proto_type=proto.parking_space_data.__class__)(proto=proto.parking_space_data)
-        self._pedestrianColorOverrideRGB = ProtoListWrapper(container=[float(v) for v in proto.pedestrianColorOverrideRGB], attr_name='pedestrianColorOverrideRGB', list_owner=proto)
+        self._pedestrianColorOverrideRGB = ProtoListWrapper(container=[float(v) for v in proto.pedestrianColorOverrideRGB], attr_name='pedestrianColorOverrideRGB', list_owner=self)
         self._position_generator = get_wrapper(proto_type=proto.position_generator.__class__)(proto=proto.position_generator)
         self._random_generator = get_wrapper(proto_type=proto.random_generator.__class__)(proto=proto.random_generator)
         self._rollingStop = get_wrapper(proto_type=proto.rollingStop.__class__)(proto=proto.rollingStop)
         self._signDensity = get_wrapper(proto_type=proto.signDensity.__class__)(proto=proto.signDensity)
-        self._spawnTrailerProbabilities = ProtoDictWrapper(container={k: float(v) for (k, v) in proto.spawnTrailerProbabilities.items()}, attr_name='spawnTrailerProbabilities', dict_owner=proto)
-        self._startSeparationTime = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.startSeparationTime.items()}, attr_name='startSeparationTime', dict_owner=proto)
+        self._spawnTrailerProbabilities = ProtoDictWrapper(container={k: float(v) for (k, v) in proto.spawnTrailerProbabilities.items()}, attr_name='spawnTrailerProbabilities', dict_owner=self)
+        self._startSeparationTime = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.startSeparationTime.items()}, attr_name='startSeparationTime', dict_owner=self)
         self._stopLineOffset = get_wrapper(proto_type=proto.stopLineOffset.__class__)(proto=proto.stopLineOffset)
-        self._targetSeparationTime = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.targetSeparationTime.items()}, attr_name='targetSeparationTime', dict_owner=proto)
+        self._targetSeparationTime = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.targetSeparationTime.items()}, attr_name='targetSeparationTime', dict_owner=self)
         self._turnTypeDistribution = get_wrapper(proto_type=proto.turnTypeDistribution.__class__)(proto=proto.turnTypeDistribution)
-        self._vehicleDistribution = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.vehicleDistribution.items()}, attr_name='vehicleDistribution', dict_owner=proto)
-        self._vehicleRoadTypes = ProtoListWrapper(container=[int(v) for v in proto.vehicleRoadTypes], attr_name='vehicleRoadTypes', list_owner=proto)
+        self._vehicleDistribution = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.vehicleDistribution.items()}, attr_name='vehicleDistribution', dict_owner=self)
+        self._vehicleRoadTypes = ProtoListWrapper(container=[int(v) for v in proto.vehicleRoadTypes], attr_name='vehicleRoadTypes', list_owner=self)
         self._voi_generator = get_wrapper(proto_type=proto.voi_generator.__class__)(proto=proto.voi_generator)
         if agentStateProbabilities is not None:
             self.agentStateProbabilities = agentStateProbabilities
@@ -2741,7 +3029,10 @@ class SpawnConfigPreset(ProtoMessageClass):
 
     @crosswalkSignDensity.setter
     def crosswalkSignDensity(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._crosswalkSignDensity.proto.CopyFrom(value.proto)
+        self.proto.crosswalkSignDensity.CopyFrom(value.proto)
+        
+        self._crosswalkSignDensity = value
+        self._crosswalkSignDensity._update_proto_references(self.proto.crosswalkSignDensity)
 
     @property
     def disableAccessories(self) -> bool:
@@ -2831,7 +3122,10 @@ class SpawnConfigPreset(ProtoMessageClass):
 
     @egoMinLaneCountDist.setter
     def egoMinLaneCountDist(self, value: _pd_unified_generator_pb2.CenterSpreadConfigInt):
-        self._egoMinLaneCountDist.proto.CopyFrom(value.proto)
+        self.proto.egoMinLaneCountDist.CopyFrom(value.proto)
+        
+        self._egoMinLaneCountDist = value
+        self._egoMinLaneCountDist._update_proto_references(self.proto.egoMinLaneCountDist)
 
     @property
     def egoMinPathLength(self) -> float:
@@ -2897,7 +3191,10 @@ class SpawnConfigPreset(ProtoMessageClass):
 
     @ego_parking_space_decoration_params.setter
     def ego_parking_space_decoration_params(self, value: _pd_unified_generator_pb2.ObjectDecorationParams):
-        self._ego_parking_space_decoration_params.proto.CopyFrom(value.proto)
+        self.proto.ego_parking_space_decoration_params.CopyFrom(value.proto)
+        
+        self._ego_parking_space_decoration_params = value
+        self._ego_parking_space_decoration_params._update_proto_references(self.proto.ego_parking_space_decoration_params)
 
     @property
     def emergencyLightsOnProbability(self) -> float:
@@ -2969,7 +3266,10 @@ class SpawnConfigPreset(ProtoMessageClass):
 
     @junction_generator.setter
     def junction_generator(self, value: JunctionScenarioGenerator):
-        self._junction_generator.proto.CopyFrom(value.proto)
+        self.proto.junction_generator.CopyFrom(value.proto)
+        
+        self._junction_generator = value
+        self._junction_generator._update_proto_references(self.proto.junction_generator)
 
     @property
     def kitti_generator(self) -> KittiScenarioGenerator:
@@ -2977,7 +3277,10 @@ class SpawnConfigPreset(ProtoMessageClass):
 
     @kitti_generator.setter
     def kitti_generator(self, value: KittiScenarioGenerator):
-        self._kitti_generator.proto.CopyFrom(value.proto)
+        self.proto.kitti_generator.CopyFrom(value.proto)
+        
+        self._kitti_generator = value
+        self._kitti_generator._update_proto_references(self.proto.kitti_generator)
 
     @property
     def laneChangeChance(self) -> float:
@@ -3065,7 +3368,10 @@ class SpawnConfigPreset(ProtoMessageClass):
 
     @laneStartOffset.setter
     def laneStartOffset(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._laneStartOffset.proto.CopyFrom(value.proto)
+        self.proto.laneStartOffset.CopyFrom(value.proto)
+        
+        self._laneStartOffset = value
+        self._laneStartOffset._update_proto_references(self.proto.laneStartOffset)
 
     @property
     def largeVehicleTurnRadiusMultiple(self) -> float:
@@ -3081,7 +3387,10 @@ class SpawnConfigPreset(ProtoMessageClass):
 
     @lightFlashingPeriod.setter
     def lightFlashingPeriod(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._lightFlashingPeriod.proto.CopyFrom(value.proto)
+        self.proto.lightFlashingPeriod.CopyFrom(value.proto)
+        
+        self._lightFlashingPeriod = value
+        self._lightFlashingPeriod._update_proto_references(self.proto.lightFlashingPeriod)
 
     @property
     def lightIlluminatedPercentage(self) -> _pd_unified_generator_pb2.CenterSpreadConfig:
@@ -3089,7 +3398,10 @@ class SpawnConfigPreset(ProtoMessageClass):
 
     @lightIlluminatedPercentage.setter
     def lightIlluminatedPercentage(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._lightIlluminatedPercentage.proto.CopyFrom(value.proto)
+        self.proto.lightIlluminatedPercentage.CopyFrom(value.proto)
+        
+        self._lightIlluminatedPercentage = value
+        self._lightIlluminatedPercentage._update_proto_references(self.proto.lightIlluminatedPercentage)
 
     @property
     def markerDataMap(self) -> Dict[str, _pd_unified_generator_pb2.RoadMarkingData]:
@@ -3138,7 +3450,10 @@ class SpawnConfigPreset(ProtoMessageClass):
 
     @object_decoration_params.setter
     def object_decoration_params(self, value: _pd_unified_generator_pb2.ObjectDecorationParams):
-        self._object_decoration_params.proto.CopyFrom(value.proto)
+        self.proto.object_decoration_params.CopyFrom(value.proto)
+        
+        self._object_decoration_params = value
+        self._object_decoration_params._update_proto_references(self.proto.object_decoration_params)
 
     @property
     def object_decoration_radius(self) -> float:
@@ -3178,7 +3493,10 @@ class SpawnConfigPreset(ProtoMessageClass):
 
     @parkingTypeDistribution.setter
     def parkingTypeDistribution(self, value: _pd_unified_generator_pb2.ParkingTypeDistribution):
-        self._parkingTypeDistribution.proto.CopyFrom(value.proto)
+        self.proto.parkingTypeDistribution.CopyFrom(value.proto)
+        
+        self._parkingTypeDistribution = value
+        self._parkingTypeDistribution._update_proto_references(self.proto.parkingTypeDistribution)
 
     @property
     def parking_space_data(self) -> _pd_unified_generator_pb2.ParkingSpaceData:
@@ -3186,7 +3504,10 @@ class SpawnConfigPreset(ProtoMessageClass):
 
     @parking_space_data.setter
     def parking_space_data(self, value: _pd_unified_generator_pb2.ParkingSpaceData):
-        self._parking_space_data.proto.CopyFrom(value.proto)
+        self.proto.parking_space_data.CopyFrom(value.proto)
+        
+        self._parking_space_data = value
+        self._parking_space_data._update_proto_references(self.proto.parking_space_data)
 
     @property
     def pedestrianColorOverrideChance(self) -> float:
@@ -3316,7 +3637,10 @@ class SpawnConfigPreset(ProtoMessageClass):
 
     @position_generator.setter
     def position_generator(self, value: PositionGenerator):
-        self._position_generator.proto.CopyFrom(value.proto)
+        self.proto.position_generator.CopyFrom(value.proto)
+        
+        self._position_generator = value
+        self._position_generator._update_proto_references(self.proto.position_generator)
 
     @property
     def proceedOutOfTurnProbability(self) -> float:
@@ -3332,7 +3656,10 @@ class SpawnConfigPreset(ProtoMessageClass):
 
     @random_generator.setter
     def random_generator(self, value: RandomScenarioGenerator):
-        self._random_generator.proto.CopyFrom(value.proto)
+        self.proto.random_generator.CopyFrom(value.proto)
+        
+        self._random_generator = value
+        self._random_generator._update_proto_references(self.proto.random_generator)
 
     @property
     def randomizeVehicleParts(self) -> bool:
@@ -3364,7 +3691,10 @@ class SpawnConfigPreset(ProtoMessageClass):
 
     @rollingStop.setter
     def rollingStop(self, value: _pd_unified_generator_pb2.CenterSpreadProbabilityConfig):
-        self._rollingStop.proto.CopyFrom(value.proto)
+        self.proto.rollingStop.CopyFrom(value.proto)
+        
+        self._rollingStop = value
+        self._rollingStop._update_proto_references(self.proto.rollingStop)
 
     @property
     def searchRadius(self) -> float:
@@ -3380,7 +3710,10 @@ class SpawnConfigPreset(ProtoMessageClass):
 
     @signDensity.setter
     def signDensity(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._signDensity.proto.CopyFrom(value.proto)
+        self.proto.signDensity.CopyFrom(value.proto)
+        
+        self._signDensity = value
+        self._signDensity._update_proto_references(self.proto.signDensity)
 
     @property
     def spawnPedestriansOnRoad(self) -> bool:
@@ -3454,7 +3787,10 @@ class SpawnConfigPreset(ProtoMessageClass):
 
     @stopLineOffset.setter
     def stopLineOffset(self, value: _pd_unified_generator_pb2.CenterSpreadProbabilityConfig):
-        self._stopLineOffset.proto.CopyFrom(value.proto)
+        self.proto.stopLineOffset.CopyFrom(value.proto)
+        
+        self._stopLineOffset = value
+        self._stopLineOffset._update_proto_references(self.proto.stopLineOffset)
 
     @property
     def targetSeparation(self) -> float:
@@ -3503,7 +3839,10 @@ class SpawnConfigPreset(ProtoMessageClass):
 
     @turnTypeDistribution.setter
     def turnTypeDistribution(self, value: _pd_distributions_pb2.EnumDistribution):
-        self._turnTypeDistribution.proto.CopyFrom(value.proto)
+        self.proto.turnTypeDistribution.CopyFrom(value.proto)
+        
+        self._turnTypeDistribution = value
+        self._turnTypeDistribution._update_proto_references(self.proto.turnTypeDistribution)
 
     @property
     def useStaticTrailers(self) -> bool:
@@ -3546,7 +3885,41 @@ class SpawnConfigPreset(ProtoMessageClass):
 
     @voi_generator.setter
     def voi_generator(self, value: VehicleOfInterestGenerator):
-        self._voi_generator.proto.CopyFrom(value.proto)
+        self.proto.voi_generator.CopyFrom(value.proto)
+        
+        self._voi_generator = value
+        self._voi_generator._update_proto_references(self.proto.voi_generator)
+
+    def _update_proto_references(self, proto: pd_spawn_pb2.SpawnConfigPreset):
+        self.proto = proto
+        for i, v in enumerate(self.agentStateProbabilities):
+            v._update_proto_references(self.proto.agentStateProbabilities[i])
+        self._crosswalkSignDensity._update_proto_references(proto.crosswalkSignDensity)
+        self._egoMinLaneCountDist._update_proto_references(proto.egoMinLaneCountDist)
+        self._ego_parking_space_decoration_params._update_proto_references(proto.ego_parking_space_decoration_params)
+        self._junction_generator._update_proto_references(proto.junction_generator)
+        self._kitti_generator._update_proto_references(proto.kitti_generator)
+        self._laneStartOffset._update_proto_references(proto.laneStartOffset)
+        self._lightFlashingPeriod._update_proto_references(proto.lightFlashingPeriod)
+        self._lightIlluminatedPercentage._update_proto_references(proto.lightIlluminatedPercentage)
+        for k, v in self.markerDataMap.items():
+            v._update_proto_references(self.proto.markerDataMap[k])
+        self._object_decoration_params._update_proto_references(proto.object_decoration_params)
+        self._parkingTypeDistribution._update_proto_references(proto.parkingTypeDistribution)
+        self._parking_space_data._update_proto_references(proto.parking_space_data)
+        self._position_generator._update_proto_references(proto.position_generator)
+        self._random_generator._update_proto_references(proto.random_generator)
+        self._rollingStop._update_proto_references(proto.rollingStop)
+        self._signDensity._update_proto_references(proto.signDensity)
+        for k, v in self.startSeparationTime.items():
+            v._update_proto_references(self.proto.startSeparationTime[k])
+        self._stopLineOffset._update_proto_references(proto.stopLineOffset)
+        for k, v in self.targetSeparationTime.items():
+            v._update_proto_references(self.proto.targetSeparationTime[k])
+        self._turnTypeDistribution._update_proto_references(proto.turnTypeDistribution)
+        for k, v in self.vehicleDistribution.items():
+            v._update_proto_references(self.proto.vehicleDistribution[k])
+        self._voi_generator._update_proto_references(proto.voi_generator)
 
 @register_wrapper(proto_type=pd_spawn_pb2.StaticCamScenarioGeneratorInfo)
 class StaticCamScenarioGeneratorInfo(ProtoMessageClass):
@@ -3597,6 +3970,9 @@ class StaticCamScenarioGeneratorInfo(ProtoMessageClass):
     def elevation_spread(self, value: float):
         self.proto.elevation_spread = value
 
+    def _update_proto_references(self, proto: pd_spawn_pb2.StaticCamScenarioGeneratorInfo):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_spawn_pb2.VehicleOfInterestGenerator)
 class VehicleOfInterestGenerator(ProtoMessageClass):
     _proto_message = pd_spawn_pb2.VehicleOfInterestGenerator
@@ -3605,7 +3981,7 @@ class VehicleOfInterestGenerator(ProtoMessageClass):
         if proto is None:
             proto = pd_spawn_pb2.VehicleOfInterestGenerator()
         self.proto = proto
-        self._vehicle_list = ProtoListWrapper(container=[str(v) for v in proto.vehicle_list], attr_name='vehicle_list', list_owner=proto)
+        self._vehicle_list = ProtoListWrapper(container=[str(v) for v in proto.vehicle_list], attr_name='vehicle_list', list_owner=self)
         if include_opposite_lanes is not None:
             self.include_opposite_lanes = include_opposite_lanes
         if max_distance_back is not None:
@@ -3668,6 +4044,9 @@ class VehicleOfInterestGenerator(ProtoMessageClass):
         self._vehicle_list.clear()
         for v in value:
             self._vehicle_list.append(v)
+
+    def _update_proto_references(self, proto: pd_spawn_pb2.VehicleOfInterestGenerator):
+        self.proto = proto
 
 @register_wrapper(proto_type=pd_spawn_pb2.VehicleOfInterestScenarioGeneratorInfo)
 class VehicleOfInterestScenarioGeneratorInfo(ProtoMessageClass):
@@ -3677,7 +4056,7 @@ class VehicleOfInterestScenarioGeneratorInfo(ProtoMessageClass):
         if proto is None:
             proto = pd_spawn_pb2.VehicleOfInterestScenarioGeneratorInfo()
         self.proto = proto
-        self._vehicle_list = ProtoListWrapper(container=[str(v) for v in proto.vehicle_list], attr_name='vehicle_list', list_owner=proto)
+        self._vehicle_list = ProtoListWrapper(container=[str(v) for v in proto.vehicle_list], attr_name='vehicle_list', list_owner=self)
         if include_opposite_lanes is not None:
             self.include_opposite_lanes = include_opposite_lanes
         if max_distance_back is not None:
@@ -3740,6 +4119,9 @@ class VehicleOfInterestScenarioGeneratorInfo(ProtoMessageClass):
         self._vehicle_list.clear()
         for v in value:
             self._vehicle_list.append(v)
+
+    def _update_proto_references(self, proto: pd_spawn_pb2.VehicleOfInterestScenarioGeneratorInfo):
+        self.proto = proto
 
 @register_wrapper(proto_type=pd_spawn_pb2.VehiclePositionScenarioGeneratorInfo)
 class VehiclePositionScenarioGeneratorInfo(ProtoMessageClass):
@@ -3750,9 +4132,9 @@ class VehiclePositionScenarioGeneratorInfo(ProtoMessageClass):
             proto = pd_spawn_pb2.VehiclePositionScenarioGeneratorInfo()
         self.proto = proto
         self._emergency_vehicle_spawn_behind_star_probability = get_wrapper(proto_type=proto.emergency_vehicle_spawn_behind_star_probability.__class__)(proto=proto.emergency_vehicle_spawn_behind_star_probability)
-        self._junction_ids = ProtoListWrapper(container=[int(v) for v in proto.junction_ids], attr_name='junction_ids', list_owner=proto)
+        self._junction_ids = ProtoListWrapper(container=[int(v) for v in proto.junction_ids], attr_name='junction_ids', list_owner=self)
         self._ped_pose_distribution = get_wrapper(proto_type=proto.ped_pose_distribution.__class__)(proto=proto.ped_pose_distribution)
-        self._star_vehicles = ProtoListWrapper(container=[str(v) for v in proto.star_vehicles], attr_name='star_vehicles', list_owner=proto)
+        self._star_vehicles = ProtoListWrapper(container=[str(v) for v in proto.star_vehicles], attr_name='star_vehicles', list_owner=self)
         if ego_behind_star is not None:
             self.ego_behind_star = ego_behind_star
         if ego_in_star_adjacent_lane is not None:
@@ -3870,7 +4252,10 @@ class VehiclePositionScenarioGeneratorInfo(ProtoMessageClass):
 
     @emergency_vehicle_spawn_behind_star_probability.setter
     def emergency_vehicle_spawn_behind_star_probability(self, value: _pd_unified_generator_pb2.CenterSpreadConfig):
-        self._emergency_vehicle_spawn_behind_star_probability.proto.CopyFrom(value.proto)
+        self.proto.emergency_vehicle_spawn_behind_star_probability.CopyFrom(value.proto)
+        
+        self._emergency_vehicle_spawn_behind_star_probability = value
+        self._emergency_vehicle_spawn_behind_star_probability._update_proto_references(self.proto.emergency_vehicle_spawn_behind_star_probability)
 
     @property
     def face_same_direction(self) -> bool:
@@ -3984,7 +4369,10 @@ class VehiclePositionScenarioGeneratorInfo(ProtoMessageClass):
 
     @ped_pose_distribution.setter
     def ped_pose_distribution(self, value: _pd_distributions_pb2.CategoricalDistribution):
-        self._ped_pose_distribution.proto.CopyFrom(value.proto)
+        self.proto.ped_pose_distribution.CopyFrom(value.proto)
+        
+        self._ped_pose_distribution = value
+        self._ped_pose_distribution._update_proto_references(self.proto.ped_pose_distribution)
 
     @property
     def peds_around_star_vehicle(self) -> bool:
@@ -4107,6 +4495,11 @@ class VehiclePositionScenarioGeneratorInfo(ProtoMessageClass):
         self._star_vehicles.clear()
         for v in value:
             self._star_vehicles.append(v)
+
+    def _update_proto_references(self, proto: pd_spawn_pb2.VehiclePositionScenarioGeneratorInfo):
+        self.proto = proto
+        self._emergency_vehicle_spawn_behind_star_probability._update_proto_references(proto.emergency_vehicle_spawn_behind_star_probability)
+        self._ped_pose_distribution._update_proto_references(proto.ped_pose_distribution)
 
 @register_wrapper(proto_type=pd_spawn_pb2.VehicleType)
 class VehicleType(ProtoEnumClass):

@@ -43,6 +43,9 @@ class AlbedoWeights(ProtoMessageClass):
     def z(self, value: float):
         self.proto.z = value
 
+    def _update_proto_references(self, proto: pd_sensor_pb2.AlbedoWeights):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_sensor_pb2.AliceLidarModel)
 class AliceLidarModel(ProtoMessageClass):
     _proto_message = pd_sensor_pb2.AliceLidarModel
@@ -152,6 +155,9 @@ class AliceLidarModel(ProtoMessageClass):
     def sparse_radian_spacing(self, value: float):
         self.proto.sparse_radian_spacing = value
 
+    def _update_proto_references(self, proto: pd_sensor_pb2.AliceLidarModel):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_sensor_pb2.CameraIntrinsic)
 class CameraIntrinsic(ProtoMessageClass):
     _proto_message = pd_sensor_pb2.CameraIntrinsic
@@ -162,7 +168,7 @@ class CameraIntrinsic(ProtoMessageClass):
         self.proto = proto
         self._distortion_params = get_wrapper(proto_type=proto.distortion_params.__class__)(proto=proto.distortion_params)
         self._noise_params = get_wrapper(proto_type=proto.noise_params.__class__)(proto=proto.noise_params)
-        self._post_process = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.post_process], attr_name='post_process', list_owner=proto)
+        self._post_process = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.post_process], attr_name='post_process', list_owner=self)
         self._post_process_params = get_wrapper(proto_type=proto.post_process_params.__class__)(proto=proto.post_process_params)
         if capture_backwardmotionvectors is not None:
             self.capture_backwardmotionvectors = capture_backwardmotionvectors
@@ -307,7 +313,10 @@ class CameraIntrinsic(ProtoMessageClass):
 
     @distortion_params.setter
     def distortion_params(self, value: DistortionParams):
-        self._distortion_params.proto.CopyFrom(value.proto)
+        self.proto.distortion_params.CopyFrom(value.proto)
+        
+        self._distortion_params = value
+        self._distortion_params._update_proto_references(self.proto.distortion_params)
 
     @property
     def enable_streaming(self) -> bool:
@@ -355,7 +364,10 @@ class CameraIntrinsic(ProtoMessageClass):
 
     @noise_params.setter
     def noise_params(self, value: NoiseParams):
-        self._noise_params.proto.CopyFrom(value.proto)
+        self.proto.noise_params.CopyFrom(value.proto)
+        
+        self._noise_params = value
+        self._noise_params._update_proto_references(self.proto.noise_params)
 
     @property
     def post_process(self) -> List[PostProcessNode]:
@@ -373,7 +385,10 @@ class CameraIntrinsic(ProtoMessageClass):
 
     @post_process_params.setter
     def post_process_params(self, value: PostProcessParams):
-        self._post_process_params.proto.CopyFrom(value.proto)
+        self.proto.post_process_params.CopyFrom(value.proto)
+        
+        self._post_process_params = value
+        self._post_process_params._update_proto_references(self.proto.post_process_params)
 
     @property
     def supersample(self) -> float:
@@ -406,6 +421,14 @@ class CameraIntrinsic(ProtoMessageClass):
     @width.setter
     def width(self, value: int):
         self.proto.width = value
+
+    def _update_proto_references(self, proto: pd_sensor_pb2.CameraIntrinsic):
+        self.proto = proto
+        self._distortion_params._update_proto_references(proto.distortion_params)
+        self._noise_params._update_proto_references(proto.noise_params)
+        for i, v in enumerate(self.post_process):
+            v._update_proto_references(self.proto.post_process[i])
+        self._post_process_params._update_proto_references(proto.post_process_params)
 
 @register_wrapper(proto_type=pd_sensor_pb2.DistortionParams)
 class DistortionParams(ProtoMessageClass):
@@ -566,6 +589,9 @@ class DistortionParams(ProtoMessageClass):
     def skew(self, value: float):
         self.proto.skew = value
 
+    def _update_proto_references(self, proto: pd_sensor_pb2.DistortionParams):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_sensor_pb2.LidarBeam)
 class LidarBeam(ProtoMessageClass):
     _proto_message = pd_sensor_pb2.LidarBeam
@@ -604,6 +630,9 @@ class LidarBeam(ProtoMessageClass):
     @id.setter
     def id(self, value: int):
         self.proto.id = value
+
+    def _update_proto_references(self, proto: pd_sensor_pb2.LidarBeam):
+        self.proto = proto
 
 @register_wrapper(proto_type=pd_sensor_pb2.LidarIntensityParams)
 class LidarIntensityParams(ProtoMessageClass):
@@ -649,7 +678,10 @@ class LidarIntensityParams(ProtoMessageClass):
 
     @albedo_weights.setter
     def albedo_weights(self, value: AlbedoWeights):
-        self._albedo_weights.proto.CopyFrom(value.proto)
+        self.proto.albedo_weights.CopyFrom(value.proto)
+        
+        self._albedo_weights = value
+        self._albedo_weights._update_proto_references(self.proto.albedo_weights)
 
     @property
     def beam_intensity(self) -> float:
@@ -755,6 +787,10 @@ class LidarIntensityParams(ProtoMessageClass):
     def strong_retro_intensity_enhance(self, value: float):
         self.proto.strong_retro_intensity_enhance = value
 
+    def _update_proto_references(self, proto: pd_sensor_pb2.LidarIntensityParams):
+        self.proto = proto
+        self._albedo_weights._update_proto_references(proto.albedo_weights)
+
 @register_wrapper(proto_type=pd_sensor_pb2.LidarIntrinsic)
 class LidarIntrinsic(ProtoMessageClass):
     _proto_message = pd_sensor_pb2.LidarIntrinsic
@@ -764,7 +800,7 @@ class LidarIntrinsic(ProtoMessageClass):
             proto = pd_sensor_pb2.LidarIntrinsic()
         self.proto = proto
         self._alice_lidar_model = get_wrapper(proto_type=proto.alice_lidar_model.__class__)(proto=proto.alice_lidar_model)
-        self._beam_data = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.beam_data], attr_name='beam_data', list_owner=proto)
+        self._beam_data = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.beam_data], attr_name='beam_data', list_owner=self)
         self._intensity_params = get_wrapper(proto_type=proto.intensity_params.__class__)(proto=proto.intensity_params)
         if alice_lidar_model is not None:
             self.alice_lidar_model = alice_lidar_model
@@ -833,7 +869,10 @@ class LidarIntrinsic(ProtoMessageClass):
 
     @alice_lidar_model.setter
     def alice_lidar_model(self, value: AliceLidarModel):
-        self._alice_lidar_model.proto.CopyFrom(value.proto)
+        self.proto.alice_lidar_model.CopyFrom(value.proto)
+        
+        self._alice_lidar_model = value
+        self._alice_lidar_model._update_proto_references(self.proto.alice_lidar_model)
 
     @property
     def azimuth_max(self) -> float:
@@ -947,7 +986,10 @@ class LidarIntrinsic(ProtoMessageClass):
 
     @intensity_params.setter
     def intensity_params(self, value: LidarIntensityParams):
-        self._intensity_params.proto.CopyFrom(value.proto)
+        self.proto.intensity_params.CopyFrom(value.proto)
+        
+        self._intensity_params = value
+        self._intensity_params._update_proto_references(self.proto.intensity_params)
 
     @property
     def maximum_cutoff_prob(self) -> float:
@@ -1069,6 +1111,13 @@ class LidarIntrinsic(ProtoMessageClass):
     def time_offset(self, value: float):
         self.proto.time_offset = value
 
+    def _update_proto_references(self, proto: pd_sensor_pb2.LidarIntrinsic):
+        self.proto = proto
+        self._alice_lidar_model._update_proto_references(proto.alice_lidar_model)
+        for i, v in enumerate(self.beam_data):
+            v._update_proto_references(self.proto.beam_data[i])
+        self._intensity_params._update_proto_references(proto.intensity_params)
+
 @register_wrapper(proto_type=pd_sensor_pb2.LidarNoiseParams)
 class LidarNoiseParams(ProtoMessageClass):
     _proto_message = pd_sensor_pb2.LidarNoiseParams
@@ -1147,6 +1196,9 @@ class LidarNoiseParams(ProtoMessageClass):
     @min_prob.setter
     def min_prob(self, value: float):
         self.proto.min_prob = value
+
+    def _update_proto_references(self, proto: pd_sensor_pb2.LidarNoiseParams):
+        self.proto = proto
 
 @register_wrapper(proto_type=pd_sensor_pb2.NoiseParams)
 class NoiseParams(ProtoMessageClass):
@@ -1357,6 +1409,9 @@ class NoiseParams(ProtoMessageClass):
     def signal_amount(self, value: int):
         self.proto.signal_amount = value
 
+    def _update_proto_references(self, proto: pd_sensor_pb2.NoiseParams):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_sensor_pb2.PostProcessNode)
 class PostProcessNode(ProtoMessageClass):
     _proto_message = pd_sensor_pb2.PostProcessNode
@@ -1385,6 +1440,9 @@ class PostProcessNode(ProtoMessageClass):
     @weight.setter
     def weight(self, value: float):
         self.proto.weight = value
+
+    def _update_proto_references(self, proto: pd_sensor_pb2.PostProcessNode):
+        self.proto = proto
 
 @register_wrapper(proto_type=pd_sensor_pb2.PostProcessParams)
 class PostProcessParams(ProtoMessageClass):
@@ -1515,11 +1573,14 @@ class PostProcessParams(ProtoMessageClass):
     def vignette_intensity(self, value: float):
         self.proto.vignette_intensity = value
 
+    def _update_proto_references(self, proto: pd_sensor_pb2.PostProcessParams):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_sensor_pb2.RadarBasicParameters)
 class RadarBasicParameters(ProtoMessageClass):
     _proto_message = pd_sensor_pb2.RadarBasicParameters
 
-    def __init__(self, *, proto: Optional[pd_sensor_pb2.RadarBasicParameters]=None, azimuth_accuracy: Optional[float]=None, azimuth_fov: Optional[float]=None, azimuth_resolution: Optional[float]=None, doppler_resolution: Optional[float]=None, elevation_accuracy: Optional[float]=None, elevation_fov: Optional[float]=None, elevation_resolution: Optional[float]=None, max_doppler: Optional[float]=None, max_range: Optional[float]=None, number_rays_per_frame: Optional[int]=None, radar_output_2d: Optional[bool]=None, range_resolution: Optional[float]=None, use_random_raycast: Optional[bool]=None):
+    def __init__(self, *, proto: Optional[pd_sensor_pb2.RadarBasicParameters]=None, azimuth_accuracy: Optional[float]=None, azimuth_fov: Optional[float]=None, azimuth_resolution: Optional[float]=None, doppler_resolution: Optional[float]=None, elevation_accuracy: Optional[float]=None, elevation_fov: Optional[float]=None, elevation_resolution: Optional[float]=None, max_doppler: Optional[float]=None, max_range: Optional[float]=None, number_rays_per_frame: Optional[int]=None, prf_profile_file: Optional[str]=None, radar_output_2d: Optional[bool]=None, range_resolution: Optional[float]=None, use_random_raycast: Optional[bool]=None):
         if proto is None:
             proto = pd_sensor_pb2.RadarBasicParameters()
         self.proto = proto
@@ -1543,6 +1604,8 @@ class RadarBasicParameters(ProtoMessageClass):
             self.max_range = max_range
         if number_rays_per_frame is not None:
             self.number_rays_per_frame = number_rays_per_frame
+        if prf_profile_file is not None:
+            self.prf_profile_file = prf_profile_file
         if radar_output_2d is not None:
             self.radar_output_2d = radar_output_2d
         if range_resolution is not None:
@@ -1631,6 +1694,14 @@ class RadarBasicParameters(ProtoMessageClass):
         self.proto.number_rays_per_frame = value
 
     @property
+    def prf_profile_file(self) -> str:
+        return self.proto.prf_profile_file
+
+    @prf_profile_file.setter
+    def prf_profile_file(self, value: str):
+        self.proto.prf_profile_file = value
+
+    @property
     def radar_output_2d(self) -> bool:
         return self.proto.radar_output_2d
 
@@ -1653,6 +1724,9 @@ class RadarBasicParameters(ProtoMessageClass):
     @use_random_raycast.setter
     def use_random_raycast(self, value: bool):
         self.proto.use_random_raycast = value
+
+    def _update_proto_references(self, proto: pd_sensor_pb2.RadarBasicParameters):
+        self.proto = proto
 
 @register_wrapper(proto_type=pd_sensor_pb2.RadarDetectorParameters)
 class RadarDetectorParameters(ProtoMessageClass):
@@ -1703,16 +1777,19 @@ class RadarDetectorParameters(ProtoMessageClass):
     def detector_type(self, value: str):
         self.proto.detector_type = value
 
+    def _update_proto_references(self, proto: pd_sensor_pb2.RadarDetectorParameters):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_sensor_pb2.RadarEnergyParameters)
 class RadarEnergyParameters(ProtoMessageClass):
     _proto_message = pd_sensor_pb2.RadarEnergyParameters
 
-    def __init__(self, *, proto: Optional[pd_sensor_pb2.RadarEnergyParameters]=None, beam_pattern_file_path: Optional[str]=None, enable_beam_pattern: Optional[bool]=None, gain_jitter_std: Optional[float]=None, nominal_gain: Optional[float]=None, radiometric_coefficient: Optional[float]=None):
+    def __init__(self, *, proto: Optional[pd_sensor_pb2.RadarEnergyParameters]=None, beam_pattern_file: Optional[str]=None, enable_beam_pattern: Optional[bool]=None, gain_jitter_std: Optional[float]=None, nominal_gain: Optional[float]=None, radiometric_coefficient: Optional[float]=None):
         if proto is None:
             proto = pd_sensor_pb2.RadarEnergyParameters()
         self.proto = proto
-        if beam_pattern_file_path is not None:
-            self.beam_pattern_file_path = beam_pattern_file_path
+        if beam_pattern_file is not None:
+            self.beam_pattern_file = beam_pattern_file
         if enable_beam_pattern is not None:
             self.enable_beam_pattern = enable_beam_pattern
         if gain_jitter_std is not None:
@@ -1723,12 +1800,12 @@ class RadarEnergyParameters(ProtoMessageClass):
             self.radiometric_coefficient = radiometric_coefficient
 
     @property
-    def beam_pattern_file_path(self) -> str:
-        return self.proto.beam_pattern_file_path
+    def beam_pattern_file(self) -> str:
+        return self.proto.beam_pattern_file
 
-    @beam_pattern_file_path.setter
-    def beam_pattern_file_path(self, value: str):
-        self.proto.beam_pattern_file_path = value
+    @beam_pattern_file.setter
+    def beam_pattern_file(self, value: str):
+        self.proto.beam_pattern_file = value
 
     @property
     def enable_beam_pattern(self) -> bool:
@@ -1762,6 +1839,9 @@ class RadarEnergyParameters(ProtoMessageClass):
     def radiometric_coefficient(self, value: float):
         self.proto.radiometric_coefficient = value
 
+    def _update_proto_references(self, proto: pd_sensor_pb2.RadarEnergyParameters):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_sensor_pb2.RadarIntrinsic)
 class RadarIntrinsic(ProtoMessageClass):
     _proto_message = pd_sensor_pb2.RadarIntrinsic
@@ -1789,7 +1869,10 @@ class RadarIntrinsic(ProtoMessageClass):
 
     @basic_parameters.setter
     def basic_parameters(self, value: RadarBasicParameters):
-        self._basic_parameters.proto.CopyFrom(value.proto)
+        self.proto.basic_parameters.CopyFrom(value.proto)
+        
+        self._basic_parameters = value
+        self._basic_parameters._update_proto_references(self.proto.basic_parameters)
 
     @property
     def detector_parameters(self) -> RadarDetectorParameters:
@@ -1797,7 +1880,10 @@ class RadarIntrinsic(ProtoMessageClass):
 
     @detector_parameters.setter
     def detector_parameters(self, value: RadarDetectorParameters):
-        self._detector_parameters.proto.CopyFrom(value.proto)
+        self.proto.detector_parameters.CopyFrom(value.proto)
+        
+        self._detector_parameters = value
+        self._detector_parameters._update_proto_references(self.proto.detector_parameters)
 
     @property
     def energy_parameters(self) -> RadarEnergyParameters:
@@ -1805,7 +1891,10 @@ class RadarIntrinsic(ProtoMessageClass):
 
     @energy_parameters.setter
     def energy_parameters(self, value: RadarEnergyParameters):
-        self._energy_parameters.proto.CopyFrom(value.proto)
+        self.proto.energy_parameters.CopyFrom(value.proto)
+        
+        self._energy_parameters = value
+        self._energy_parameters._update_proto_references(self.proto.energy_parameters)
 
     @property
     def noise_parameters(self) -> RadarNoiseParameters:
@@ -1813,7 +1902,17 @@ class RadarIntrinsic(ProtoMessageClass):
 
     @noise_parameters.setter
     def noise_parameters(self, value: RadarNoiseParameters):
-        self._noise_parameters.proto.CopyFrom(value.proto)
+        self.proto.noise_parameters.CopyFrom(value.proto)
+        
+        self._noise_parameters = value
+        self._noise_parameters._update_proto_references(self.proto.noise_parameters)
+
+    def _update_proto_references(self, proto: pd_sensor_pb2.RadarIntrinsic):
+        self.proto = proto
+        self._basic_parameters._update_proto_references(proto.basic_parameters)
+        self._detector_parameters._update_proto_references(proto.detector_parameters)
+        self._energy_parameters._update_proto_references(proto.energy_parameters)
+        self._noise_parameters._update_proto_references(proto.noise_parameters)
 
 @register_wrapper(proto_type=pd_sensor_pb2.RadarNoiseParameters)
 class RadarNoiseParameters(ProtoMessageClass):
@@ -1864,6 +1963,9 @@ class RadarNoiseParameters(ProtoMessageClass):
     def thermal_noise_std(self, value: float):
         self.proto.thermal_noise_std = value
 
+    def _update_proto_references(self, proto: pd_sensor_pb2.RadarNoiseParameters):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_sensor_pb2.SensorConfig)
 class SensorConfig(ProtoMessageClass):
     _proto_message = pd_sensor_pb2.SensorConfig
@@ -1893,7 +1995,10 @@ class SensorConfig(ProtoMessageClass):
 
     @camera_intrinsic.setter
     def camera_intrinsic(self, value: CameraIntrinsic):
-        self._camera_intrinsic.proto.CopyFrom(value.proto)
+        self.proto.camera_intrinsic.CopyFrom(value.proto)
+        
+        self._camera_intrinsic = value
+        self._camera_intrinsic._update_proto_references(self.proto.camera_intrinsic)
 
     @property
     def display_name(self) -> str:
@@ -1909,7 +2014,10 @@ class SensorConfig(ProtoMessageClass):
 
     @lidar_intrinsic.setter
     def lidar_intrinsic(self, value: LidarIntrinsic):
-        self._lidar_intrinsic.proto.CopyFrom(value.proto)
+        self.proto.lidar_intrinsic.CopyFrom(value.proto)
+        
+        self._lidar_intrinsic = value
+        self._lidar_intrinsic._update_proto_references(self.proto.lidar_intrinsic)
 
     @property
     def radar_intrinsic(self) -> RadarIntrinsic:
@@ -1917,7 +2025,10 @@ class SensorConfig(ProtoMessageClass):
 
     @radar_intrinsic.setter
     def radar_intrinsic(self, value: RadarIntrinsic):
-        self._radar_intrinsic.proto.CopyFrom(value.proto)
+        self.proto.radar_intrinsic.CopyFrom(value.proto)
+        
+        self._radar_intrinsic = value
+        self._radar_intrinsic._update_proto_references(self.proto.radar_intrinsic)
 
     @property
     def sensor_extrinsic(self) -> SensorExtrinsic:
@@ -1925,7 +2036,17 @@ class SensorConfig(ProtoMessageClass):
 
     @sensor_extrinsic.setter
     def sensor_extrinsic(self, value: SensorExtrinsic):
-        self._sensor_extrinsic.proto.CopyFrom(value.proto)
+        self.proto.sensor_extrinsic.CopyFrom(value.proto)
+        
+        self._sensor_extrinsic = value
+        self._sensor_extrinsic._update_proto_references(self.proto.sensor_extrinsic)
+
+    def _update_proto_references(self, proto: pd_sensor_pb2.SensorConfig):
+        self.proto = proto
+        self._camera_intrinsic._update_proto_references(proto.camera_intrinsic)
+        self._lidar_intrinsic._update_proto_references(proto.lidar_intrinsic)
+        self._radar_intrinsic._update_proto_references(proto.radar_intrinsic)
+        self._sensor_extrinsic._update_proto_references(proto.sensor_extrinsic)
 
 @register_wrapper(proto_type=pd_sensor_pb2.SensorExtrinsic)
 class SensorExtrinsic(ProtoMessageClass):
@@ -2026,6 +2147,9 @@ class SensorExtrinsic(ProtoMessageClass):
     def z(self, value: float):
         self.proto.z = value
 
+    def _update_proto_references(self, proto: pd_sensor_pb2.SensorExtrinsic):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_sensor_pb2.SensorList)
 class SensorList(ProtoMessageClass):
     _proto_message = pd_sensor_pb2.SensorList
@@ -2034,7 +2158,7 @@ class SensorList(ProtoMessageClass):
         if proto is None:
             proto = pd_sensor_pb2.SensorList()
         self.proto = proto
-        self._sensors = ProtoListWrapper(container=[str(v) for v in proto.sensors], attr_name='sensors', list_owner=proto)
+        self._sensors = ProtoListWrapper(container=[str(v) for v in proto.sensors], attr_name='sensors', list_owner=self)
         if sensors is not None:
             self.sensors = sensors
 
@@ -2048,6 +2172,9 @@ class SensorList(ProtoMessageClass):
         for v in value:
             self._sensors.append(v)
 
+    def _update_proto_references(self, proto: pd_sensor_pb2.SensorList):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_sensor_pb2.SensorRigConfig)
 class SensorRigConfig(ProtoMessageClass):
     _proto_message = pd_sensor_pb2.SensorRigConfig
@@ -2056,8 +2183,8 @@ class SensorRigConfig(ProtoMessageClass):
         if proto is None:
             proto = pd_sensor_pb2.SensorRigConfig()
         self.proto = proto
-        self._default_sensor_splits_list = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.default_sensor_splits_list], attr_name='default_sensor_splits_list', list_owner=proto)
-        self._sensor_configs = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.sensor_configs], attr_name='sensor_configs', list_owner=proto)
+        self._default_sensor_splits_list = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.default_sensor_splits_list], attr_name='default_sensor_splits_list', list_owner=self)
+        self._sensor_configs = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.sensor_configs], attr_name='sensor_configs', list_owner=self)
         if default_sensor_splits_list is not None:
             self.default_sensor_splits_list = default_sensor_splits_list
         if sensor_configs is not None:
@@ -2092,6 +2219,13 @@ class SensorRigConfig(ProtoMessageClass):
     @sensor_rig_artifact_uid.setter
     def sensor_rig_artifact_uid(self, value: str):
         self.proto.sensor_rig_artifact_uid = value
+
+    def _update_proto_references(self, proto: pd_sensor_pb2.SensorRigConfig):
+        self.proto = proto
+        for i, v in enumerate(self.default_sensor_splits_list):
+            v._update_proto_references(self.proto.default_sensor_splits_list[i])
+        for i, v in enumerate(self.sensor_configs):
+            v._update_proto_references(self.proto.sensor_configs[i])
 
 @register_wrapper(proto_type=pd_sensor_pb2.DenoiseFilter)
 class DenoiseFilter(ProtoEnumClass):

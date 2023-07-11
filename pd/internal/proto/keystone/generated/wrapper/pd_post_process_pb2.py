@@ -53,6 +53,9 @@ class AgentFilter(ProtoMessageClass):
     def output_artifact_uid(self, value: str):
         self.proto.output_artifact_uid = value
 
+    def _update_proto_references(self, proto: pd_post_process_pb2.AgentFilter):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_post_process_pb2.ExtractAgentData)
 class ExtractAgentData(ProtoMessageClass):
     _proto_message = pd_post_process_pb2.ExtractAgentData
@@ -121,6 +124,9 @@ class ExtractAgentData(ProtoMessageClass):
     @output_artifact_uid.setter
     def output_artifact_uid(self, value: str):
         self.proto.output_artifact_uid = value
+
+    def _update_proto_references(self, proto: pd_post_process_pb2.ExtractAgentData):
+        self.proto = proto
 
 @register_wrapper(proto_type=pd_post_process_pb2.FieldEncoder)
 class FieldEncoder(ProtoMessageClass):
@@ -231,6 +237,9 @@ class FieldEncoder(ProtoMessageClass):
     def output_artifact_uid(self, value: str):
         self.proto.output_artifact_uid = value
 
+    def _update_proto_references(self, proto: pd_post_process_pb2.FieldEncoder):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_post_process_pb2.LEEncoder)
 class LEEncoder(ProtoMessageClass):
     _proto_message = pd_post_process_pb2.LEEncoder
@@ -330,6 +339,9 @@ class LEEncoder(ProtoMessageClass):
     def output_artifact_uid(self, value: str):
         self.proto.output_artifact_uid = value
 
+    def _update_proto_references(self, proto: pd_post_process_pb2.LEEncoder):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_post_process_pb2.QAProcessor)
 class QAProcessor(ProtoMessageClass):
     _proto_message = pd_post_process_pb2.QAProcessor
@@ -378,3 +390,6 @@ class QAProcessor(ProtoMessageClass):
     @output_artifact_uid.setter
     def output_artifact_uid(self, value: str):
         self.proto.output_artifact_uid = value
+
+    def _update_proto_references(self, proto: pd_post_process_pb2.QAProcessor):
+        self.proto = proto

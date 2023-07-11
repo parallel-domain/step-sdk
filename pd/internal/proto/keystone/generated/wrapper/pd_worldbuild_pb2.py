@@ -12,7 +12,7 @@ class WorldBuildInfo(ProtoMessageClass):
         if proto is None:
             proto = pd_worldbuild_pb2.WorldBuildInfo()
         self.proto = proto
-        self._location_list = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.location_list], attr_name='location_list', list_owner=proto)
+        self._location_list = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.location_list], attr_name='location_list', list_owner=self)
         if artifact_key is not None:
             self.artifact_key = artifact_key
         if base_changelist is not None:
@@ -105,3 +105,8 @@ class WorldBuildInfo(ProtoMessageClass):
     @world_preview_uid.setter
     def world_preview_uid(self, value: str):
         self.proto.world_preview_uid = value
+
+    def _update_proto_references(self, proto: pd_worldbuild_pb2.WorldBuildInfo):
+        self.proto = proto
+        for i, v in enumerate(self.location_list):
+            v._update_proto_references(self.proto.location_list[i])

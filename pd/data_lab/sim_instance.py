@@ -37,6 +37,10 @@ class SimulationStateProvider:
         pass
 
     @abc.abstractmethod
+    def _init_sim_state(self, scenario: DiscreteScenario, sim_state: SimState):
+        pass
+
+    @abc.abstractmethod
     def __enter__(self):
         pass
 
@@ -91,16 +95,22 @@ class FromDiskSimulation(SimulationStateProvider):
         self._state_callbacks = discrete_scenario.state_callbacks
         if folder is not None:
             self._state_gen = self.state_generator(folder=folder)
-            first_state = next(self.state_generator(folder=folder))
-            ego_agent = next(
-                iter(
-                    [a for a in first_state.agents if isinstance(a, (ModelAgent, VehicleAgent)) and len(a.sensors) > 0]
-                )
-            )
-            sim_state.set_ego_agent_id(ego_id=ego_agent.id)
-            sim_state.set_location(location=Location(name=first_state.world_info.location))
+            self._init_sim_state(scenario=discrete_scenario, sim_state=sim_state)
         else:
             raise ValueError("Scenario is not compatible with this sim provider")
+
+    def _init_sim_state(self, scenario: SimulatedScenario, sim_state: SimState):
+        # This auxiliary state is to retrieve ego_agent and location
+        first_state = next(self.state_generator(folder=scenario.folder))
+        ego_agent = next(
+            iter(
+                [a for a in first_state.agents if isinstance(a, (ModelAgent, VehicleAgent)) and len(a.sensors) > 0]
+            )
+        )
+        sim_state.set_ego_agent_id(ego_id=ego_agent.id)
+        sim_state.set_location(location=Location(name=first_state.world_info.location))
+        # To be consistent with AbstractSimulationInstance we take the first step in the setup phase
+        self.next_frame(sim_state=sim_state)
 
     def __enter__(self):
         self._state_gen = None
@@ -158,15 +168,11 @@ class AbstractSimulationInstance(SimulationStateProvider):
 
         self._simulated_frames = 0
         self._max_frames = (
-            discrete_scenario.sim_state.scenario_gen.num_frames
-            * discrete_scenario.sim_state.scenario_gen.sim_capture_rate
-            + discrete_scenario.sim_state.scenario_gen.start_skip_frames
+                (discrete_scenario.sim_state.scenario_gen.num_frames - 1)
+                * discrete_scenario.sim_state.scenario_gen.sim_capture_rate
+                + discrete_scenario.sim_state.scenario_gen.start_skip_frames + 1
         )
-
-        self._setup_pd_generators(scenario=discrete_scenario, sim_state=sim_state)
-        # Need to make sure that first state is set in the sim state for custom generators to access ego pose
-        self._update_pd_generators(sim_state=sim_state)
-        self._setup_custom_generators(scenario=discrete_scenario, sim_state=sim_state)
+        self._init_sim_state(scenario=discrete_scenario, sim_state=sim_state)
 
     def _setup_pd_generators(self, scenario: SampledScenario, sim_state: SimState):
         self._use_remote_simulation = len(scenario.pd_generators) > 0
@@ -223,6 +229,17 @@ class AbstractSimulationInstance(SimulationStateProvider):
         for gen in self._custom_generators:
             gen.update_state(state=sim_state, raycast=self.session.raycast)
 
+    def _init_sim_state(self, scenario: SampledScenario, sim_state: SimState):
+        # Need to make sure that first state is set in the sim state for custom generators to access ego pose.
+        # sim state will be stored here and rendered in scenario generator loop.
+        self._setup_pd_generators(scenario=scenario, sim_state=sim_state)
+        self._update_pd_generators(sim_state=sim_state)
+        self._setup_custom_generators(scenario=scenario, sim_state=sim_state)
+        self._update_custom_generators(sim_state=sim_state)
+        for cb in self._state_callbacks:
+            cb(sim_state)
+        self._simulated_frames += 1
+
     def next_frame(self, sim_state: SimState) -> bool:
         if self._max_frames is not None and self._simulated_frames >= self._max_frames:
             return False
@@ -253,9 +270,18 @@ class AbstractSimulationInstance(SimulationStateProvider):
 class SimulationInstance(AbstractSimulationInstance):
     def __init__(
         self,
+        name: Optional[str] = None,
         address: Optional[str] = None,
     ):
+        """
+        Create a simulation instance for an existing remote Sim server
+
+        Args:
+            name: Instance name. Required for cloud mode
+            address: Instance address. Used in local mode
+        """
         super().__init__()
+        self._name = name
         self._address = address
         context = get_datalab_context()
         self._client_cert_file = context.client_cert_file
@@ -263,20 +289,31 @@ class SimulationInstance(AbstractSimulationInstance):
 
         self._session: Optional[SimSession] = None
 
-        if not context.is_mode_local and context.fail_on_version_mismatch:
+        if name and address:
+            raise PdError("Only one of 'name' or 'address' can be specified for SimulationInstance.")
+        if not context.is_mode_local and not name:
+            raise PdError("A 'name' is required in SimulationInstance when running in cloud mode.")
+
+        if context.is_mode_local:
+            # Local mode, use local address if none is provided
+            self._address = self._address or "tcp://localhost:9002"
+        else:
+            # Cloud mode, resolve the address
             try:
-                ig_version = next(ig.ig_version for ig in Ig.list() if ig.sim_url == address)
+                ig = next(ig for ig in Ig.list() if ig.name == name)
             except StopIteration:
                 raise PdError(
-                    f"Couldn't find a sim instance with the address '{address}'. "
-                    "Please verify the sim instance address."
+                    f"Couldn't find a simulation instance with the name '{name}'. "
+                    "Please verify that the name is correct."
                 )
-            if ig_version != context.version:
-                raise PdError(
-                    f"There's a mismatch between the selected Data Lab version ({context.version}) "
-                    f"and the version of the sim instance ({ig_version}). "
-                    "To disable this check, pass fail_on_version_mismatch=False to setup_datalab()."
-                )
+            if context.fail_on_version_mismatch:
+                if ig.ig_version != context.version:
+                    raise PdError(
+                        f"There's a mismatch between the selected Data Lab version ({context.version}) "
+                        f"and the version of the sim instance ({ig.ig_version}). "
+                        "To disable this check, pass fail_on_version_mismatch=False to setup_datalab()."
+                    )
+            self._address = ig.sim_url
 
     @property
     def session(self) -> SimSession:

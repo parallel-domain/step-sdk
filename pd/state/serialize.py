@@ -164,7 +164,7 @@ class SerializeNoiseParams:
             enableDenoise=obj.enable_denoise,
             gaussNoiseSigma=obj.gauss_noise_sigma,
             poissonNoiseLambda=obj.poisson_noise_lambda,
-            denoiseFilter=obj.denoise_filter.value,
+            denoiseFilter=int(obj.denoise_filter),
             denoiseFilterSize=obj.denoise_filter_size,
             bilateralSigmaD=obj.bilateral_sigma_d,
             bilateralSigmaR=obj.bilateral_sigma_r,
@@ -594,7 +594,7 @@ class SerializePhaseBulbValue:
                 green=obj.green
             )
         )
-        PhaseBulbValuesFB.PhaseBulbValuesFBAddLogicalState(builder, obj.logical_state.value)
+        PhaseBulbValuesFB.PhaseBulbValuesFBAddLogicalState(builder, int(obj.logical_state))
         return PhaseBulbValuesFB.PhaseBulbValuesFBEnd(builder)
 
     @staticmethod
@@ -843,6 +843,10 @@ class SerializeAgent:
                 return state_data
             except StopIteration:
                 return None
+
+        if not agent_state_data.states_data:
+            logger.debug(f"Skipping deserialization of agent - failed to find any relevant StateObjects. Agent id = {fb.Id()}")
+            return None
 
         sensor_rig_data = find_state_data(SerializeSensorRig.SensorRigData)
         transform_state_data = find_state_data(SerializeTransformState.TransformStateData)
@@ -1344,7 +1348,7 @@ class SerializeControlState:
     @staticmethod
     def serialize(builder: flatbuffers.Builder, obj: ControlStateData):
         ControlStateFB.ControlStateFBStart(builder)
-        ControlStateFB.ControlStateFBAddIndicatorState(builder, obj.indicator_state.value)
+        ControlStateFB.ControlStateFBAddIndicatorState(builder, int(obj.indicator_state))
         state = ControlStateFB.ControlStateFBEnd(builder)
         return state
 
@@ -1451,10 +1455,10 @@ class SerializeEnvironmentConfig:
             parking_space_tint_fb = float3_t.Createfloat3_t(builder, *obj.parking_config.parking_space_tint)
             ParkingConfigFB.ParkingConfigFBAddParkingSpaceTint(builder, parking_space_tint_fb)
             ParkingConfigFB.ParkingConfigFBAddParkingSpaceGrungeAmount(builder, obj.parking_config.parking_space_grunge_amount)
-            ParkingConfigFB.ParkingConfigFBAddLotParkingDelineationType(builder, obj.parking_config.lot_parking_delineation_type)
-            ParkingConfigFB.ParkingConfigFBAddStreetParkingDelineationType(builder, obj.parking_config.street_parking_delineation_type)
-            ParkingConfigFB.ParkingConfigFBAddStreetParkingAngleZeroOverride(builder, obj.parking_config.street_parking_angle_zero_override)
-            ParkingConfigFB.ParkingConfigFBAddParkingSpaceMaterial(builder, obj.parking_config.parking_space_material)
+            ParkingConfigFB.ParkingConfigFBAddLotParkingDelineationType(builder, int(obj.parking_config.lot_parking_delineation_type))
+            ParkingConfigFB.ParkingConfigFBAddStreetParkingDelineationType(builder, int(obj.parking_config.street_parking_delineation_type))
+            ParkingConfigFB.ParkingConfigFBAddStreetParkingAngleZeroOverride(builder, int(obj.parking_config.street_parking_angle_zero_override))
+            ParkingConfigFB.ParkingConfigFBAddParkingSpaceMaterial(builder, int(obj.parking_config.parking_space_material))
             parking_config_fb = ParkingConfigFB.ParkingConfigFBEnd(builder)
         EnvironmentConfigFB.EnvironmentConfigFBStart(builder)
         if parking_config_fb:
@@ -1554,7 +1558,7 @@ class SerializeObjectDecorationsInfo:
             ObjectDecorationsFB.ObjectDecorationsStart(builder)
             if decorations_vec_fb:
                 ObjectDecorationsFB.ObjectDecorationsAddDecorations(builder, decorations_vec_fb)
-            ObjectDecorationsFB.ObjectDecorationsAddType(builder, object_decorations.type)
+            ObjectDecorationsFB.ObjectDecorationsAddType(builder, int(object_decorations.type))
             ObjectDecorationsFB.ObjectDecorationsAddObjectId(builder, object_decorations.object_id)
             ObjectDecorationsFB.ObjectDecorationsAddId(builder, object_decorations_id)
             object_decorations_fb = ObjectDecorationsFB.ObjectDecorationsEnd(builder)

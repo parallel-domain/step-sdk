@@ -18,7 +18,6 @@ class TimeOfDays:
     Dawn = Bucket(string_value="DAWN")
     Dusk = Bucket(string_value="DUSK")
     Night = Bucket(string_value="NIGHT")
-    Evening = Bucket(string_value="EVENING")
     Day = Bucket(string_value="DAY")
 
 
@@ -27,7 +26,7 @@ class Environment(pd_environments_pb2.EnvironmentPreset):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if not self.clouds.is_set:
-            self.clouds.set_constant_value(0.0)
+            self.clouds.set_uniform_distribution(min_value=0.0, max_value=1.0)
         if not self.rain.is_set:
             self.rain.set_constant_value(0.0)
         if not self.wetness.is_set:
@@ -55,13 +54,13 @@ class Environment(pd_environments_pb2.EnvironmentPreset):
 
     @property
     def time_of_day(self) -> CategoricalDistribution:
-        if hasattr(self, "_time_of_day"):
+        if hasattr(self, "_time_of_day"):  # using private variable because convenience property has same name
             return self._time_of_day
         raise RuntimeError()
 
     @property
     def wetness(self) -> Distribution:
-        if hasattr(self, "_wetness"):
+        if hasattr(self, "_wetness"):  # using private variable because convenience property has same name
             return self._wetness
         raise RuntimeError()
 

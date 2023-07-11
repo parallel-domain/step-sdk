@@ -182,28 +182,43 @@ Description: struct used to configure parking space selection in sim, and parkin
 message ParkingSpaceData
 {
     /*
-    desired parking space angle in DEGREES and its probability
+    Description:
+        Desired parking space angle for parking lots in DEGREES and its probability.
+
+        This changes the parking spaces available for scenario generation, simulation and 
+        in the final rendered dataset in parking lots only. Street parking is unaffected.
+    
+        Valid angles are:
+            ANGLE_30
+            ANGLE_45
+            ANGLE_60
+            PERPENDICULAR
+
+        PARALLEL parking spaces are not available in parking lots.
     */
-    map<int32, float> angle_distribution = 1;
+    optional EnumDistribution parking_lot_angle_distribution = 1;
     /*
-    what line type we want parking lot spaces to have
-    Possible values: SINGLE, DASHED, DOUBLE_OPEN, DOUBLE_SQUARED, DOUBLE_ROUND, T_SHAPE, NO_LINE, RANDOM
-    default: SINGLE
-    omitted values are treated as having 0 probability
+    Description:
+        Specifies delineation type for parking lot spaces. Each scenario samples a delineation type from this distribution.
+        Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `RANDOM`
+        Default: `SINGLE`
+        Omitted values are treated as having 0 probability.
     */
     optional EnumDistribution lot_parking_delineation_type = 2;
     /*
-    what line type we want non parallel street parking spaces to have
-    Possible values: SINGLE, DASHED, DOUBLE_OPEN, DOUBLE_SQUARED, DOUBLE_ROUND, T_SHAPE, NO_LINE, RANDOM
-    default: SINGLE
-    omitted values are treated as having 0 probability
+    Description:
+        Specifies delineation type for non parallel street parking spaces. Each scenario samples a delineation type from this distribution.
+        Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `RANDOM`
+        Default: `SINGLE`
+        Omitted values are treated as having 0 probability.
     */
     optional EnumDistribution street_parking_delineation_type = 3;
     /*
-    what line type we want parallel street parking spaces to have
-    Possible values: SINGLE, DASHED, DOUBLE_OPEN, DOUBLE_SQUARED, DOUBLE_ROUND, T_SHAPE, NO_LINE, RANDOM, UNMETERED
-    default: will use street_parking_delineation_type if empty
-    omitted values are treated as having 0 probability
+    Description:
+        Specifies delineation type for parallel street parking spaces. Each scenario samples a delineation type from this distribution.
+        Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `RANDOM`, `UNMETERED`
+        Default: Will use what was selected for `street_parking_delineation_type` if empty.
+        Omitted values are treated as having 0 probability.
     */
     optional EnumDistribution street_parking_angle_zero_override = 4;
     /*
@@ -251,6 +266,11 @@ message ParkingSpaceData
     range: [0-1]
     */
     optional CenterSpreadConfig global_parking_decal_wear = 10;
+    
+    /*
+    Description: configure decorations to apply to parking spaces.
+    */
+    optional ObjectDecorationParams parking_space_decoration = 11;
 }
 
 /*
@@ -382,13 +402,12 @@ for legacy, it will be used with a radius and per object chance that's in spawn 
 message ObjectDecorationParams
 {
     /*
-    the chance of each item being decorated (for example each lane within a radius)
+    the chance of each item being decorated by one of the decorations in preset_distribution.
     range: [0-1]
-    default is 0.1 if not specified, however if no ObjectDecoration is provided at all, 
-    the code for adding decorations will be skipped. this is so we don't get unexpected 
-    decals showing up in renders
+    default is 0.1 if not specified.
     */
     optional float decorate_chance = 1 [default = 0.1];
+
     /* 
     distribution of presets
     each preset also can have a number of variants, randomized for now
@@ -430,7 +449,9 @@ message FloatArray
 }
 
 /*
-Description: Places an ego sensor in the world. Required for every scenario. Only works with VEHICLE agent_type, other agent types not implemented yet
+Description:
+    Places an ego sensor in the world. Required for every scenario. Only works with VEHICLE agent_type, other agent types not implemented yet.
+    All agents placed by the EgoAgentGenerator will have an "EGO" tag added by default.
 */
 message EgoAgentGeneratorParameters
 {
@@ -674,6 +695,15 @@ message ParkedVehicleGeneratorParameters
         FULLSIZE	0.184
   */
   map<string, VehicleCategoryWeight> vehicle_distribution = 3;
+
+  /*
+  Description:
+      Specifies spawn data that applies across agent types
+
+  Required:
+      No
+  */
+  optional AgentSpawnData agent_spawn_data = 4;
 }
 
 /*
@@ -698,6 +728,15 @@ message StaticAgentGeneratorParameters
       Yes
   */
   optional string model = 2;
+
+  /*
+  Description:
+      Data associated with this agent.
+  
+  Required:
+      No
+  */
+  optional AgentSpawnData agent_spawn_data = 3;
 }
 
 /*
@@ -794,6 +833,15 @@ message DebrisGeneratorParameters
       No, if not specified we use the list generated from `debris_asset_tag`
   */
   map<string, float> asset_distribution = 8;
+  
+  /*
+  Description:
+      Data associated with this agent.
+  
+  Required:
+      No
+  */
+  optional AgentSpawnData agent_spawn_data = 9;
 }
 
 /*
@@ -939,9 +987,12 @@ message PositionRequest
 
   /*
   Description:
-      Only applied after initial pose is determined by position_type.
-      Determines how much to rotate pose about Z axis (points up in right handed coordinate system)
+      Rotates the object around its up axis by yaw_offset radians, positive counter-clockwise.
+      
+      Rotation is around the center of the object, so that a rotation of pi radians occupies the same space as no rotation.
+
       Units are in radians.
+
       Example: pi/2 radians would rotate pose to the left.
 
   Required:
@@ -1070,12 +1121,12 @@ message PathTimeRelativePositionRequest
 
   /*
   Description:
-      Tag of agent to spawn relative to
+      Tag of agent to spawn relative to. Tags are case sensitive.
 
   Required:
       Yes
   */
-  repeated SpecialAgentTag agent_tags = 1;
+  repeated string agent_tags = 1;
 
   /*
   Description:
@@ -1126,7 +1177,7 @@ message LocationRelativePositionRequest
   Required:
       Yes
   */
-  repeated SpecialAgentTag agent_tags = 1;
+  repeated string agent_tags = 1;
 
   /*
   Description:
@@ -1293,6 +1344,40 @@ message LaneSpawnPolicy
       No. Defaults to 100.
   */
   optional CenterSpreadConfig min_length_behind = 10;
+
+  /*
+  Description:
+        If this lane spawn policy resolves to a set of parking spaces on the road, this distribution
+        determines what parking space should be selected based on the parking angle.
+
+        Valid angles are:
+            PARALLEL
+            ANGLE_30
+            ANGLE_45
+            ANGLE_60
+            PERPENDICULAR
+        
+        For angled parking in parking lots, the angle_distribution in ParkingSpaceData
+        determines the angle present in the scenario.
+
+    Required:
+        No.
+    */ 
+  optional EnumDistribution on_road_parking_angle_distribution = 11;
+
+  /*
+  Description:
+        If object decorations are enabled in the environment paramters
+        you can use the lane_decoration_distribution to select  
+        lanes with one of the decorations for spawning.
+
+        Default is empty, and all decorations (if any) are ignored for spawning.
+
+        See ObjectDecoratoinParams for a list of valid decorations.
+    Required:
+        No.
+  */
+  optional EnumDistribution lane_decoration_distribution = 12;
 }
 
 /*
@@ -1318,7 +1403,6 @@ message NearbyAssetPolicy
   // tags of assets we want to spawn near
   repeated string asset_tags = 3;
 }
-
 
 /*
 Description: Controls the vehicle's spawning characteristics and movement behavior
@@ -1517,6 +1601,64 @@ message VehicleBehavior
       No, if not specified will not ignore any obstacles
   */
   repeated ObstacleType ignore_obstacle_types = 14;
+
+  /*
+  Description:
+      Goal position request for a parking/unparking scenario.
+      
+      `parking_scenario_goal` is used in two ways:
+
+      To park, set a parking space as a goal in parking_scenario_goal and leave the position_request field empty. 
+      To set a parking space as a goal use the ParkingSpace lane type::
+        { 
+            lane_spawn_policy: {
+                lane_type: {
+                    probabilities: {
+                        "ParkingSpace": 1.0
+                    }
+                }
+            }
+        }
+          
+      If you want to park only in a parking lot, add a road_type distribution with Parking_Aisle set to 1::
+        { 
+            lane_spawn_policy: {
+                lane_type: {
+                    probabilities: {
+                        "ParkingSpace": 1.0
+                    }
+                }
+            },
+            road_type: {
+                probabilities: {
+                    "Parking_Aisle": 1.0
+                }
+            }
+        }
+           
+      To park outside of a parking lot, change the road type distribution to the roads of your choosing (eg. 
+      Residential, Primary, Secondary, etc.).
+      Please see the LaneSpawnPolicy for more documentation on setting what angle to park into.   
+      To unpark, set the position_request to a parking space (see above) and set the parking_scenario_goal to be a 
+      ParkingAisle lane type to unpark in a parking lot. Unparking from a street space is not yet supported.
+
+      Only `AbsolutePositionRequest` and `LaneSpawnPolicy` position request types are supported.
+
+  Required:
+      No, if empty will run default behavior.
+  */
+  optional PositionRequest parking_scenario_goal = 15;
+
+  /*
+  Description:
+      time it takes to reach parking_maneuver_request goal. assume constant accel
+      from initial speed to target speed
+      is approximate, does not account for slowing down for obstacles
+
+  Required:
+      No, if empty will default to 5 seconds
+  */
+  optional ContinousUniformDistribution parking_scenario_time = 16;
 }
 
 /*
@@ -1763,13 +1905,13 @@ Contains spawn data that applies across agent types
 message AgentSpawnData
 {
   /*
-  Tags we want to apply to this agent
+  Tags we want to apply to this agent. Tags are case sensitive.
   */
-  repeated SpecialAgentTag tags = 1;
+  repeated string tags = 1;
 }
 
 /*
-Special Tag used in relative position requests.
+DEPRECATED: Special Tag used in relative position requests.
  */
 enum SpecialAgentTag
 {

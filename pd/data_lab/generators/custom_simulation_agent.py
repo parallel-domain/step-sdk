@@ -213,7 +213,7 @@ class CustomPedestrianSimulationAgent(CustomSimulationAgent, Generic[TSimState])
 
     def clone(self) -> "CustomPedestrianSimulationAgent[TSimState]":
         cloned = CustomPedestrianSimulationAgent(
-            sensor_rig=self.sensor_rig.clone(),
+            sensor_rig=self.sensor_rig.clone() if self.sensor_rig is not None else None,
             lock_to_ground=self.lock_to_ground,
             ground_offset=self.ground_offset,
             asset_name=self._asset_name,

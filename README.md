@@ -65,17 +65,13 @@ The Hello World example demonstrates how to use Step Mode to render
 sensor data for a simulation loop.
 First, ensure you have the following environment variables set.
 ```shell
-ORG='<my org name>'
-STEP_API_KEY='<my api key>'
-CLIENT_CERT='<path to pem file>'
+PD_CLIENT_ORG_ENV='<my org name>'
+PD_CLIENT_STEP_API_KEY_ENV='<my api key>'
+PD_CLIENT_CREDENTIALS_PATH_ENV='<path to pem file>'
 ```
 Then run the Hello World example as follows.
 ```shell
-python ./examples/step/hello_world.py \
-    --org $ORG \
-    --apikey $STEP_API_KEY \
-    --client-cert-file $CLIENT_CERT_FILE \
-    --ig <ig name>
+python ./examples/step/hello_world.py --ig <ig name>
 ```
 Here `<ig name>` refers to the name of your Step IG server instance.
 This name is found at the end of the `self_url` parameter.
@@ -88,9 +84,6 @@ If you do not have access to this level, pass the `--location <name> <version>` 
 For example, if you have access to the level `SJ_EssexAndBradford v2.1.4`, then your command will look as follows.
 ```shell
 python ./examples/step/hello_world.py \
-    --org $ORG \
-    --apikey $STEP_API_KEY \
-    --client-cert-file $CLIENT_CERT \
     --ig <ig name> \
     --location SJ_EssexAndBradford v2.1.4
 ```

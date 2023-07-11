@@ -1,0 +1,61 @@
+{
+    "nodes": [
+        {
+            "name": "gen_semantic_map",
+            "config": {
+                "@type": "type.googleapis.com/pd.data.GenerateMeshSemanticMapConfig",
+                "asset_semantic_map_filepath": "%PD_ROOT%/install/customer/Internal/pd_data/default_pd_config/asset_semantic_map.pb.json",
+                "output_path": "semantic_map_xyz"
+            }
+        },
+        {
+            "name": "gen_instance_map",
+            "depends_on": ["gen_semantic_map"],
+            "config": {
+                "@type": "type.googleapis.com/pd.data.GenerateInstanceMapConfig",
+                "merge_instance_map_filepath": "%PD_ROOT%/install/customer/Internal/pd_data/default_pd_config/merge_instance_map.pb.json",
+                "input_semantic_map": "semantic_map_xyz",
+                "output_path": "instance_map_xyz"
+            }
+        },
+        {
+            "name": "gen_semantic_mask",
+            "depends_on": ["gen_custom_semantic_map"],
+            "config": {
+                "@type": "type.googleapis.com/pd.data.GenerateSemanticMaskConfig",
+                "input_semantic_map": "semantic_map_xyz",
+                "output_path": "semantic_mask_xyz"
+            }
+        },
+        {
+            "name": "gen_instance_mask",
+            "depends_on": ["filter_instance_map"],
+            "config": {
+                "@type": "type.googleapis.com/pd.data.GenerateInstanceMaskConfig",
+                "input_instance_map": "instance_map_xyz",
+                "output_path": "instance_mask_xyz"
+            }
+        },
+        {
+            "name": "gen_2d_bbox",
+            "depends_on": ["gen_instance_map", "gen_custom_semantic_map"],
+            "config": {
+                "@type": "type.googleapis.com/pd.data.BoundingBox2DConfig",
+                "input_instance_map": "instance_map_xyz",
+                "input_instance_mask": "instance_mask_xyz",
+                "input_semantic_map": "semantic_map_xyz",
+                "output_path": "bounding_box_2d_xyz"
+            }
+        },
+        {
+            "name": "gen_3d_bbox",
+            "depends_on": ["gen_instance_map","gen_custom_semantic_map"],
+            "config": {
+                "@type": "type.googleapis.com/pd.data.GenerateBoundingBox3DConfig",
+                "input_instance_map": "instance_map_xyz",
+                "input_semantic_map": "semantic_map_xyz",
+                "output_path": "bounding_box_3d_xyz"
+            }
+        },
+    ]
+}

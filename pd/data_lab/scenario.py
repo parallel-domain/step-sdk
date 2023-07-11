@@ -5,16 +5,16 @@
 # separate written license agreement with Parallel Domain, Inc.
 import abc
 from pathlib import Path
-from typing import List, Optional, Union, Generator, Tuple
+from typing import List, Optional, Union
 
 import ujson
 from google.protobuf.json_format import MessageToDict, ParseDict, ParseError
 
 from pd.core import PdError
+from pd.data_lab.config.build_sim_state import BuildSimState, GeneratorConfigPreset
 from pd.data_lab.config.distribution import Bucket, CategoricalDistribution
 from pd.data_lab.config.environment import Environment, TimeOfDays
-from pd.data_lab.config.location import Location
-from pd.data_lab.config.build_sim_state import BuildSimState, GeneratorConfigPreset
+from pd.data_lab.config.location import Location, LatLonLocation
 from pd.data_lab.generators.custom_generator import CustomAtomicGenerator, DefaultCustomAtomicGenerator
 from pd.data_lab.generators.custom_simulation_agent import CustomSimulationAgent
 from pd.data_lab.generators.helper import decode_generator_preset, encode_atomic_generator
@@ -22,7 +22,6 @@ from pd.data_lab.generators.non_atomics import NonAtomicGeneratorMessage
 from pd.data_lab.state_callback import StateCallback
 from pd.internal.proto.keystone.generated.python import pd_environments_pb2, pd_sim_state_pb2
 from pd.internal.proto.keystone.generated.wrapper import pd_sim_state_pb2
-
 from pd.internal.proto.keystone.generated.wrapper.pd_sensor_pb2 import SensorRigConfig as SensorRig
 from pd.internal.proto.keystone.generated.wrapper.pd_unified_generator_pb2 import EnvironmentParameters
 from pd.internal.proto.keystone.generated.wrapper.utils import AtomicGeneratorMessage, get_wrapper
@@ -42,7 +41,7 @@ class DiscreteScenario:
         self.state_callbacks = state_callbacks if state_callbacks is not None else list()
 
 
-class ScenarioSource:
+class ScenarioSource(abc.ABC):
     """
     Base class to abstract from getting a discrete scenario from stored sim states
     or by sampling from a scenario distribution
@@ -63,11 +62,6 @@ class ScenarioSource:
         start_skip_frames: Optional[int] = None,
         merge_batches: Optional[bool] = None,
     ) -> "DiscreteScenario":
-        pass
-
-    @property
-    @abc.abstractmethod
-    def sensor_rig(self) -> SensorRig:
         pass
 
     def add_state_callback(self, state_callback: StateCallback):
@@ -178,8 +172,18 @@ class Scenario(ScenarioSource):
     def location(self) -> Location:
         return self._location
 
-    def set_location(self, location: Location):
-        self._location = location
+    def set_location(self, location: Location):  # FIXME: workaround to allow usage of lat/lon via existing APIs
+        def convert_lat_lon(lat, lon):
+            return (lat / 180.0) + 0.5, (lon / 360.0) + 0.5
+
+        if isinstance(location, LatLonLocation):
+            self._location = Location(name="PD_Cesium")
+            lat, lon = convert_lat_lon(location.latitude, location.longitude)
+
+            self.environment.fog.set_constant_value(lat)  # latitude
+            self.environment.wetness.set_constant_value(lon)  # longitude
+        else:
+            self._location = location
         self._sim_state_message.locations[0].location = location.name
 
     def add_objects(self, generator: Union[AtomicGeneratorMessage, CustomAtomicGenerator]) -> "Scenario":
@@ -339,16 +343,14 @@ class Scenario(ScenarioSource):
         cloned.scenario_index = scenario_index
 
         if len(self.environment.time_of_day.buckets) == 0:
-            sampled_tod = TimeOfDays.Day
+            cloned.environment.time_of_day.set_category_weight(category=TimeOfDays.Day, weight=1.0)
         else:
-            sampled_tod = self.environment.time_of_day.sample(random_seed=random_seed)
+            cloned.environment.time_of_day.proto.CopyFrom(self.environment.time_of_day.proto)
 
-        cloned.environment.time_of_day.set_category_weight(sampled_tod, 1.0)
-
-        cloned.environment.clouds.set_constant_value(self.environment.clouds.sample(random_seed=random_seed))
-        cloned.environment.rain.set_constant_value(self.environment.rain.sample(random_seed=random_seed))
-        cloned.environment.fog.set_constant_value(self.environment.fog.sample(random_seed=random_seed))
-        cloned.environment.wetness.set_constant_value(self.environment.wetness.sample(random_seed=random_seed))
+        cloned.environment.clouds.proto.CopyFrom(self.environment.clouds.proto)  # do not sample but output directly
+        cloned.environment.rain.proto.CopyFrom(self.environment.rain.proto)
+        cloned.environment.fog.proto.CopyFrom(self.environment.fog.proto)
+        cloned.environment.wetness.proto.CopyFrom(self.environment.wetness.proto)
 
         if sim_settle_frames is not None:
             cloned.sim_state.scenario_gen.sim_settle_frames = sim_settle_frames

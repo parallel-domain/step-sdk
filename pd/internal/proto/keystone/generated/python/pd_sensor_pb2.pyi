@@ -335,7 +335,7 @@ class PostProcessParams(_message.Message):
     def __init__(self, exposure_compensation: Optional[float] = ..., exposure_speed_up: Optional[float] = ..., exposure_speed_down: Optional[float] = ..., exposure_min_ev100: Optional[float] = ..., exposure_max_ev100: Optional[float] = ..., exposure_metering_mask: Optional[str] = ..., motion_blur_amount: Optional[float] = ..., motion_blur_max: Optional[float] = ..., dof_focal_distance: Optional[float] = ..., dof_depth_blur_amount: Optional[float] = ..., dof_depth_blur_radius: Optional[float] = ..., vignette_intensity: Optional[float] = ...) -> None: ...
 
 class RadarBasicParameters(_message.Message):
-    __slots__ = ["azimuth_accuracy", "azimuth_fov", "azimuth_resolution", "doppler_resolution", "elevation_accuracy", "elevation_fov", "elevation_resolution", "max_doppler", "max_range", "number_rays_per_frame", "radar_output_2d", "range_resolution", "use_random_raycast"]
+    __slots__ = ["azimuth_accuracy", "azimuth_fov", "azimuth_resolution", "doppler_resolution", "elevation_accuracy", "elevation_fov", "elevation_resolution", "max_doppler", "max_range", "number_rays_per_frame", "prf_profile_file", "radar_output_2d", "range_resolution", "use_random_raycast"]
     AZIMUTH_ACCURACY_FIELD_NUMBER: ClassVar[int]
     AZIMUTH_FOV_FIELD_NUMBER: ClassVar[int]
     AZIMUTH_RESOLUTION_FIELD_NUMBER: ClassVar[int]
@@ -346,6 +346,7 @@ class RadarBasicParameters(_message.Message):
     MAX_DOPPLER_FIELD_NUMBER: ClassVar[int]
     MAX_RANGE_FIELD_NUMBER: ClassVar[int]
     NUMBER_RAYS_PER_FRAME_FIELD_NUMBER: ClassVar[int]
+    PRF_PROFILE_FILE_FIELD_NUMBER: ClassVar[int]
     RADAR_OUTPUT_2D_FIELD_NUMBER: ClassVar[int]
     RANGE_RESOLUTION_FIELD_NUMBER: ClassVar[int]
     USE_RANDOM_RAYCAST_FIELD_NUMBER: ClassVar[int]
@@ -359,10 +360,11 @@ class RadarBasicParameters(_message.Message):
     max_doppler: float
     max_range: float
     number_rays_per_frame: int
+    prf_profile_file: str
     radar_output_2d: bool
     range_resolution: float
     use_random_raycast: bool
-    def __init__(self, max_range: Optional[float] = ..., range_resolution: Optional[float] = ..., max_doppler: Optional[float] = ..., doppler_resolution: Optional[float] = ..., azimuth_fov: Optional[float] = ..., azimuth_resolution: Optional[float] = ..., elevation_fov: Optional[float] = ..., elevation_resolution: Optional[float] = ..., radar_output_2d: bool = ..., use_random_raycast: bool = ..., number_rays_per_frame: Optional[int] = ..., azimuth_accuracy: Optional[float] = ..., elevation_accuracy: Optional[float] = ...) -> None: ...
+    def __init__(self, max_range: Optional[float] = ..., range_resolution: Optional[float] = ..., max_doppler: Optional[float] = ..., doppler_resolution: Optional[float] = ..., azimuth_fov: Optional[float] = ..., azimuth_resolution: Optional[float] = ..., elevation_fov: Optional[float] = ..., elevation_resolution: Optional[float] = ..., radar_output_2d: bool = ..., use_random_raycast: bool = ..., number_rays_per_frame: Optional[int] = ..., azimuth_accuracy: Optional[float] = ..., elevation_accuracy: Optional[float] = ..., prf_profile_file: Optional[str] = ...) -> None: ...
 
 class RadarDetectorParameters(_message.Message):
     __slots__ = ["detector_constant_gain", "detector_radiometric_decay", "detector_radiometric_gain", "detector_type"]
@@ -377,18 +379,18 @@ class RadarDetectorParameters(_message.Message):
     def __init__(self, detector_type: Optional[str] = ..., detector_constant_gain: Optional[float] = ..., detector_radiometric_gain: Optional[float] = ..., detector_radiometric_decay: Optional[float] = ...) -> None: ...
 
 class RadarEnergyParameters(_message.Message):
-    __slots__ = ["beam_pattern_file_path", "enable_beam_pattern", "gain_jitter_std", "nominal_gain", "radiometric_coefficient"]
-    BEAM_PATTERN_FILE_PATH_FIELD_NUMBER: ClassVar[int]
+    __slots__ = ["beam_pattern_file", "enable_beam_pattern", "gain_jitter_std", "nominal_gain", "radiometric_coefficient"]
+    BEAM_PATTERN_FILE_FIELD_NUMBER: ClassVar[int]
     ENABLE_BEAM_PATTERN_FIELD_NUMBER: ClassVar[int]
     GAIN_JITTER_STD_FIELD_NUMBER: ClassVar[int]
     NOMINAL_GAIN_FIELD_NUMBER: ClassVar[int]
     RADIOMETRIC_COEFFICIENT_FIELD_NUMBER: ClassVar[int]
-    beam_pattern_file_path: str
+    beam_pattern_file: str
     enable_beam_pattern: bool
     gain_jitter_std: float
     nominal_gain: float
     radiometric_coefficient: float
-    def __init__(self, nominal_gain: Optional[float] = ..., gain_jitter_std: Optional[float] = ..., radiometric_coefficient: Optional[float] = ..., beam_pattern_file_path: Optional[str] = ..., enable_beam_pattern: bool = ...) -> None: ...
+    def __init__(self, nominal_gain: Optional[float] = ..., gain_jitter_std: Optional[float] = ..., radiometric_coefficient: Optional[float] = ..., beam_pattern_file: Optional[str] = ..., enable_beam_pattern: bool = ...) -> None: ...
 
 class RadarIntrinsic(_message.Message):
     __slots__ = ["basic_parameters", "detector_parameters", "energy_parameters", "noise_parameters"]

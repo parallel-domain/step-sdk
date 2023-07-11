@@ -1,7 +1,11 @@
+from abc import ABC, abstractmethod
 from sys import platform
 from typing import Any, Dict, List, Mapping, TypeVar, Type
 from enum import Enum
 from google.protobuf.json_format import MessageToDict, ParseDict
+
+# During proto interface update, this file is copied from di/update-internal/utils.py.in into the wrapper folders!
+# Please add your changes to the utils.py.in file.
 
 
 if platform in ("linux", "linux2"):
@@ -47,7 +51,7 @@ def get_wrapper(proto_type: Type) -> Type:
     return WRAPPER_REGISTRY[registered_name]
 
 
-class ProtoMessageClass:
+class ProtoMessageClass(ABC):
     @classmethod
     def from_dict(cls, json_dict: Dict[str, Any]) -> "ProtoMessageClass":
         msg = ParseDict(
@@ -81,6 +85,10 @@ class ProtoMessageClass:
         msg = self.clone_message()
         return self.__class__(proto=msg)
 
+    @abstractmethod
+    def _update_proto_references(self, proto: "ProtoMessageClass") -> None:
+        ...
+
 
 class AtomicGeneratorMessage(ProtoMessageClass):
     ...
@@ -105,10 +113,12 @@ class ProtoDictWrapper(Dict[Any, T]):
         """Set self[key] to value."""
         super().__setitem__(key, value)
 
-        dict_obj = getattr(self._dict_owner, self._attr_name)
+        dict_obj = getattr(self._dict_owner.proto, self._attr_name)
         if isinstance(dict_obj, MessageMapContainer):
             if hasattr(value, "proto"):
                 dict_obj.get_or_create(key).CopyFrom(value.proto)
+                # calling CopyFrom actually copies the proto, so we need to update wrapper proto
+                value._update_proto_references(dict_obj[key])
             elif isinstance(value, dict):
                 value_msg = dict_obj.GetEntryClass()(key=key, value=value)
                 dict_obj.get_or_create(key).CopyFrom(value_msg.value)
@@ -118,7 +128,8 @@ class ProtoDictWrapper(Dict[Any, T]):
             dict_obj.update({key: value})
 
     def clear(self):
-        getattr(self._dict_owner, self._attr_name).clear()
+        getattr(self._dict_owner.proto, self._attr_name).clear()
+        super().clear()
 
     def update(self, value: Mapping[Any, T], **kwargs):
         for k, v in value.items():
@@ -137,6 +148,13 @@ class ProtoListWrapper(List[T]):
         super().append(item)
 
         if hasattr(item, "proto"):
-            getattr(self._list_owner, self._attr_name).extend([item.proto])
+            list_in_owner = getattr(self._list_owner.proto, self._attr_name)
+            list_in_owner.extend([item.proto])
+            # calling extend actually copies the proto, so we need to update wrapper proto
+            item._update_proto_references(list_in_owner[-1])
         else:
-            getattr(self._list_owner, self._attr_name).extend([item])
+            getattr(self._list_owner.proto, self._attr_name).extend([item])
+
+    def clear(self) -> None:
+        super().clear()
+        self._list_owner.proto.ClearField(self._attr_name)

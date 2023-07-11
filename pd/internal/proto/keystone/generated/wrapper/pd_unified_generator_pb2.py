@@ -69,7 +69,9 @@ class AbsolutePositionRequest(ProtoMessageClass):
 
     @position.setter
     def position(self, value: _pd_types_pb2.Float3):
-        self._position.proto.CopyFrom(value.proto)
+        self.proto.position.CopyFrom(value.proto)
+        self._position = value
+        self._position._update_proto_references(self.proto.position)
 
     @property
     def resolve_z(self) -> bool:
@@ -85,7 +87,14 @@ class AbsolutePositionRequest(ProtoMessageClass):
 
     @rotation.setter
     def rotation(self, value: _pd_types_pb2.Float3x3):
-        self._rotation.proto.CopyFrom(value.proto)
+        self.proto.rotation.CopyFrom(value.proto)
+        self._rotation = value
+        self._rotation._update_proto_references(self.proto.rotation)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.AbsolutePositionRequest):
+        self.proto = proto
+        self._position._update_proto_references(proto.position)
+        self._rotation._update_proto_references(proto.rotation)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.AgentSpawnData)
 class AgentSpawnData(ProtoMessageClass):
@@ -94,27 +103,30 @@ class AgentSpawnData(ProtoMessageClass):
 
     Args:
         tags:
-              Tags we want to apply to this agent
+              Tags we want to apply to this agent. Tags are case sensitive.
 """
     _proto_message = pd_unified_generator_pb2.AgentSpawnData
 
-    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.AgentSpawnData]=None, tags: Optional[List[SpecialAgentTag]]=None):
+    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.AgentSpawnData]=None, tags: Optional[List[str]]=None):
         if proto is None:
             proto = pd_unified_generator_pb2.AgentSpawnData()
         self.proto = proto
-        self._tags = ProtoListWrapper(container=[int(v) for v in proto.tags], attr_name='tags', list_owner=proto)
+        self._tags = ProtoListWrapper(container=[str(v) for v in proto.tags], attr_name='tags', list_owner=self)
         if tags is not None:
             self.tags = tags
 
     @property
-    def tags(self) -> int:
+    def tags(self) -> List[str]:
         return self._tags
 
     @tags.setter
-    def tags(self, value: int):
+    def tags(self, value: List[str]):
         self._tags.clear()
         for v in value:
             self._tags.append(v)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.AgentSpawnData):
+        self.proto = proto
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.AtomicGeneratorParameters)
 class AtomicGeneratorParameters(ProtoMessageClass):
@@ -163,7 +175,9 @@ class AtomicGeneratorParameters(ProtoMessageClass):
 
     @debris.setter
     def debris(self, value: DebrisGeneratorParameters):
-        self._debris.proto.CopyFrom(value.proto)
+        self.proto.debris.CopyFrom(value.proto)
+        self._debris = value
+        self._debris._update_proto_references(self.proto.debris)
 
     @property
     def drone(self) -> DroneGeneratorParameters:
@@ -171,7 +185,9 @@ class AtomicGeneratorParameters(ProtoMessageClass):
 
     @drone.setter
     def drone(self, value: DroneGeneratorParameters):
-        self._drone.proto.CopyFrom(value.proto)
+        self.proto.drone.CopyFrom(value.proto)
+        self._drone = value
+        self._drone._update_proto_references(self.proto.drone)
 
     @property
     def ego_agent(self) -> EgoAgentGeneratorParameters:
@@ -179,7 +195,9 @@ class AtomicGeneratorParameters(ProtoMessageClass):
 
     @ego_agent.setter
     def ego_agent(self, value: EgoAgentGeneratorParameters):
-        self._ego_agent.proto.CopyFrom(value.proto)
+        self.proto.ego_agent.CopyFrom(value.proto)
+        self._ego_agent = value
+        self._ego_agent._update_proto_references(self.proto.ego_agent)
 
     @property
     def parked_vehicles(self) -> ParkedVehicleGeneratorParameters:
@@ -187,7 +205,9 @@ class AtomicGeneratorParameters(ProtoMessageClass):
 
     @parked_vehicles.setter
     def parked_vehicles(self, value: ParkedVehicleGeneratorParameters):
-        self._parked_vehicles.proto.CopyFrom(value.proto)
+        self.proto.parked_vehicles.CopyFrom(value.proto)
+        self._parked_vehicles = value
+        self._parked_vehicles._update_proto_references(self.proto.parked_vehicles)
 
     @property
     def pedestrian(self) -> PedestrianGeneratorParameters:
@@ -195,7 +215,9 @@ class AtomicGeneratorParameters(ProtoMessageClass):
 
     @pedestrian.setter
     def pedestrian(self, value: PedestrianGeneratorParameters):
-        self._pedestrian.proto.CopyFrom(value.proto)
+        self.proto.pedestrian.CopyFrom(value.proto)
+        self._pedestrian = value
+        self._pedestrian._update_proto_references(self.proto.pedestrian)
 
     @property
     def random_pedestrian(self) -> RandomPedestrianGeneratorParameters:
@@ -203,7 +225,9 @@ class AtomicGeneratorParameters(ProtoMessageClass):
 
     @random_pedestrian.setter
     def random_pedestrian(self, value: RandomPedestrianGeneratorParameters):
-        self._random_pedestrian.proto.CopyFrom(value.proto)
+        self.proto.random_pedestrian.CopyFrom(value.proto)
+        self._random_pedestrian = value
+        self._random_pedestrian._update_proto_references(self.proto.random_pedestrian)
 
     @property
     def static_agent(self) -> StaticAgentGeneratorParameters:
@@ -211,7 +235,9 @@ class AtomicGeneratorParameters(ProtoMessageClass):
 
     @static_agent.setter
     def static_agent(self, value: StaticAgentGeneratorParameters):
-        self._static_agent.proto.CopyFrom(value.proto)
+        self.proto.static_agent.CopyFrom(value.proto)
+        self._static_agent = value
+        self._static_agent._update_proto_references(self.proto.static_agent)
 
     @property
     def traffic(self) -> TrafficGeneratorParameters:
@@ -219,7 +245,9 @@ class AtomicGeneratorParameters(ProtoMessageClass):
 
     @traffic.setter
     def traffic(self, value: TrafficGeneratorParameters):
-        self._traffic.proto.CopyFrom(value.proto)
+        self.proto.traffic.CopyFrom(value.proto)
+        self._traffic = value
+        self._traffic._update_proto_references(self.proto.traffic)
 
     @property
     def vehicle(self) -> VehicleGeneratorParameters:
@@ -227,7 +255,21 @@ class AtomicGeneratorParameters(ProtoMessageClass):
 
     @vehicle.setter
     def vehicle(self, value: VehicleGeneratorParameters):
-        self._vehicle.proto.CopyFrom(value.proto)
+        self.proto.vehicle.CopyFrom(value.proto)
+        self._vehicle = value
+        self._vehicle._update_proto_references(self.proto.vehicle)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.AtomicGeneratorParameters):
+        self.proto = proto
+        self._debris._update_proto_references(proto.debris)
+        self._drone._update_proto_references(proto.drone)
+        self._ego_agent._update_proto_references(proto.ego_agent)
+        self._parked_vehicles._update_proto_references(proto.parked_vehicles)
+        self._pedestrian._update_proto_references(proto.pedestrian)
+        self._random_pedestrian._update_proto_references(proto.random_pedestrian)
+        self._static_agent._update_proto_references(proto.static_agent)
+        self._traffic._update_proto_references(proto.traffic)
+        self._vehicle._update_proto_references(proto.vehicle)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.CenterSpreadConfig)
 class CenterSpreadConfig(ProtoMessageClass):
@@ -264,6 +306,9 @@ class CenterSpreadConfig(ProtoMessageClass):
     def spread(self, value: float):
         self.proto.spread = value
 
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.CenterSpreadConfig):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_unified_generator_pb2.CenterSpreadConfigInt)
 class CenterSpreadConfigInt(ProtoMessageClass):
     """
@@ -298,6 +343,9 @@ class CenterSpreadConfigInt(ProtoMessageClass):
     @spread.setter
     def spread(self, value: int):
         self.proto.spread = value
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.CenterSpreadConfigInt):
+        self.proto = proto
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.CenterSpreadProbabilityConfig)
 class CenterSpreadProbabilityConfig(ProtoMessageClass):
@@ -343,6 +391,9 @@ class CenterSpreadProbabilityConfig(ProtoMessageClass):
     @spread.setter
     def spread(self, value: float):
         self.proto.spread = value
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.CenterSpreadProbabilityConfig):
+        self.proto = proto
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.DebrisGeneratorParameters)
 class DebrisGeneratorParameters(AtomicGeneratorMessage):
@@ -403,15 +454,23 @@ class DebrisGeneratorParameters(AtomicGeneratorMessage):
                   If specified, `debris_asset_tag` and `debris_asset_remove_tag` are ignored
               Required:
                   No, if not specified we use the list generated from `debris_asset_tag`
+        agent_spawn_data:
+              Description:
+                  Data associated with this agent.
+              Required:
+                  No
 """
     _proto_message = pd_unified_generator_pb2.DebrisGeneratorParameters
 
-    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.DebrisGeneratorParameters]=None, asset_distribution: Optional[Dict[str, float]]=None, debris_asset_remove_tag: Optional[str]=None, debris_asset_tag: Optional[str]=None, debris_center_bias: Optional[float]=None, max_debris_distance: Optional[float]=None, min_debris_distance: Optional[float]=None, position_request: Optional[PositionRequest]=None, spawn_probability: Optional[float]=None):
+    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.DebrisGeneratorParameters]=None, agent_spawn_data: Optional[AgentSpawnData]=None, asset_distribution: Optional[Dict[str, float]]=None, debris_asset_remove_tag: Optional[str]=None, debris_asset_tag: Optional[str]=None, debris_center_bias: Optional[float]=None, max_debris_distance: Optional[float]=None, min_debris_distance: Optional[float]=None, position_request: Optional[PositionRequest]=None, spawn_probability: Optional[float]=None):
         if proto is None:
             proto = pd_unified_generator_pb2.DebrisGeneratorParameters()
         self.proto = proto
-        self._asset_distribution = ProtoDictWrapper(container={k: float(v) for (k, v) in proto.asset_distribution.items()}, attr_name='asset_distribution', dict_owner=proto)
+        self._agent_spawn_data = get_wrapper(proto_type=proto.agent_spawn_data.__class__)(proto=proto.agent_spawn_data)
+        self._asset_distribution = ProtoDictWrapper(container={k: float(v) for (k, v) in proto.asset_distribution.items()}, attr_name='asset_distribution', dict_owner=self)
         self._position_request = get_wrapper(proto_type=proto.position_request.__class__)(proto=proto.position_request)
+        if agent_spawn_data is not None:
+            self.agent_spawn_data = agent_spawn_data
         if asset_distribution is not None:
             self.asset_distribution = asset_distribution
         if debris_asset_remove_tag is not None:
@@ -428,6 +487,16 @@ class DebrisGeneratorParameters(AtomicGeneratorMessage):
             self.position_request = position_request
         if spawn_probability is not None:
             self.spawn_probability = spawn_probability
+
+    @property
+    def agent_spawn_data(self) -> AgentSpawnData:
+        return self._agent_spawn_data
+
+    @agent_spawn_data.setter
+    def agent_spawn_data(self, value: AgentSpawnData):
+        self.proto.agent_spawn_data.CopyFrom(value.proto)
+        self._agent_spawn_data = value
+        self._agent_spawn_data._update_proto_references(self.proto.agent_spawn_data)
 
     @property
     def asset_distribution(self) -> Dict[str, float]:
@@ -484,7 +553,9 @@ class DebrisGeneratorParameters(AtomicGeneratorMessage):
 
     @position_request.setter
     def position_request(self, value: PositionRequest):
-        self._position_request.proto.CopyFrom(value.proto)
+        self.proto.position_request.CopyFrom(value.proto)
+        self._position_request = value
+        self._position_request._update_proto_references(self.proto.position_request)
 
     @property
     def spawn_probability(self) -> float:
@@ -493,6 +564,11 @@ class DebrisGeneratorParameters(AtomicGeneratorMessage):
     @spawn_probability.setter
     def spawn_probability(self, value: float):
         self.proto.spawn_probability = value
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.DebrisGeneratorParameters):
+        self.proto = proto
+        self._agent_spawn_data._update_proto_references(proto.agent_spawn_data)
+        self._position_request._update_proto_references(proto.position_request)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.DecorationData)
 class DecorationData(ProtoMessageClass):
@@ -518,7 +594,13 @@ class DecorationData(ProtoMessageClass):
 
     @decoration_preset.setter
     def decoration_preset(self, value: DecorationPreset):
-        self._decoration_preset.proto.CopyFrom(value.proto)
+        self.proto.decoration_preset.CopyFrom(value.proto)
+        self._decoration_preset = value
+        self._decoration_preset._update_proto_references(self.proto.decoration_preset)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.DecorationData):
+        self.proto = proto
+        self._decoration_preset._update_proto_references(proto.decoration_preset)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.DecorationPreset)
 class DecorationPreset(ProtoMessageClass):
@@ -555,6 +637,9 @@ class DecorationPreset(ProtoMessageClass):
     def variant(self, value: int):
         self.proto.variant = value
 
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.DecorationPreset):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_unified_generator_pb2.DefaultAtomicGeneratorParameters)
 class DefaultAtomicGeneratorParameters(ProtoMessageClass):
     """
@@ -573,7 +658,7 @@ class DefaultAtomicGeneratorParameters(ProtoMessageClass):
         if proto is None:
             proto = pd_unified_generator_pb2.DefaultAtomicGeneratorParameters()
         self.proto = proto
-        self._vehicle_distribution = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.vehicle_distribution.items()}, attr_name='vehicle_distribution', dict_owner=proto)
+        self._vehicle_distribution = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.vehicle_distribution.items()}, attr_name='vehicle_distribution', dict_owner=self)
         if vehicle_distribution is not None:
             self.vehicle_distribution = vehicle_distribution
 
@@ -585,6 +670,11 @@ class DefaultAtomicGeneratorParameters(ProtoMessageClass):
     def vehicle_distribution(self, value: Dict[str, _pd_distributions_pb2.VehicleCategoryWeight]):
         self._vehicle_distribution.clear()
         self._vehicle_distribution.update(value)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.DefaultAtomicGeneratorParameters):
+        self.proto = proto
+        for (k, v) in self.vehicle_distribution.items():
+            v._update_proto_references(self.proto.vehicle_distribution[k])
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.DroneGeneratorParameters)
 class DroneGeneratorParameters(AtomicGeneratorMessage):
@@ -622,7 +712,9 @@ class DroneGeneratorParameters(AtomicGeneratorMessage):
 
     @drone_spawn_data.setter
     def drone_spawn_data(self, value: DroneSpawnData):
-        self._drone_spawn_data.proto.CopyFrom(value.proto)
+        self.proto.drone_spawn_data.CopyFrom(value.proto)
+        self._drone_spawn_data = value
+        self._drone_spawn_data._update_proto_references(self.proto.drone_spawn_data)
 
     @property
     def position_request(self) -> PositionRequest:
@@ -630,7 +722,14 @@ class DroneGeneratorParameters(AtomicGeneratorMessage):
 
     @position_request.setter
     def position_request(self, value: PositionRequest):
-        self._position_request.proto.CopyFrom(value.proto)
+        self.proto.position_request.CopyFrom(value.proto)
+        self._position_request = value
+        self._position_request._update_proto_references(self.proto.position_request)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.DroneGeneratorParameters):
+        self.proto = proto
+        self._drone_spawn_data._update_proto_references(proto.drone_spawn_data)
+        self._position_request._update_proto_references(proto.position_request)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.DroneSpawnData)
 class DroneSpawnData(ProtoMessageClass):
@@ -661,7 +760,7 @@ class DroneSpawnData(ProtoMessageClass):
         self.proto = proto
         self._agent_spawn_data = get_wrapper(proto_type=proto.agent_spawn_data.__class__)(proto=proto.agent_spawn_data)
         self._ground_asset_height_offset = get_wrapper(proto_type=proto.ground_asset_height_offset.__class__)(proto=proto.ground_asset_height_offset)
-        self._ground_assets = ProtoListWrapper(container=[str(v) for v in proto.ground_assets], attr_name='ground_assets', list_owner=proto)
+        self._ground_assets = ProtoListWrapper(container=[str(v) for v in proto.ground_assets], attr_name='ground_assets', list_owner=self)
         self._height_offset = get_wrapper(proto_type=proto.height_offset.__class__)(proto=proto.height_offset)
         if agent_spawn_data is not None:
             self.agent_spawn_data = agent_spawn_data
@@ -684,7 +783,9 @@ class DroneSpawnData(ProtoMessageClass):
 
     @agent_spawn_data.setter
     def agent_spawn_data(self, value: AgentSpawnData):
-        self._agent_spawn_data.proto.CopyFrom(value.proto)
+        self.proto.agent_spawn_data.CopyFrom(value.proto)
+        self._agent_spawn_data = value
+        self._agent_spawn_data._update_proto_references(self.proto.agent_spawn_data)
 
     @property
     def ascend_probability(self) -> float:
@@ -708,7 +809,9 @@ class DroneSpawnData(ProtoMessageClass):
 
     @ground_asset_height_offset.setter
     def ground_asset_height_offset(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
-        self._ground_asset_height_offset.proto.CopyFrom(value.proto)
+        self.proto.ground_asset_height_offset.CopyFrom(value.proto)
+        self._ground_asset_height_offset = value
+        self._ground_asset_height_offset._update_proto_references(self.proto.ground_asset_height_offset)
 
     @property
     def ground_asset_probability(self) -> float:
@@ -734,12 +837,22 @@ class DroneSpawnData(ProtoMessageClass):
 
     @height_offset.setter
     def height_offset(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
-        self._height_offset.proto.CopyFrom(value.proto)
+        self.proto.height_offset.CopyFrom(value.proto)
+        self._height_offset = value
+        self._height_offset._update_proto_references(self.proto.height_offset)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.DroneSpawnData):
+        self.proto = proto
+        self._agent_spawn_data._update_proto_references(proto.agent_spawn_data)
+        self._ground_asset_height_offset._update_proto_references(proto.ground_asset_height_offset)
+        self._height_offset._update_proto_references(proto.height_offset)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.EgoAgentGeneratorParameters)
 class EgoAgentGeneratorParameters(AtomicGeneratorMessage):
     """
-    Description: Places an ego sensor in the world. Required for every scenario. Only works with VEHICLE agent_type, other agent types not implemented yet
+    Description:
+        Places an ego sensor in the world. Required for every scenario. Only works with VEHICLE agent_type, other agent types not implemented yet.
+        All agents placed by the EgoAgentGenerator will have an "EGO" tag added by default.
 
     Args:
         agent_type:
@@ -810,7 +923,9 @@ class EgoAgentGeneratorParameters(AtomicGeneratorMessage):
 
     @drone_spawn_data.setter
     def drone_spawn_data(self, value: DroneSpawnData):
-        self._drone_spawn_data.proto.CopyFrom(value.proto)
+        self.proto.drone_spawn_data.CopyFrom(value.proto)
+        self._drone_spawn_data = value
+        self._drone_spawn_data._update_proto_references(self.proto.drone_spawn_data)
 
     @property
     def ego_model(self) -> str:
@@ -826,7 +941,9 @@ class EgoAgentGeneratorParameters(AtomicGeneratorMessage):
 
     @pedestrian_spawn_data.setter
     def pedestrian_spawn_data(self, value: PedestrianSpawnData):
-        self._pedestrian_spawn_data.proto.CopyFrom(value.proto)
+        self.proto.pedestrian_spawn_data.CopyFrom(value.proto)
+        self._pedestrian_spawn_data = value
+        self._pedestrian_spawn_data._update_proto_references(self.proto.pedestrian_spawn_data)
 
     @property
     def position_request(self) -> PositionRequest:
@@ -834,7 +951,9 @@ class EgoAgentGeneratorParameters(AtomicGeneratorMessage):
 
     @position_request.setter
     def position_request(self, value: PositionRequest):
-        self._position_request.proto.CopyFrom(value.proto)
+        self.proto.position_request.CopyFrom(value.proto)
+        self._position_request = value
+        self._position_request._update_proto_references(self.proto.position_request)
 
     @property
     def vehicle_spawn_data(self) -> VehicleSpawnData:
@@ -842,7 +961,16 @@ class EgoAgentGeneratorParameters(AtomicGeneratorMessage):
 
     @vehicle_spawn_data.setter
     def vehicle_spawn_data(self, value: VehicleSpawnData):
-        self._vehicle_spawn_data.proto.CopyFrom(value.proto)
+        self.proto.vehicle_spawn_data.CopyFrom(value.proto)
+        self._vehicle_spawn_data = value
+        self._vehicle_spawn_data._update_proto_references(self.proto.vehicle_spawn_data)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.EgoAgentGeneratorParameters):
+        self.proto = proto
+        self._drone_spawn_data._update_proto_references(proto.drone_spawn_data)
+        self._pedestrian_spawn_data._update_proto_references(proto.pedestrian_spawn_data)
+        self._position_request._update_proto_references(proto.position_request)
+        self._vehicle_spawn_data._update_proto_references(proto.vehicle_spawn_data)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.EnvironmentParameters)
 class EnvironmentParameters(ProtoMessageClass):
@@ -926,7 +1054,7 @@ class EnvironmentParameters(ProtoMessageClass):
             proto = pd_unified_generator_pb2.EnvironmentParameters()
         self.proto = proto
         self._crosswalk_sign_spawn_probability = get_wrapper(proto_type=proto.crosswalk_sign_spawn_probability.__class__)(proto=proto.crosswalk_sign_spawn_probability)
-        self._marker_data_map = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.marker_data_map.items()}, attr_name='marker_data_map', dict_owner=proto)
+        self._marker_data_map = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.marker_data_map.items()}, attr_name='marker_data_map', dict_owner=self)
         self._parking_space_data = get_wrapper(proto_type=proto.parking_space_data.__class__)(proto=proto.parking_space_data)
         self._region = get_wrapper(proto_type=proto.region.__class__)(proto=proto.region)
         self._sign_spawn_probability = get_wrapper(proto_type=proto.sign_spawn_probability.__class__)(proto=proto.sign_spawn_probability)
@@ -947,7 +1075,9 @@ class EnvironmentParameters(ProtoMessageClass):
 
     @crosswalk_sign_spawn_probability.setter
     def crosswalk_sign_spawn_probability(self, value: CenterSpreadConfig):
-        self._crosswalk_sign_spawn_probability.proto.CopyFrom(value.proto)
+        self.proto.crosswalk_sign_spawn_probability.CopyFrom(value.proto)
+        self._crosswalk_sign_spawn_probability = value
+        self._crosswalk_sign_spawn_probability._update_proto_references(self.proto.crosswalk_sign_spawn_probability)
 
     @property
     def marker_data_map(self) -> Dict[str, RoadMarkingData]:
@@ -964,7 +1094,9 @@ class EnvironmentParameters(ProtoMessageClass):
 
     @parking_space_data.setter
     def parking_space_data(self, value: ParkingSpaceData):
-        self._parking_space_data.proto.CopyFrom(value.proto)
+        self.proto.parking_space_data.CopyFrom(value.proto)
+        self._parking_space_data = value
+        self._parking_space_data._update_proto_references(self.proto.parking_space_data)
 
     @property
     def region(self) -> _pd_distributions_pb2.EnumDistribution:
@@ -972,7 +1104,9 @@ class EnvironmentParameters(ProtoMessageClass):
 
     @region.setter
     def region(self, value: _pd_distributions_pb2.EnumDistribution):
-        self._region.proto.CopyFrom(value.proto)
+        self.proto.region.CopyFrom(value.proto)
+        self._region = value
+        self._region._update_proto_references(self.proto.region)
 
     @property
     def sign_spawn_probability(self) -> CenterSpreadConfig:
@@ -980,7 +1114,18 @@ class EnvironmentParameters(ProtoMessageClass):
 
     @sign_spawn_probability.setter
     def sign_spawn_probability(self, value: CenterSpreadConfig):
-        self._sign_spawn_probability.proto.CopyFrom(value.proto)
+        self.proto.sign_spawn_probability.CopyFrom(value.proto)
+        self._sign_spawn_probability = value
+        self._sign_spawn_probability._update_proto_references(self.proto.sign_spawn_probability)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.EnvironmentParameters):
+        self.proto = proto
+        self._crosswalk_sign_spawn_probability._update_proto_references(proto.crosswalk_sign_spawn_probability)
+        for (k, v) in self.marker_data_map.items():
+            v._update_proto_references(self.proto.marker_data_map[k])
+        self._parking_space_data._update_proto_references(proto.parking_space_data)
+        self._region._update_proto_references(proto.region)
+        self._sign_spawn_probability._update_proto_references(proto.sign_spawn_probability)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.FloatArray)
 class FloatArray(ProtoMessageClass):
@@ -995,7 +1140,7 @@ class FloatArray(ProtoMessageClass):
         if proto is None:
             proto = pd_unified_generator_pb2.FloatArray()
         self.proto = proto
-        self._data = ProtoListWrapper(container=[float(v) for v in proto.data], attr_name='data', list_owner=proto)
+        self._data = ProtoListWrapper(container=[float(v) for v in proto.data], attr_name='data', list_owner=self)
         if data is not None:
             self.data = data
 
@@ -1008,6 +1153,9 @@ class FloatArray(ProtoMessageClass):
         self._data.clear()
         for v in value:
             self._data.append(v)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.FloatArray):
+        self.proto = proto
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.JunctionSpawnPolicy)
 class JunctionSpawnPolicy(ProtoMessageClass):
@@ -1035,7 +1183,13 @@ class JunctionSpawnPolicy(ProtoMessageClass):
 
     @distance_to_junction.setter
     def distance_to_junction(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
-        self._distance_to_junction.proto.CopyFrom(value.proto)
+        self.proto.distance_to_junction.CopyFrom(value.proto)
+        self._distance_to_junction = value
+        self._distance_to_junction._update_proto_references(self.proto.distance_to_junction)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.JunctionSpawnPolicy):
+        self.proto = proto
+        self._distance_to_junction._update_proto_references(proto.distance_to_junction)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.LaneCurvatureSpawnPolicy)
 class LaneCurvatureSpawnPolicy(ProtoMessageClass):
@@ -1065,7 +1219,9 @@ class LaneCurvatureSpawnPolicy(ProtoMessageClass):
 
     @curvature_bounds.setter
     def curvature_bounds(self, value: MinMaxConfigFloat):
-        self._curvature_bounds.proto.CopyFrom(value.proto)
+        self.proto.curvature_bounds.CopyFrom(value.proto)
+        self._curvature_bounds = value
+        self._curvature_bounds._update_proto_references(self.proto.curvature_bounds)
 
     @property
     def min_section_length(self) -> float:
@@ -1074,6 +1230,10 @@ class LaneCurvatureSpawnPolicy(ProtoMessageClass):
     @min_section_length.setter
     def min_section_length(self, value: float):
         self.proto.min_section_length = value
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.LaneCurvatureSpawnPolicy):
+        self.proto = proto
+        self._curvature_bounds._update_proto_references(proto.curvature_bounds)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.LaneSpawnPolicy)
 class LaneSpawnPolicy(ProtoMessageClass):
@@ -1175,22 +1335,49 @@ class LaneSpawnPolicy(ProtoMessageClass):
                   This parameter does not have an effect if spawning in a driveway, parking aisle or parking space.
               Required:
                   No. Defaults to 100.
+        on_road_parking_angle_distribution:
+              Description:
+                    If this lane spawn policy resolves to a set of parking spaces on the road, this distribution
+                    determines what parking space should be selected based on the parking angle.
+                    Valid angles are:
+                        PARALLEL
+                        ANGLE_30
+                        ANGLE_45
+                        ANGLE_60
+                        PERPENDICULAR
+                    For angled parking in parking lots, the angle_distribution in ParkingSpaceData
+                    determines the angle present in the scenario.
+                Required:
+                    No.
+        lane_decoration_distribution:
+              Description:
+                    If object decorations are enabled in the environment paramters
+                    you can use the lane_decoration_distribution to select
+                    lanes with one of the decorations for spawning.
+                    Default is empty, and all decorations (if any) are ignored for spawning.
+                    See ObjectDecoratoinParams for a list of valid decorations.
+                Required:
+                    No.
 """
     _proto_message = pd_unified_generator_pb2.LaneSpawnPolicy
 
-    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.LaneSpawnPolicy]=None, bicycles_only_in_bike_lanes: Optional[bool]=None, lane_type: Optional[_pd_distributions_pb2.EnumDistribution]=None, lateral_offset: Optional[CenterSpreadConfig]=None, min_length_behind: Optional[CenterSpreadConfig]=None, min_num_lanes_in_opposite_direction: Optional[int]=None, min_num_lanes_in_same_direction: Optional[int]=None, min_path_length: Optional[CenterSpreadConfig]=None, nearby_asset_policy: Optional[NearbyAssetPolicy]=None, position_of_interest_policy: Optional[List[PositionOfInterestPolicy]]=None, road_type: Optional[_pd_distributions_pb2.EnumDistribution]=None):
+    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.LaneSpawnPolicy]=None, bicycles_only_in_bike_lanes: Optional[bool]=None, lane_decoration_distribution: Optional[_pd_distributions_pb2.EnumDistribution]=None, lane_type: Optional[_pd_distributions_pb2.EnumDistribution]=None, lateral_offset: Optional[CenterSpreadConfig]=None, min_length_behind: Optional[CenterSpreadConfig]=None, min_num_lanes_in_opposite_direction: Optional[int]=None, min_num_lanes_in_same_direction: Optional[int]=None, min_path_length: Optional[CenterSpreadConfig]=None, nearby_asset_policy: Optional[NearbyAssetPolicy]=None, on_road_parking_angle_distribution: Optional[_pd_distributions_pb2.EnumDistribution]=None, position_of_interest_policy: Optional[List[PositionOfInterestPolicy]]=None, road_type: Optional[_pd_distributions_pb2.EnumDistribution]=None):
         if proto is None:
             proto = pd_unified_generator_pb2.LaneSpawnPolicy()
         self.proto = proto
+        self._lane_decoration_distribution = get_wrapper(proto_type=proto.lane_decoration_distribution.__class__)(proto=proto.lane_decoration_distribution)
         self._lane_type = get_wrapper(proto_type=proto.lane_type.__class__)(proto=proto.lane_type)
         self._lateral_offset = get_wrapper(proto_type=proto.lateral_offset.__class__)(proto=proto.lateral_offset)
         self._min_length_behind = get_wrapper(proto_type=proto.min_length_behind.__class__)(proto=proto.min_length_behind)
         self._min_path_length = get_wrapper(proto_type=proto.min_path_length.__class__)(proto=proto.min_path_length)
         self._nearby_asset_policy = get_wrapper(proto_type=proto.nearby_asset_policy.__class__)(proto=proto.nearby_asset_policy)
-        self._position_of_interest_policy = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.position_of_interest_policy], attr_name='position_of_interest_policy', list_owner=proto)
+        self._on_road_parking_angle_distribution = get_wrapper(proto_type=proto.on_road_parking_angle_distribution.__class__)(proto=proto.on_road_parking_angle_distribution)
+        self._position_of_interest_policy = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.position_of_interest_policy], attr_name='position_of_interest_policy', list_owner=self)
         self._road_type = get_wrapper(proto_type=proto.road_type.__class__)(proto=proto.road_type)
         if bicycles_only_in_bike_lanes is not None:
             self.bicycles_only_in_bike_lanes = bicycles_only_in_bike_lanes
+        if lane_decoration_distribution is not None:
+            self.lane_decoration_distribution = lane_decoration_distribution
         if lane_type is not None:
             self.lane_type = lane_type
         if lateral_offset is not None:
@@ -1205,6 +1392,8 @@ class LaneSpawnPolicy(ProtoMessageClass):
             self.min_path_length = min_path_length
         if nearby_asset_policy is not None:
             self.nearby_asset_policy = nearby_asset_policy
+        if on_road_parking_angle_distribution is not None:
+            self.on_road_parking_angle_distribution = on_road_parking_angle_distribution
         if position_of_interest_policy is not None:
             self.position_of_interest_policy = position_of_interest_policy
         if road_type is not None:
@@ -1219,12 +1408,24 @@ class LaneSpawnPolicy(ProtoMessageClass):
         self.proto.bicycles_only_in_bike_lanes = value
 
     @property
+    def lane_decoration_distribution(self) -> _pd_distributions_pb2.EnumDistribution:
+        return self._lane_decoration_distribution
+
+    @lane_decoration_distribution.setter
+    def lane_decoration_distribution(self, value: _pd_distributions_pb2.EnumDistribution):
+        self.proto.lane_decoration_distribution.CopyFrom(value.proto)
+        self._lane_decoration_distribution = value
+        self._lane_decoration_distribution._update_proto_references(self.proto.lane_decoration_distribution)
+
+    @property
     def lane_type(self) -> _pd_distributions_pb2.EnumDistribution:
         return self._lane_type
 
     @lane_type.setter
     def lane_type(self, value: _pd_distributions_pb2.EnumDistribution):
-        self._lane_type.proto.CopyFrom(value.proto)
+        self.proto.lane_type.CopyFrom(value.proto)
+        self._lane_type = value
+        self._lane_type._update_proto_references(self.proto.lane_type)
 
     @property
     def lateral_offset(self) -> CenterSpreadConfig:
@@ -1232,7 +1433,9 @@ class LaneSpawnPolicy(ProtoMessageClass):
 
     @lateral_offset.setter
     def lateral_offset(self, value: CenterSpreadConfig):
-        self._lateral_offset.proto.CopyFrom(value.proto)
+        self.proto.lateral_offset.CopyFrom(value.proto)
+        self._lateral_offset = value
+        self._lateral_offset._update_proto_references(self.proto.lateral_offset)
 
     @property
     def min_length_behind(self) -> CenterSpreadConfig:
@@ -1240,7 +1443,9 @@ class LaneSpawnPolicy(ProtoMessageClass):
 
     @min_length_behind.setter
     def min_length_behind(self, value: CenterSpreadConfig):
-        self._min_length_behind.proto.CopyFrom(value.proto)
+        self.proto.min_length_behind.CopyFrom(value.proto)
+        self._min_length_behind = value
+        self._min_length_behind._update_proto_references(self.proto.min_length_behind)
 
     @property
     def min_num_lanes_in_opposite_direction(self) -> int:
@@ -1264,7 +1469,9 @@ class LaneSpawnPolicy(ProtoMessageClass):
 
     @min_path_length.setter
     def min_path_length(self, value: CenterSpreadConfig):
-        self._min_path_length.proto.CopyFrom(value.proto)
+        self.proto.min_path_length.CopyFrom(value.proto)
+        self._min_path_length = value
+        self._min_path_length._update_proto_references(self.proto.min_path_length)
 
     @property
     def nearby_asset_policy(self) -> NearbyAssetPolicy:
@@ -1272,7 +1479,19 @@ class LaneSpawnPolicy(ProtoMessageClass):
 
     @nearby_asset_policy.setter
     def nearby_asset_policy(self, value: NearbyAssetPolicy):
-        self._nearby_asset_policy.proto.CopyFrom(value.proto)
+        self.proto.nearby_asset_policy.CopyFrom(value.proto)
+        self._nearby_asset_policy = value
+        self._nearby_asset_policy._update_proto_references(self.proto.nearby_asset_policy)
+
+    @property
+    def on_road_parking_angle_distribution(self) -> _pd_distributions_pb2.EnumDistribution:
+        return self._on_road_parking_angle_distribution
+
+    @on_road_parking_angle_distribution.setter
+    def on_road_parking_angle_distribution(self, value: _pd_distributions_pb2.EnumDistribution):
+        self.proto.on_road_parking_angle_distribution.CopyFrom(value.proto)
+        self._on_road_parking_angle_distribution = value
+        self._on_road_parking_angle_distribution._update_proto_references(self.proto.on_road_parking_angle_distribution)
 
     @property
     def position_of_interest_policy(self) -> List[PositionOfInterestPolicy]:
@@ -1290,7 +1509,22 @@ class LaneSpawnPolicy(ProtoMessageClass):
 
     @road_type.setter
     def road_type(self, value: _pd_distributions_pb2.EnumDistribution):
-        self._road_type.proto.CopyFrom(value.proto)
+        self.proto.road_type.CopyFrom(value.proto)
+        self._road_type = value
+        self._road_type._update_proto_references(self.proto.road_type)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.LaneSpawnPolicy):
+        self.proto = proto
+        self._lane_decoration_distribution._update_proto_references(proto.lane_decoration_distribution)
+        self._lane_type._update_proto_references(proto.lane_type)
+        self._lateral_offset._update_proto_references(proto.lateral_offset)
+        self._min_length_behind._update_proto_references(proto.min_length_behind)
+        self._min_path_length._update_proto_references(proto.min_path_length)
+        self._nearby_asset_policy._update_proto_references(proto.nearby_asset_policy)
+        self._on_road_parking_angle_distribution._update_proto_references(proto.on_road_parking_angle_distribution)
+        for (i, v) in enumerate(self.position_of_interest_policy):
+            v._update_proto_references(self.proto.position_of_interest_policy[i])
+        self._road_type._update_proto_references(proto.road_type)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.LocationRelativePositionRequest)
 class LocationRelativePositionRequest(ProtoMessageClass):
@@ -1318,11 +1552,11 @@ class LocationRelativePositionRequest(ProtoMessageClass):
 """
     _proto_message = pd_unified_generator_pb2.LocationRelativePositionRequest
 
-    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.LocationRelativePositionRequest]=None, agent_tags: Optional[List[SpecialAgentTag]]=None, lane_spawn_policy: Optional[LaneSpawnPolicy]=None, max_spawn_radius: Optional[float]=None):
+    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.LocationRelativePositionRequest]=None, agent_tags: Optional[List[str]]=None, lane_spawn_policy: Optional[LaneSpawnPolicy]=None, max_spawn_radius: Optional[float]=None):
         if proto is None:
             proto = pd_unified_generator_pb2.LocationRelativePositionRequest()
         self.proto = proto
-        self._agent_tags = ProtoListWrapper(container=[int(v) for v in proto.agent_tags], attr_name='agent_tags', list_owner=proto)
+        self._agent_tags = ProtoListWrapper(container=[str(v) for v in proto.agent_tags], attr_name='agent_tags', list_owner=self)
         self._lane_spawn_policy = get_wrapper(proto_type=proto.lane_spawn_policy.__class__)(proto=proto.lane_spawn_policy)
         if agent_tags is not None:
             self.agent_tags = agent_tags
@@ -1332,11 +1566,11 @@ class LocationRelativePositionRequest(ProtoMessageClass):
             self.max_spawn_radius = max_spawn_radius
 
     @property
-    def agent_tags(self) -> int:
+    def agent_tags(self) -> List[str]:
         return self._agent_tags
 
     @agent_tags.setter
-    def agent_tags(self, value: int):
+    def agent_tags(self, value: List[str]):
         self._agent_tags.clear()
         for v in value:
             self._agent_tags.append(v)
@@ -1347,7 +1581,9 @@ class LocationRelativePositionRequest(ProtoMessageClass):
 
     @lane_spawn_policy.setter
     def lane_spawn_policy(self, value: LaneSpawnPolicy):
-        self._lane_spawn_policy.proto.CopyFrom(value.proto)
+        self.proto.lane_spawn_policy.CopyFrom(value.proto)
+        self._lane_spawn_policy = value
+        self._lane_spawn_policy._update_proto_references(self.proto.lane_spawn_policy)
 
     @property
     def max_spawn_radius(self) -> float:
@@ -1356,6 +1592,10 @@ class LocationRelativePositionRequest(ProtoMessageClass):
     @max_spawn_radius.setter
     def max_spawn_radius(self, value: float):
         self.proto.max_spawn_radius = value
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.LocationRelativePositionRequest):
+        self.proto = proto
+        self._lane_spawn_policy._update_proto_references(proto.lane_spawn_policy)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.MinMaxConfigFloat)
 class MinMaxConfigFloat(ProtoMessageClass):
@@ -1392,6 +1632,9 @@ class MinMaxConfigFloat(ProtoMessageClass):
     def min(self, value: float):
         self.proto.min = value
 
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.MinMaxConfigFloat):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_unified_generator_pb2.MinMaxConfigInt)
 class MinMaxConfigInt(ProtoMessageClass):
     """
@@ -1427,6 +1670,9 @@ class MinMaxConfigInt(ProtoMessageClass):
     def min(self, value: int):
         self.proto.min = value
 
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.MinMaxConfigInt):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_unified_generator_pb2.NearbyAssetPolicy)
 class NearbyAssetPolicy(ProtoMessageClass):
     _proto_message = pd_unified_generator_pb2.NearbyAssetPolicy
@@ -1435,7 +1681,7 @@ class NearbyAssetPolicy(ProtoMessageClass):
         if proto is None:
             proto = pd_unified_generator_pb2.NearbyAssetPolicy()
         self.proto = proto
-        self._asset_tags = ProtoListWrapper(container=[str(v) for v in proto.asset_tags], attr_name='asset_tags', list_owner=proto)
+        self._asset_tags = ProtoListWrapper(container=[str(v) for v in proto.asset_tags], attr_name='asset_tags', list_owner=self)
         self._num_assets = get_wrapper(proto_type=proto.num_assets.__class__)(proto=proto.num_assets)
         self._search_radius = get_wrapper(proto_type=proto.search_radius.__class__)(proto=proto.search_radius)
         if asset_tags is not None:
@@ -1461,7 +1707,9 @@ class NearbyAssetPolicy(ProtoMessageClass):
 
     @num_assets.setter
     def num_assets(self, value: MinMaxConfigInt):
-        self._num_assets.proto.CopyFrom(value.proto)
+        self.proto.num_assets.CopyFrom(value.proto)
+        self._num_assets = value
+        self._num_assets._update_proto_references(self.proto.num_assets)
 
     @property
     def search_radius(self) -> CenterSpreadConfig:
@@ -1469,7 +1717,14 @@ class NearbyAssetPolicy(ProtoMessageClass):
 
     @search_radius.setter
     def search_radius(self, value: CenterSpreadConfig):
-        self._search_radius.proto.CopyFrom(value.proto)
+        self.proto.search_radius.CopyFrom(value.proto)
+        self._search_radius = value
+        self._search_radius._update_proto_references(self.proto.search_radius)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.NearbyAssetPolicy):
+        self.proto = proto
+        self._num_assets._update_proto_references(proto.num_assets)
+        self._search_radius._update_proto_references(proto.search_radius)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.ObjectDecorationParams)
 class ObjectDecorationParams(ProtoMessageClass):
@@ -1481,11 +1736,9 @@ class ObjectDecorationParams(ProtoMessageClass):
 
     Args:
         decorate_chance:
-                the chance of each item being decorated (for example each lane within a radius)
+                the chance of each item being decorated by one of the decorations in preset_distribution.
                 range: [0-1]
-                default is 0.1 if not specified, however if no ObjectDecoration is provided at all,
-                the code for adding decorations will be skipped. this is so we don't get unexpected
-                decals showing up in renders
+                default is 0.1 if not specified.
         preset_distribution:
                 distribution of presets
                 each preset also can have a number of variants, randomized for now
@@ -1540,7 +1793,13 @@ class ObjectDecorationParams(ProtoMessageClass):
 
     @preset_distribution.setter
     def preset_distribution(self, value: _pd_distributions_pb2.EnumDistribution):
-        self._preset_distribution.proto.CopyFrom(value.proto)
+        self.proto.preset_distribution.CopyFrom(value.proto)
+        self._preset_distribution = value
+        self._preset_distribution._update_proto_references(self.proto.preset_distribution)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.ObjectDecorationParams):
+        self.proto = proto
+        self._preset_distribution._update_proto_references(proto.preset_distribution)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.ObjectDecorations)
 class ObjectDecorations(ProtoMessageClass):
@@ -1570,7 +1829,9 @@ class ObjectDecorations(ProtoMessageClass):
 
     @decoration_data.setter
     def decoration_data(self, value: DecorationData):
-        self._decoration_data.proto.CopyFrom(value.proto)
+        self.proto.decoration_data.CopyFrom(value.proto)
+        self._decoration_data = value
+        self._decoration_data._update_proto_references(self.proto.decoration_data)
 
     @property
     def object_id(self) -> int:
@@ -1579,6 +1840,10 @@ class ObjectDecorations(ProtoMessageClass):
     @object_id.setter
     def object_id(self, value: int):
         self.proto.object_id = value
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.ObjectDecorations):
+        self.proto = proto
+        self._decoration_data._update_proto_references(proto.decoration_data)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.ParkedVehicleGeneratorParameters)
 class ParkedVehicleGeneratorParameters(AtomicGeneratorMessage):
@@ -1615,16 +1880,24 @@ class ParkedVehicleGeneratorParameters(AtomicGeneratorMessage):
                     MOTORCYCLE	0.068
                     CARAVAN/RV	0.009
                     FULLSIZE	0.184
+        agent_spawn_data:
+              Description:
+                  Specifies spawn data that applies across agent types
+              Required:
+                  No
 """
     _proto_message = pd_unified_generator_pb2.ParkedVehicleGeneratorParameters
 
-    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.ParkedVehicleGeneratorParameters]=None, position_request: Optional[PositionRequest]=None, spawn_probability: Optional[CenterSpreadConfig]=None, vehicle_distribution: Optional[Dict[str, _pd_distributions_pb2.VehicleCategoryWeight]]=None):
+    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.ParkedVehicleGeneratorParameters]=None, agent_spawn_data: Optional[AgentSpawnData]=None, position_request: Optional[PositionRequest]=None, spawn_probability: Optional[CenterSpreadConfig]=None, vehicle_distribution: Optional[Dict[str, _pd_distributions_pb2.VehicleCategoryWeight]]=None):
         if proto is None:
             proto = pd_unified_generator_pb2.ParkedVehicleGeneratorParameters()
         self.proto = proto
+        self._agent_spawn_data = get_wrapper(proto_type=proto.agent_spawn_data.__class__)(proto=proto.agent_spawn_data)
         self._position_request = get_wrapper(proto_type=proto.position_request.__class__)(proto=proto.position_request)
         self._spawn_probability = get_wrapper(proto_type=proto.spawn_probability.__class__)(proto=proto.spawn_probability)
-        self._vehicle_distribution = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.vehicle_distribution.items()}, attr_name='vehicle_distribution', dict_owner=proto)
+        self._vehicle_distribution = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.vehicle_distribution.items()}, attr_name='vehicle_distribution', dict_owner=self)
+        if agent_spawn_data is not None:
+            self.agent_spawn_data = agent_spawn_data
         if position_request is not None:
             self.position_request = position_request
         if spawn_probability is not None:
@@ -1633,12 +1906,24 @@ class ParkedVehicleGeneratorParameters(AtomicGeneratorMessage):
             self.vehicle_distribution = vehicle_distribution
 
     @property
+    def agent_spawn_data(self) -> AgentSpawnData:
+        return self._agent_spawn_data
+
+    @agent_spawn_data.setter
+    def agent_spawn_data(self, value: AgentSpawnData):
+        self.proto.agent_spawn_data.CopyFrom(value.proto)
+        self._agent_spawn_data = value
+        self._agent_spawn_data._update_proto_references(self.proto.agent_spawn_data)
+
+    @property
     def position_request(self) -> PositionRequest:
         return self._position_request
 
     @position_request.setter
     def position_request(self, value: PositionRequest):
-        self._position_request.proto.CopyFrom(value.proto)
+        self.proto.position_request.CopyFrom(value.proto)
+        self._position_request = value
+        self._position_request._update_proto_references(self.proto.position_request)
 
     @property
     def spawn_probability(self) -> CenterSpreadConfig:
@@ -1646,7 +1931,9 @@ class ParkedVehicleGeneratorParameters(AtomicGeneratorMessage):
 
     @spawn_probability.setter
     def spawn_probability(self, value: CenterSpreadConfig):
-        self._spawn_probability.proto.CopyFrom(value.proto)
+        self.proto.spawn_probability.CopyFrom(value.proto)
+        self._spawn_probability = value
+        self._spawn_probability._update_proto_references(self.proto.spawn_probability)
 
     @property
     def vehicle_distribution(self) -> Dict[str, _pd_distributions_pb2.VehicleCategoryWeight]:
@@ -1657,29 +1944,49 @@ class ParkedVehicleGeneratorParameters(AtomicGeneratorMessage):
         self._vehicle_distribution.clear()
         self._vehicle_distribution.update(value)
 
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.ParkedVehicleGeneratorParameters):
+        self.proto = proto
+        self._agent_spawn_data._update_proto_references(proto.agent_spawn_data)
+        self._position_request._update_proto_references(proto.position_request)
+        self._spawn_probability._update_proto_references(proto.spawn_probability)
+        for (k, v) in self.vehicle_distribution.items():
+            v._update_proto_references(self.proto.vehicle_distribution[k])
+
 @register_wrapper(proto_type=pd_unified_generator_pb2.ParkingSpaceData)
 class ParkingSpaceData(ProtoMessageClass):
     """
     Description: struct used to configure parking space selection in sim, and parking space appreaance in ig level
 
     Args:
-        angle_distribution:
-                desired parking space angle in DEGREES and its probability
+        parking_lot_angle_distribution:
+                Description:
+                    Desired parking space angle for parking lots in DEGREES and its probability.
+                    This changes the parking spaces available for scenario generation, simulation and
+                    in the final rendered dataset in parking lots only. Street parking is unaffected.
+                    Valid angles are:
+                        ANGLE_30
+                        ANGLE_45
+                        ANGLE_60
+                        PERPENDICULAR
+                    PARALLEL parking spaces are not available in parking lots.
         lot_parking_delineation_type:
-                what line type we want parking lot spaces to have
-                Possible values: SINGLE, DASHED, DOUBLE_OPEN, DOUBLE_SQUARED, DOUBLE_ROUND, T_SHAPE, NO_LINE, RANDOM
-                default: SINGLE
-                omitted values are treated as having 0 probability
+                Description:
+                    Specifies delineation type for parking lot spaces. Each scenario samples a delineation type from this distribution.
+                    Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `RANDOM`
+                    Default: `SINGLE`
+                    Omitted values are treated as having 0 probability.
         street_parking_delineation_type:
-                what line type we want non parallel street parking spaces to have
-                Possible values: SINGLE, DASHED, DOUBLE_OPEN, DOUBLE_SQUARED, DOUBLE_ROUND, T_SHAPE, NO_LINE, RANDOM
-                default: SINGLE
-                omitted values are treated as having 0 probability
+                Description:
+                    Specifies delineation type for non parallel street parking spaces. Each scenario samples a delineation type from this distribution.
+                    Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `RANDOM`
+                    Default: `SINGLE`
+                    Omitted values are treated as having 0 probability.
         street_parking_angle_zero_override:
-                what line type we want parallel street parking spaces to have
-                Possible values: SINGLE, DASHED, DOUBLE_OPEN, DOUBLE_SQUARED, DOUBLE_ROUND, T_SHAPE, NO_LINE, RANDOM, UNMETERED
-                default: will use street_parking_delineation_type if empty
-                omitted values are treated as having 0 probability
+                Description:
+                    Specifies delineation type for parallel street parking spaces. Each scenario samples a delineation type from this distribution.
+                    Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `RANDOM`, `UNMETERED`
+                    Default: Will use what was selected for `street_parking_delineation_type` if empty.
+                    Omitted values are treated as having 0 probability.
         delineation_color:
                 color of parking lines. white if not specified
                 all parking will have the same color
@@ -1711,25 +2018,26 @@ class ParkingSpaceData(ProtoMessageClass):
         global_parking_decal_wear:
                 global wear amount for decals in parking spaces
                 range: [0-1]
+        parking_space_decoration:
+                Description: configure decorations to apply to parking spaces.
 """
     _proto_message = pd_unified_generator_pb2.ParkingSpaceData
 
-    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.ParkingSpaceData]=None, angle_distribution: Optional[Dict[int, float]]=None, delineation_color: Optional[List[_pd_types_pb2.Float3]]=None, delineation_wear_amount: Optional[CenterSpreadConfig]=None, global_parking_decal_wear: Optional[CenterSpreadConfig]=None, lot_parking_delineation_type: Optional[_pd_distributions_pb2.EnumDistribution]=None, parking_space_grunge_amount: Optional[CenterSpreadConfig]=None, parking_space_material: Optional[_pd_distributions_pb2.EnumDistribution]=None, parking_space_tint: Optional[List[_pd_types_pb2.Float3]]=None, street_parking_angle_zero_override: Optional[_pd_distributions_pb2.EnumDistribution]=None, street_parking_delineation_type: Optional[_pd_distributions_pb2.EnumDistribution]=None):
+    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.ParkingSpaceData]=None, delineation_color: Optional[List[_pd_types_pb2.Float3]]=None, delineation_wear_amount: Optional[CenterSpreadConfig]=None, global_parking_decal_wear: Optional[CenterSpreadConfig]=None, lot_parking_delineation_type: Optional[_pd_distributions_pb2.EnumDistribution]=None, parking_lot_angle_distribution: Optional[_pd_distributions_pb2.EnumDistribution]=None, parking_space_decoration: Optional[ObjectDecorationParams]=None, parking_space_grunge_amount: Optional[CenterSpreadConfig]=None, parking_space_material: Optional[_pd_distributions_pb2.EnumDistribution]=None, parking_space_tint: Optional[List[_pd_types_pb2.Float3]]=None, street_parking_angle_zero_override: Optional[_pd_distributions_pb2.EnumDistribution]=None, street_parking_delineation_type: Optional[_pd_distributions_pb2.EnumDistribution]=None):
         if proto is None:
             proto = pd_unified_generator_pb2.ParkingSpaceData()
         self.proto = proto
-        self._angle_distribution = ProtoDictWrapper(container={k: float(v) for (k, v) in proto.angle_distribution.items()}, attr_name='angle_distribution', dict_owner=proto)
-        self._delineation_color = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.delineation_color], attr_name='delineation_color', list_owner=proto)
+        self._delineation_color = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.delineation_color], attr_name='delineation_color', list_owner=self)
         self._delineation_wear_amount = get_wrapper(proto_type=proto.delineation_wear_amount.__class__)(proto=proto.delineation_wear_amount)
         self._global_parking_decal_wear = get_wrapper(proto_type=proto.global_parking_decal_wear.__class__)(proto=proto.global_parking_decal_wear)
         self._lot_parking_delineation_type = get_wrapper(proto_type=proto.lot_parking_delineation_type.__class__)(proto=proto.lot_parking_delineation_type)
+        self._parking_lot_angle_distribution = get_wrapper(proto_type=proto.parking_lot_angle_distribution.__class__)(proto=proto.parking_lot_angle_distribution)
+        self._parking_space_decoration = get_wrapper(proto_type=proto.parking_space_decoration.__class__)(proto=proto.parking_space_decoration)
         self._parking_space_grunge_amount = get_wrapper(proto_type=proto.parking_space_grunge_amount.__class__)(proto=proto.parking_space_grunge_amount)
         self._parking_space_material = get_wrapper(proto_type=proto.parking_space_material.__class__)(proto=proto.parking_space_material)
-        self._parking_space_tint = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.parking_space_tint], attr_name='parking_space_tint', list_owner=proto)
+        self._parking_space_tint = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.parking_space_tint], attr_name='parking_space_tint', list_owner=self)
         self._street_parking_angle_zero_override = get_wrapper(proto_type=proto.street_parking_angle_zero_override.__class__)(proto=proto.street_parking_angle_zero_override)
         self._street_parking_delineation_type = get_wrapper(proto_type=proto.street_parking_delineation_type.__class__)(proto=proto.street_parking_delineation_type)
-        if angle_distribution is not None:
-            self.angle_distribution = angle_distribution
         if delineation_color is not None:
             self.delineation_color = delineation_color
         if delineation_wear_amount is not None:
@@ -1738,6 +2046,10 @@ class ParkingSpaceData(ProtoMessageClass):
             self.global_parking_decal_wear = global_parking_decal_wear
         if lot_parking_delineation_type is not None:
             self.lot_parking_delineation_type = lot_parking_delineation_type
+        if parking_lot_angle_distribution is not None:
+            self.parking_lot_angle_distribution = parking_lot_angle_distribution
+        if parking_space_decoration is not None:
+            self.parking_space_decoration = parking_space_decoration
         if parking_space_grunge_amount is not None:
             self.parking_space_grunge_amount = parking_space_grunge_amount
         if parking_space_material is not None:
@@ -1748,15 +2060,6 @@ class ParkingSpaceData(ProtoMessageClass):
             self.street_parking_angle_zero_override = street_parking_angle_zero_override
         if street_parking_delineation_type is not None:
             self.street_parking_delineation_type = street_parking_delineation_type
-
-    @property
-    def angle_distribution(self) -> Dict[int, float]:
-        return self._angle_distribution
-
-    @angle_distribution.setter
-    def angle_distribution(self, value: Dict[int, float]):
-        self._angle_distribution.clear()
-        self._angle_distribution.update(value)
 
     @property
     def delineation_color(self) -> List[_pd_types_pb2.Float3]:
@@ -1774,7 +2077,9 @@ class ParkingSpaceData(ProtoMessageClass):
 
     @delineation_wear_amount.setter
     def delineation_wear_amount(self, value: CenterSpreadConfig):
-        self._delineation_wear_amount.proto.CopyFrom(value.proto)
+        self.proto.delineation_wear_amount.CopyFrom(value.proto)
+        self._delineation_wear_amount = value
+        self._delineation_wear_amount._update_proto_references(self.proto.delineation_wear_amount)
 
     @property
     def global_parking_decal_wear(self) -> CenterSpreadConfig:
@@ -1782,7 +2087,9 @@ class ParkingSpaceData(ProtoMessageClass):
 
     @global_parking_decal_wear.setter
     def global_parking_decal_wear(self, value: CenterSpreadConfig):
-        self._global_parking_decal_wear.proto.CopyFrom(value.proto)
+        self.proto.global_parking_decal_wear.CopyFrom(value.proto)
+        self._global_parking_decal_wear = value
+        self._global_parking_decal_wear._update_proto_references(self.proto.global_parking_decal_wear)
 
     @property
     def lot_parking_delineation_type(self) -> _pd_distributions_pb2.EnumDistribution:
@@ -1790,7 +2097,29 @@ class ParkingSpaceData(ProtoMessageClass):
 
     @lot_parking_delineation_type.setter
     def lot_parking_delineation_type(self, value: _pd_distributions_pb2.EnumDistribution):
-        self._lot_parking_delineation_type.proto.CopyFrom(value.proto)
+        self.proto.lot_parking_delineation_type.CopyFrom(value.proto)
+        self._lot_parking_delineation_type = value
+        self._lot_parking_delineation_type._update_proto_references(self.proto.lot_parking_delineation_type)
+
+    @property
+    def parking_lot_angle_distribution(self) -> _pd_distributions_pb2.EnumDistribution:
+        return self._parking_lot_angle_distribution
+
+    @parking_lot_angle_distribution.setter
+    def parking_lot_angle_distribution(self, value: _pd_distributions_pb2.EnumDistribution):
+        self.proto.parking_lot_angle_distribution.CopyFrom(value.proto)
+        self._parking_lot_angle_distribution = value
+        self._parking_lot_angle_distribution._update_proto_references(self.proto.parking_lot_angle_distribution)
+
+    @property
+    def parking_space_decoration(self) -> ObjectDecorationParams:
+        return self._parking_space_decoration
+
+    @parking_space_decoration.setter
+    def parking_space_decoration(self, value: ObjectDecorationParams):
+        self.proto.parking_space_decoration.CopyFrom(value.proto)
+        self._parking_space_decoration = value
+        self._parking_space_decoration._update_proto_references(self.proto.parking_space_decoration)
 
     @property
     def parking_space_grunge_amount(self) -> CenterSpreadConfig:
@@ -1798,7 +2127,9 @@ class ParkingSpaceData(ProtoMessageClass):
 
     @parking_space_grunge_amount.setter
     def parking_space_grunge_amount(self, value: CenterSpreadConfig):
-        self._parking_space_grunge_amount.proto.CopyFrom(value.proto)
+        self.proto.parking_space_grunge_amount.CopyFrom(value.proto)
+        self._parking_space_grunge_amount = value
+        self._parking_space_grunge_amount._update_proto_references(self.proto.parking_space_grunge_amount)
 
     @property
     def parking_space_material(self) -> _pd_distributions_pb2.EnumDistribution:
@@ -1806,7 +2137,9 @@ class ParkingSpaceData(ProtoMessageClass):
 
     @parking_space_material.setter
     def parking_space_material(self, value: _pd_distributions_pb2.EnumDistribution):
-        self._parking_space_material.proto.CopyFrom(value.proto)
+        self.proto.parking_space_material.CopyFrom(value.proto)
+        self._parking_space_material = value
+        self._parking_space_material._update_proto_references(self.proto.parking_space_material)
 
     @property
     def parking_space_tint(self) -> List[_pd_types_pb2.Float3]:
@@ -1824,7 +2157,9 @@ class ParkingSpaceData(ProtoMessageClass):
 
     @street_parking_angle_zero_override.setter
     def street_parking_angle_zero_override(self, value: _pd_distributions_pb2.EnumDistribution):
-        self._street_parking_angle_zero_override.proto.CopyFrom(value.proto)
+        self.proto.street_parking_angle_zero_override.CopyFrom(value.proto)
+        self._street_parking_angle_zero_override = value
+        self._street_parking_angle_zero_override._update_proto_references(self.proto.street_parking_angle_zero_override)
 
     @property
     def street_parking_delineation_type(self) -> _pd_distributions_pb2.EnumDistribution:
@@ -1832,7 +2167,25 @@ class ParkingSpaceData(ProtoMessageClass):
 
     @street_parking_delineation_type.setter
     def street_parking_delineation_type(self, value: _pd_distributions_pb2.EnumDistribution):
-        self._street_parking_delineation_type.proto.CopyFrom(value.proto)
+        self.proto.street_parking_delineation_type.CopyFrom(value.proto)
+        self._street_parking_delineation_type = value
+        self._street_parking_delineation_type._update_proto_references(self.proto.street_parking_delineation_type)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.ParkingSpaceData):
+        self.proto = proto
+        for (i, v) in enumerate(self.delineation_color):
+            v._update_proto_references(self.proto.delineation_color[i])
+        self._delineation_wear_amount._update_proto_references(proto.delineation_wear_amount)
+        self._global_parking_decal_wear._update_proto_references(proto.global_parking_decal_wear)
+        self._lot_parking_delineation_type._update_proto_references(proto.lot_parking_delineation_type)
+        self._parking_lot_angle_distribution._update_proto_references(proto.parking_lot_angle_distribution)
+        self._parking_space_decoration._update_proto_references(proto.parking_space_decoration)
+        self._parking_space_grunge_amount._update_proto_references(proto.parking_space_grunge_amount)
+        self._parking_space_material._update_proto_references(proto.parking_space_material)
+        for (i, v) in enumerate(self.parking_space_tint):
+            v._update_proto_references(self.proto.parking_space_tint[i])
+        self._street_parking_angle_zero_override._update_proto_references(proto.street_parking_angle_zero_override)
+        self._street_parking_delineation_type._update_proto_references(proto.street_parking_delineation_type)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.ParkingTypeDistribution)
 class ParkingTypeDistribution(ProtoMessageClass):
@@ -1879,6 +2232,9 @@ class ParkingTypeDistribution(ProtoMessageClass):
     def reverse(self, value: float):
         self.proto.reverse = value
 
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.ParkingTypeDistribution):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_unified_generator_pb2.PathTimeRelativePositionRequest)
 class PathTimeRelativePositionRequest(ProtoMessageClass):
     """
@@ -1890,7 +2246,7 @@ class PathTimeRelativePositionRequest(ProtoMessageClass):
     Args:
         agent_tags:
               Description:
-                  Tag of agent to spawn relative to
+                  Tag of agent to spawn relative to. Tags are case sensitive.
               Required:
                   Yes
         time_to_path:
@@ -1917,11 +2273,11 @@ class PathTimeRelativePositionRequest(ProtoMessageClass):
 """
     _proto_message = pd_unified_generator_pb2.PathTimeRelativePositionRequest
 
-    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.PathTimeRelativePositionRequest]=None, agent_tags: Optional[List[SpecialAgentTag]]=None, incident_angle: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, time_along_path: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, time_to_path: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None):
+    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.PathTimeRelativePositionRequest]=None, agent_tags: Optional[List[str]]=None, incident_angle: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, time_along_path: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, time_to_path: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None):
         if proto is None:
             proto = pd_unified_generator_pb2.PathTimeRelativePositionRequest()
         self.proto = proto
-        self._agent_tags = ProtoListWrapper(container=[int(v) for v in proto.agent_tags], attr_name='agent_tags', list_owner=proto)
+        self._agent_tags = ProtoListWrapper(container=[str(v) for v in proto.agent_tags], attr_name='agent_tags', list_owner=self)
         self._incident_angle = get_wrapper(proto_type=proto.incident_angle.__class__)(proto=proto.incident_angle)
         self._time_along_path = get_wrapper(proto_type=proto.time_along_path.__class__)(proto=proto.time_along_path)
         self._time_to_path = get_wrapper(proto_type=proto.time_to_path.__class__)(proto=proto.time_to_path)
@@ -1935,11 +2291,11 @@ class PathTimeRelativePositionRequest(ProtoMessageClass):
             self.time_to_path = time_to_path
 
     @property
-    def agent_tags(self) -> int:
+    def agent_tags(self) -> List[str]:
         return self._agent_tags
 
     @agent_tags.setter
-    def agent_tags(self, value: int):
+    def agent_tags(self, value: List[str]):
         self._agent_tags.clear()
         for v in value:
             self._agent_tags.append(v)
@@ -1950,7 +2306,9 @@ class PathTimeRelativePositionRequest(ProtoMessageClass):
 
     @incident_angle.setter
     def incident_angle(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
-        self._incident_angle.proto.CopyFrom(value.proto)
+        self.proto.incident_angle.CopyFrom(value.proto)
+        self._incident_angle = value
+        self._incident_angle._update_proto_references(self.proto.incident_angle)
 
     @property
     def time_along_path(self) -> _pd_distributions_pb2.ContinousUniformDistribution:
@@ -1958,7 +2316,9 @@ class PathTimeRelativePositionRequest(ProtoMessageClass):
 
     @time_along_path.setter
     def time_along_path(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
-        self._time_along_path.proto.CopyFrom(value.proto)
+        self.proto.time_along_path.CopyFrom(value.proto)
+        self._time_along_path = value
+        self._time_along_path._update_proto_references(self.proto.time_along_path)
 
     @property
     def time_to_path(self) -> _pd_distributions_pb2.ContinousUniformDistribution:
@@ -1966,7 +2326,15 @@ class PathTimeRelativePositionRequest(ProtoMessageClass):
 
     @time_to_path.setter
     def time_to_path(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
-        self._time_to_path.proto.CopyFrom(value.proto)
+        self.proto.time_to_path.CopyFrom(value.proto)
+        self._time_to_path = value
+        self._time_to_path._update_proto_references(self.proto.time_to_path)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.PathTimeRelativePositionRequest):
+        self.proto = proto
+        self._incident_angle._update_proto_references(proto.incident_angle)
+        self._time_along_path._update_proto_references(proto.time_along_path)
+        self._time_to_path._update_proto_references(proto.time_to_path)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.PedestrianGeneratorParameters)
 class PedestrianGeneratorParameters(AtomicGeneratorMessage):
@@ -2006,7 +2374,9 @@ class PedestrianGeneratorParameters(AtomicGeneratorMessage):
 
     @ped_spawn_data.setter
     def ped_spawn_data(self, value: PedestrianSpawnData):
-        self._ped_spawn_data.proto.CopyFrom(value.proto)
+        self.proto.ped_spawn_data.CopyFrom(value.proto)
+        self._ped_spawn_data = value
+        self._ped_spawn_data._update_proto_references(self.proto.ped_spawn_data)
 
     @property
     def position_request(self) -> PositionRequest:
@@ -2014,7 +2384,14 @@ class PedestrianGeneratorParameters(AtomicGeneratorMessage):
 
     @position_request.setter
     def position_request(self, value: PositionRequest):
-        self._position_request.proto.CopyFrom(value.proto)
+        self.proto.position_request.CopyFrom(value.proto)
+        self._position_request = value
+        self._position_request._update_proto_references(self.proto.position_request)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.PedestrianGeneratorParameters):
+        self.proto = proto
+        self._ped_spawn_data._update_proto_references(proto.ped_spawn_data)
+        self._position_request._update_proto_references(proto.position_request)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.PedestrianSpawnData)
 class PedestrianSpawnData(ProtoMessageClass):
@@ -2120,7 +2497,9 @@ class PedestrianSpawnData(ProtoMessageClass):
 
     @agent_spawn_data.setter
     def agent_spawn_data(self, value: AgentSpawnData):
-        self._agent_spawn_data.proto.CopyFrom(value.proto)
+        self.proto.agent_spawn_data.CopyFrom(value.proto)
+        self._agent_spawn_data = value
+        self._agent_spawn_data._update_proto_references(self.proto.agent_spawn_data)
 
     @property
     def asset_name(self) -> str:
@@ -2168,7 +2547,9 @@ class PedestrianSpawnData(ProtoMessageClass):
 
     @pedestrian_color_override_probability.setter
     def pedestrian_color_override_probability(self, value: CenterSpreadConfig):
-        self._pedestrian_color_override_probability.proto.CopyFrom(value.proto)
+        self.proto.pedestrian_color_override_probability.CopyFrom(value.proto)
+        self._pedestrian_color_override_probability = value
+        self._pedestrian_color_override_probability._update_proto_references(self.proto.pedestrian_color_override_probability)
 
     @property
     def pedestrian_color_override_rgb(self) -> _pd_types_pb2.Float3:
@@ -2176,7 +2557,9 @@ class PedestrianSpawnData(ProtoMessageClass):
 
     @pedestrian_color_override_rgb.setter
     def pedestrian_color_override_rgb(self, value: _pd_types_pb2.Float3):
-        self._pedestrian_color_override_rgb.proto.CopyFrom(value.proto)
+        self.proto.pedestrian_color_override_rgb.CopyFrom(value.proto)
+        self._pedestrian_color_override_rgb = value
+        self._pedestrian_color_override_rgb._update_proto_references(self.proto.pedestrian_color_override_rgb)
 
     @property
     def pedestrians_dynamic_pathing(self) -> bool:
@@ -2193,6 +2576,12 @@ class PedestrianSpawnData(ProtoMessageClass):
     @speed.setter
     def speed(self, value: float):
         self.proto.speed = value
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.PedestrianSpawnData):
+        self.proto = proto
+        self._agent_spawn_data._update_proto_references(proto.agent_spawn_data)
+        self._pedestrian_color_override_probability._update_proto_references(proto.pedestrian_color_override_probability)
+        self._pedestrian_color_override_rgb._update_proto_references(proto.pedestrian_color_override_rgb)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.PositionOfInterestPolicy)
 class PositionOfInterestPolicy(ProtoMessageClass):
@@ -2223,7 +2612,9 @@ class PositionOfInterestPolicy(ProtoMessageClass):
 
     @junction_spawn_policy.setter
     def junction_spawn_policy(self, value: JunctionSpawnPolicy):
-        self._junction_spawn_policy.proto.CopyFrom(value.proto)
+        self.proto.junction_spawn_policy.CopyFrom(value.proto)
+        self._junction_spawn_policy = value
+        self._junction_spawn_policy._update_proto_references(self.proto.junction_spawn_policy)
 
     @property
     def lane_curvature_spawn_policy(self) -> LaneCurvatureSpawnPolicy:
@@ -2231,7 +2622,14 @@ class PositionOfInterestPolicy(ProtoMessageClass):
 
     @lane_curvature_spawn_policy.setter
     def lane_curvature_spawn_policy(self, value: LaneCurvatureSpawnPolicy):
-        self._lane_curvature_spawn_policy.proto.CopyFrom(value.proto)
+        self.proto.lane_curvature_spawn_policy.CopyFrom(value.proto)
+        self._lane_curvature_spawn_policy = value
+        self._lane_curvature_spawn_policy._update_proto_references(self.proto.lane_curvature_spawn_policy)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.PositionOfInterestPolicy):
+        self.proto = proto
+        self._junction_spawn_policy._update_proto_references(proto.junction_spawn_policy)
+        self._lane_curvature_spawn_policy._update_proto_references(proto.lane_curvature_spawn_policy)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.PositionRequest)
 class PositionRequest(ProtoMessageClass):
@@ -2253,8 +2651,8 @@ class PositionRequest(ProtoMessageClass):
                   No, will default to `0.0`
         yaw_offset:
               Description:
-                  Only applied after initial pose is determined by position_type.
-                  Determines how much to rotate pose about Z axis (points up in right handed coordinate system)
+                  Rotates the object around its up axis by yaw_offset radians, positive counter-clockwise.
+                  Rotation is around the center of the object, so that a rotation of pi radians occupies the same space as no rotation.
                   Units are in radians.
                   Example: pi/2 radians would rotate pose to the left.
               Required:
@@ -2302,7 +2700,9 @@ class PositionRequest(ProtoMessageClass):
 
     @absolute_position_request.setter
     def absolute_position_request(self, value: AbsolutePositionRequest):
-        self._absolute_position_request.proto.CopyFrom(value.proto)
+        self.proto.absolute_position_request.CopyFrom(value.proto)
+        self._absolute_position_request = value
+        self._absolute_position_request._update_proto_references(self.proto.absolute_position_request)
 
     @property
     def lane_spawn_policy(self) -> LaneSpawnPolicy:
@@ -2310,7 +2710,9 @@ class PositionRequest(ProtoMessageClass):
 
     @lane_spawn_policy.setter
     def lane_spawn_policy(self, value: LaneSpawnPolicy):
-        self._lane_spawn_policy.proto.CopyFrom(value.proto)
+        self.proto.lane_spawn_policy.CopyFrom(value.proto)
+        self._lane_spawn_policy = value
+        self._lane_spawn_policy._update_proto_references(self.proto.lane_spawn_policy)
 
     @property
     def lateral_offset(self) -> CenterSpreadConfig:
@@ -2318,7 +2720,9 @@ class PositionRequest(ProtoMessageClass):
 
     @lateral_offset.setter
     def lateral_offset(self, value: CenterSpreadConfig):
-        self._lateral_offset.proto.CopyFrom(value.proto)
+        self.proto.lateral_offset.CopyFrom(value.proto)
+        self._lateral_offset = value
+        self._lateral_offset._update_proto_references(self.proto.lateral_offset)
 
     @property
     def location_relative_position_request(self) -> LocationRelativePositionRequest:
@@ -2326,7 +2730,9 @@ class PositionRequest(ProtoMessageClass):
 
     @location_relative_position_request.setter
     def location_relative_position_request(self, value: LocationRelativePositionRequest):
-        self._location_relative_position_request.proto.CopyFrom(value.proto)
+        self.proto.location_relative_position_request.CopyFrom(value.proto)
+        self._location_relative_position_request = value
+        self._location_relative_position_request._update_proto_references(self.proto.location_relative_position_request)
 
     @property
     def longitudinal_offset(self) -> CenterSpreadConfig:
@@ -2334,7 +2740,9 @@ class PositionRequest(ProtoMessageClass):
 
     @longitudinal_offset.setter
     def longitudinal_offset(self, value: CenterSpreadConfig):
-        self._longitudinal_offset.proto.CopyFrom(value.proto)
+        self.proto.longitudinal_offset.CopyFrom(value.proto)
+        self._longitudinal_offset = value
+        self._longitudinal_offset._update_proto_references(self.proto.longitudinal_offset)
 
     @property
     def path_time_relative_position_request(self) -> PathTimeRelativePositionRequest:
@@ -2342,7 +2750,9 @@ class PositionRequest(ProtoMessageClass):
 
     @path_time_relative_position_request.setter
     def path_time_relative_position_request(self, value: PathTimeRelativePositionRequest):
-        self._path_time_relative_position_request.proto.CopyFrom(value.proto)
+        self.proto.path_time_relative_position_request.CopyFrom(value.proto)
+        self._path_time_relative_position_request = value
+        self._path_time_relative_position_request._update_proto_references(self.proto.path_time_relative_position_request)
 
     @property
     def road_pitch_position_request(self) -> RoadPitchPositionRequest:
@@ -2350,7 +2760,9 @@ class PositionRequest(ProtoMessageClass):
 
     @road_pitch_position_request.setter
     def road_pitch_position_request(self, value: RoadPitchPositionRequest):
-        self._road_pitch_position_request.proto.CopyFrom(value.proto)
+        self.proto.road_pitch_position_request.CopyFrom(value.proto)
+        self._road_pitch_position_request = value
+        self._road_pitch_position_request._update_proto_references(self.proto.road_pitch_position_request)
 
     @property
     def yaw_offset(self) -> CenterSpreadConfig:
@@ -2358,7 +2770,20 @@ class PositionRequest(ProtoMessageClass):
 
     @yaw_offset.setter
     def yaw_offset(self, value: CenterSpreadConfig):
-        self._yaw_offset.proto.CopyFrom(value.proto)
+        self.proto.yaw_offset.CopyFrom(value.proto)
+        self._yaw_offset = value
+        self._yaw_offset._update_proto_references(self.proto.yaw_offset)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.PositionRequest):
+        self.proto = proto
+        self._absolute_position_request._update_proto_references(proto.absolute_position_request)
+        self._lane_spawn_policy._update_proto_references(proto.lane_spawn_policy)
+        self._lateral_offset._update_proto_references(proto.lateral_offset)
+        self._location_relative_position_request._update_proto_references(proto.location_relative_position_request)
+        self._longitudinal_offset._update_proto_references(proto.longitudinal_offset)
+        self._path_time_relative_position_request._update_proto_references(proto.path_time_relative_position_request)
+        self._road_pitch_position_request._update_proto_references(proto.road_pitch_position_request)
+        self._yaw_offset._update_proto_references(proto.yaw_offset)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.RandomPedestrianGeneratorParameters)
 class RandomPedestrianGeneratorParameters(AtomicGeneratorMessage):
@@ -2436,7 +2861,9 @@ class RandomPedestrianGeneratorParameters(AtomicGeneratorMessage):
 
     @num_of_pedestrians_range.setter
     def num_of_pedestrians_range(self, value: MinMaxConfigInt):
-        self._num_of_pedestrians_range.proto.CopyFrom(value.proto)
+        self.proto.num_of_pedestrians_range.CopyFrom(value.proto)
+        self._num_of_pedestrians_range = value
+        self._num_of_pedestrians_range._update_proto_references(self.proto.num_of_pedestrians_range)
 
     @property
     def ped_spawn_data(self) -> PedestrianSpawnData:
@@ -2444,7 +2871,9 @@ class RandomPedestrianGeneratorParameters(AtomicGeneratorMessage):
 
     @ped_spawn_data.setter
     def ped_spawn_data(self, value: PedestrianSpawnData):
-        self._ped_spawn_data.proto.CopyFrom(value.proto)
+        self.proto.ped_spawn_data.CopyFrom(value.proto)
+        self._ped_spawn_data = value
+        self._ped_spawn_data._update_proto_references(self.proto.ped_spawn_data)
 
     @property
     def position_request(self) -> PositionRequest:
@@ -2452,7 +2881,9 @@ class RandomPedestrianGeneratorParameters(AtomicGeneratorMessage):
 
     @position_request.setter
     def position_request(self, value: PositionRequest):
-        self._position_request.proto.CopyFrom(value.proto)
+        self.proto.position_request.CopyFrom(value.proto)
+        self._position_request = value
+        self._position_request._update_proto_references(self.proto.position_request)
 
     @property
     def speed_range(self) -> MinMaxConfigFloat:
@@ -2460,7 +2891,16 @@ class RandomPedestrianGeneratorParameters(AtomicGeneratorMessage):
 
     @speed_range.setter
     def speed_range(self, value: MinMaxConfigFloat):
-        self._speed_range.proto.CopyFrom(value.proto)
+        self.proto.speed_range.CopyFrom(value.proto)
+        self._speed_range = value
+        self._speed_range._update_proto_references(self.proto.speed_range)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.RandomPedestrianGeneratorParameters):
+        self.proto = proto
+        self._num_of_pedestrians_range._update_proto_references(proto.num_of_pedestrians_range)
+        self._ped_spawn_data._update_proto_references(proto.ped_spawn_data)
+        self._position_request._update_proto_references(proto.position_request)
+        self._speed_range._update_proto_references(proto.speed_range)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.RoadMarkingData)
 class RoadMarkingData(ProtoMessageClass):
@@ -2533,9 +2973,9 @@ class RoadMarkingData(ProtoMessageClass):
         if proto is None:
             proto = pd_unified_generator_pb2.RoadMarkingData()
         self.proto = proto
-        self._marker_types = ProtoListWrapper(container=[str(v) for v in proto.marker_types], attr_name='marker_types', list_owner=proto)
-        self._override_colors = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.override_colors], attr_name='override_colors', list_owner=proto)
-        self._preset_colors = ProtoListWrapper(container=[str(v) for v in proto.preset_colors], attr_name='preset_colors', list_owner=proto)
+        self._marker_types = ProtoListWrapper(container=[str(v) for v in proto.marker_types], attr_name='marker_types', list_owner=self)
+        self._override_colors = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.override_colors], attr_name='override_colors', list_owner=self)
+        self._preset_colors = ProtoListWrapper(container=[str(v) for v in proto.preset_colors], attr_name='preset_colors', list_owner=self)
         self._wear = get_wrapper(proto_type=proto.wear.__class__)(proto=proto.wear)
         if marker_types is not None:
             self.marker_types = marker_types
@@ -2592,7 +3032,15 @@ class RoadMarkingData(ProtoMessageClass):
 
     @wear.setter
     def wear(self, value: CenterSpreadConfig):
-        self._wear.proto.CopyFrom(value.proto)
+        self.proto.wear.CopyFrom(value.proto)
+        self._wear = value
+        self._wear._update_proto_references(self.proto.wear)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.RoadMarkingData):
+        self.proto = proto
+        for (i, v) in enumerate(self.override_colors):
+            v._update_proto_references(self.proto.override_colors[i])
+        self._wear._update_proto_references(proto.wear)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.RoadPitchPositionRequest)
 class RoadPitchPositionRequest(ProtoMessageClass):
@@ -2640,7 +3088,9 @@ class RoadPitchPositionRequest(ProtoMessageClass):
 
     @lane_spawn_policy.setter
     def lane_spawn_policy(self, value: LaneSpawnPolicy):
-        self._lane_spawn_policy.proto.CopyFrom(value.proto)
+        self.proto.lane_spawn_policy.CopyFrom(value.proto)
+        self._lane_spawn_policy = value
+        self._lane_spawn_policy._update_proto_references(self.proto.lane_spawn_policy)
 
     @property
     def road_pitch(self) -> _pd_distributions_pb2.ContinousUniformDistribution:
@@ -2648,7 +3098,14 @@ class RoadPitchPositionRequest(ProtoMessageClass):
 
     @road_pitch.setter
     def road_pitch(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
-        self._road_pitch.proto.CopyFrom(value.proto)
+        self.proto.road_pitch.CopyFrom(value.proto)
+        self._road_pitch = value
+        self._road_pitch._update_proto_references(self.proto.road_pitch)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.RoadPitchPositionRequest):
+        self.proto = proto
+        self._lane_spawn_policy._update_proto_references(proto.lane_spawn_policy)
+        self._road_pitch._update_proto_references(proto.road_pitch)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.SignalLightDistribution)
 class SignalLightDistribution(ProtoMessageClass):
@@ -2695,6 +3152,9 @@ class SignalLightDistribution(ProtoMessageClass):
     def yellow(self, value: float):
         self.proto.yellow = value
 
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.SignalLightDistribution):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_unified_generator_pb2.StaticAgentGeneratorParameters)
 class StaticAgentGeneratorParameters(AtomicGeneratorMessage):
     """
@@ -2711,18 +3171,36 @@ class StaticAgentGeneratorParameters(AtomicGeneratorMessage):
                   The asset name of the static agent we want to place
               Required:
                   Yes
+        agent_spawn_data:
+              Description:
+                  Data associated with this agent.
+              Required:
+                  No
 """
     _proto_message = pd_unified_generator_pb2.StaticAgentGeneratorParameters
 
-    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.StaticAgentGeneratorParameters]=None, model: Optional[str]=None, position_request: Optional[PositionRequest]=None):
+    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.StaticAgentGeneratorParameters]=None, agent_spawn_data: Optional[AgentSpawnData]=None, model: Optional[str]=None, position_request: Optional[PositionRequest]=None):
         if proto is None:
             proto = pd_unified_generator_pb2.StaticAgentGeneratorParameters()
         self.proto = proto
+        self._agent_spawn_data = get_wrapper(proto_type=proto.agent_spawn_data.__class__)(proto=proto.agent_spawn_data)
         self._position_request = get_wrapper(proto_type=proto.position_request.__class__)(proto=proto.position_request)
+        if agent_spawn_data is not None:
+            self.agent_spawn_data = agent_spawn_data
         if model is not None:
             self.model = model
         if position_request is not None:
             self.position_request = position_request
+
+    @property
+    def agent_spawn_data(self) -> AgentSpawnData:
+        return self._agent_spawn_data
+
+    @agent_spawn_data.setter
+    def agent_spawn_data(self, value: AgentSpawnData):
+        self.proto.agent_spawn_data.CopyFrom(value.proto)
+        self._agent_spawn_data = value
+        self._agent_spawn_data._update_proto_references(self.proto.agent_spawn_data)
 
     @property
     def model(self) -> str:
@@ -2738,7 +3216,14 @@ class StaticAgentGeneratorParameters(AtomicGeneratorMessage):
 
     @position_request.setter
     def position_request(self, value: PositionRequest):
-        self._position_request.proto.CopyFrom(value.proto)
+        self.proto.position_request.CopyFrom(value.proto)
+        self._position_request = value
+        self._position_request._update_proto_references(self.proto.position_request)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.StaticAgentGeneratorParameters):
+        self.proto = proto
+        self._agent_spawn_data._update_proto_references(proto.agent_spawn_data)
+        self._position_request._update_proto_references(proto.position_request)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.TrafficGeneratorParameters)
 class TrafficGeneratorParameters(AtomicGeneratorMessage):
@@ -2813,9 +3298,9 @@ class TrafficGeneratorParameters(AtomicGeneratorMessage):
             proto = pd_unified_generator_pb2.TrafficGeneratorParameters()
         self.proto = proto
         self._position_request = get_wrapper(proto_type=proto.position_request.__class__)(proto=proto.position_request)
-        self._start_separation_time_map = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.start_separation_time_map.items()}, attr_name='start_separation_time_map', dict_owner=proto)
-        self._target_separation_time_map = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.target_separation_time_map.items()}, attr_name='target_separation_time_map', dict_owner=proto)
-        self._vehicle_distribution = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.vehicle_distribution.items()}, attr_name='vehicle_distribution', dict_owner=proto)
+        self._start_separation_time_map = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.start_separation_time_map.items()}, attr_name='start_separation_time_map', dict_owner=self)
+        self._target_separation_time_map = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.target_separation_time_map.items()}, attr_name='target_separation_time_map', dict_owner=self)
+        self._vehicle_distribution = ProtoDictWrapper(container={k: get_wrapper(proto_type=v.__class__)(proto=v) for (k, v) in proto.vehicle_distribution.items()}, attr_name='vehicle_distribution', dict_owner=self)
         self._vehicle_spawn_data = get_wrapper(proto_type=proto.vehicle_spawn_data.__class__)(proto=proto.vehicle_spawn_data)
         if position_request is not None:
             self.position_request = position_request
@@ -2836,7 +3321,9 @@ class TrafficGeneratorParameters(AtomicGeneratorMessage):
 
     @position_request.setter
     def position_request(self, value: PositionRequest):
-        self._position_request.proto.CopyFrom(value.proto)
+        self.proto.position_request.CopyFrom(value.proto)
+        self._position_request = value
+        self._position_request._update_proto_references(self.proto.position_request)
 
     @property
     def spawn_probability(self) -> float:
@@ -2879,7 +3366,20 @@ class TrafficGeneratorParameters(AtomicGeneratorMessage):
 
     @vehicle_spawn_data.setter
     def vehicle_spawn_data(self, value: VehicleSpawnData):
-        self._vehicle_spawn_data.proto.CopyFrom(value.proto)
+        self.proto.vehicle_spawn_data.CopyFrom(value.proto)
+        self._vehicle_spawn_data = value
+        self._vehicle_spawn_data._update_proto_references(self.proto.vehicle_spawn_data)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.TrafficGeneratorParameters):
+        self.proto = proto
+        self._position_request._update_proto_references(proto.position_request)
+        for (k, v) in self.start_separation_time_map.items():
+            v._update_proto_references(self.proto.start_separation_time_map[k])
+        for (k, v) in self.target_separation_time_map.items():
+            v._update_proto_references(self.proto.target_separation_time_map[k])
+        for (k, v) in self.vehicle_distribution.items():
+            v._update_proto_references(self.proto.vehicle_distribution[k])
+        self._vehicle_spawn_data._update_proto_references(proto.vehicle_spawn_data)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.TurnTypeDistribution)
 class TurnTypeDistribution(ProtoMessageClass):
@@ -2926,6 +3426,9 @@ class TurnTypeDistribution(ProtoMessageClass):
     def straight(self, value: float):
         self.proto.straight = value
 
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.TurnTypeDistribution):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_unified_generator_pb2.UnifiedGeneratorParameters)
 class UnifiedGeneratorParameters(ProtoMessageClass):
     """
@@ -2960,7 +3463,7 @@ class UnifiedGeneratorParameters(ProtoMessageClass):
         if proto is None:
             proto = pd_unified_generator_pb2.UnifiedGeneratorParameters()
         self.proto = proto
-        self._atomics = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.atomics], attr_name='atomics', list_owner=proto)
+        self._atomics = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.atomics], attr_name='atomics', list_owner=self)
         self._default_params = get_wrapper(proto_type=proto.default_params.__class__)(proto=proto.default_params)
         self._environment_params = get_wrapper(proto_type=proto.environment_params.__class__)(proto=proto.environment_params)
         if atomics is not None:
@@ -2988,7 +3491,9 @@ class UnifiedGeneratorParameters(ProtoMessageClass):
 
     @default_params.setter
     def default_params(self, value: DefaultAtomicGeneratorParameters):
-        self._default_params.proto.CopyFrom(value.proto)
+        self.proto.default_params.CopyFrom(value.proto)
+        self._default_params = value
+        self._default_params._update_proto_references(self.proto.default_params)
 
     @property
     def environment_params(self) -> EnvironmentParameters:
@@ -2996,7 +3501,9 @@ class UnifiedGeneratorParameters(ProtoMessageClass):
 
     @environment_params.setter
     def environment_params(self, value: EnvironmentParameters):
-        self._environment_params.proto.CopyFrom(value.proto)
+        self.proto.environment_params.CopyFrom(value.proto)
+        self._environment_params = value
+        self._environment_params._update_proto_references(self.proto.environment_params)
 
     @property
     def use_merge_batches(self) -> bool:
@@ -3005,6 +3512,13 @@ class UnifiedGeneratorParameters(ProtoMessageClass):
     @use_merge_batches.setter
     def use_merge_batches(self, value: bool):
         self.proto.use_merge_batches = value
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.UnifiedGeneratorParameters):
+        self.proto = proto
+        for (i, v) in enumerate(self.atomics):
+            v._update_proto_references(self.proto.atomics[i])
+        self._default_params._update_proto_references(proto.default_params)
+        self._environment_params._update_proto_references(proto.environment_params)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.VehicleBehavior)
 class VehicleBehavior(ProtoMessageClass):
@@ -3107,19 +3621,68 @@ class VehicleBehavior(ProtoMessageClass):
                   Specifies whether vehicle should ignore obstacle types
               Required:
                   No, if not specified will not ignore any obstacles
+        parking_scenario_goal:
+              Description:
+                  Goal position request for a parking/unparking scenario.
+                  `parking_scenario_goal` is used in two ways:
+                  To park, set a parking space as a goal in parking_scenario_goal and leave the position_request field empty.
+                  To set a parking space as a goal use the ParkingSpace lane type::
+
+                    {
+                        lane_spawn_policy: {
+                            lane_type: {
+                                probabilities: {
+                                    "ParkingSpace": 1.0
+                                }
+                            }
+                        }
+                    }
+                  If you want to park only in a parking lot, add a road_type distribution with Parking_Aisle set to 1::
+
+                    {
+                        lane_spawn_policy: {
+                            lane_type: {
+                                probabilities: {
+                                    "ParkingSpace": 1.0
+                                }
+                            }
+                        },
+                        road_type: {
+                            probabilities: {
+                                "Parking_Aisle": 1.0
+                            }
+                        }
+                    }
+                  To park outside of a parking lot, change the road type distribution to the roads of your choosing (eg.
+                  Residential, Primary, Secondary, etc.).
+                  Please see the LaneSpawnPolicy for more documentation on setting what angle to park into.
+                  To unpark, set the position_request to a parking space (see above) and set the parking_scenario_goal to be a
+                  ParkingAisle lane type to unpark in a parking lot. Unparking from a street space is not yet supported.
+                  Only `AbsolutePositionRequest` and `LaneSpawnPolicy` position request types are supported.
+              Required:
+                  No, if empty will run default behavior.
+        parking_scenario_time:
+              Description:
+                  time it takes to reach parking_maneuver_request goal. assume constant accel
+                  from initial speed to target speed
+                  is approximate, does not account for slowing down for obstacles
+              Required:
+                  No, if empty will default to 5 seconds
 """
     _proto_message = pd_unified_generator_pb2.VehicleBehavior
 
-    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.VehicleBehavior]=None, enable_dynamic_lane_selection: Optional[bool]=None, ignore_obstacle_types: Optional[List[ObstacleType]]=None, ignore_speed_limit: Optional[bool]=None, lane_change_cooldown: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, lane_change_probability: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, lane_drift_amplitude: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, lane_drift_scale: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, lane_offset: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, start_gear: Optional[Gear]=None, start_separation_time: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, start_speed: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, target_separation_time: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, target_speed: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, vehicle_aggression: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None):
+    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.VehicleBehavior]=None, enable_dynamic_lane_selection: Optional[bool]=None, ignore_obstacle_types: Optional[List[ObstacleType]]=None, ignore_speed_limit: Optional[bool]=None, lane_change_cooldown: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, lane_change_probability: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, lane_drift_amplitude: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, lane_drift_scale: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, lane_offset: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, parking_scenario_goal: Optional[PositionRequest]=None, parking_scenario_time: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, start_gear: Optional[Gear]=None, start_separation_time: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, start_speed: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, target_separation_time: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, target_speed: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, vehicle_aggression: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None):
         if proto is None:
             proto = pd_unified_generator_pb2.VehicleBehavior()
         self.proto = proto
-        self._ignore_obstacle_types = ProtoListWrapper(container=[int(v) for v in proto.ignore_obstacle_types], attr_name='ignore_obstacle_types', list_owner=proto)
+        self._ignore_obstacle_types = ProtoListWrapper(container=[int(v) for v in proto.ignore_obstacle_types], attr_name='ignore_obstacle_types', list_owner=self)
         self._lane_change_cooldown = get_wrapper(proto_type=proto.lane_change_cooldown.__class__)(proto=proto.lane_change_cooldown)
         self._lane_change_probability = get_wrapper(proto_type=proto.lane_change_probability.__class__)(proto=proto.lane_change_probability)
         self._lane_drift_amplitude = get_wrapper(proto_type=proto.lane_drift_amplitude.__class__)(proto=proto.lane_drift_amplitude)
         self._lane_drift_scale = get_wrapper(proto_type=proto.lane_drift_scale.__class__)(proto=proto.lane_drift_scale)
         self._lane_offset = get_wrapper(proto_type=proto.lane_offset.__class__)(proto=proto.lane_offset)
+        self._parking_scenario_goal = get_wrapper(proto_type=proto.parking_scenario_goal.__class__)(proto=proto.parking_scenario_goal)
+        self._parking_scenario_time = get_wrapper(proto_type=proto.parking_scenario_time.__class__)(proto=proto.parking_scenario_time)
         self._start_separation_time = get_wrapper(proto_type=proto.start_separation_time.__class__)(proto=proto.start_separation_time)
         self._start_speed = get_wrapper(proto_type=proto.start_speed.__class__)(proto=proto.start_speed)
         self._target_separation_time = get_wrapper(proto_type=proto.target_separation_time.__class__)(proto=proto.target_separation_time)
@@ -3141,6 +3704,10 @@ class VehicleBehavior(ProtoMessageClass):
             self.lane_drift_scale = lane_drift_scale
         if lane_offset is not None:
             self.lane_offset = lane_offset
+        if parking_scenario_goal is not None:
+            self.parking_scenario_goal = parking_scenario_goal
+        if parking_scenario_time is not None:
+            self.parking_scenario_time = parking_scenario_time
         if start_gear is not None:
             self.start_gear = start_gear
         if start_separation_time is not None:
@@ -3186,7 +3753,9 @@ class VehicleBehavior(ProtoMessageClass):
 
     @lane_change_cooldown.setter
     def lane_change_cooldown(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
-        self._lane_change_cooldown.proto.CopyFrom(value.proto)
+        self.proto.lane_change_cooldown.CopyFrom(value.proto)
+        self._lane_change_cooldown = value
+        self._lane_change_cooldown._update_proto_references(self.proto.lane_change_cooldown)
 
     @property
     def lane_change_probability(self) -> _pd_distributions_pb2.ContinousUniformDistribution:
@@ -3194,7 +3763,9 @@ class VehicleBehavior(ProtoMessageClass):
 
     @lane_change_probability.setter
     def lane_change_probability(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
-        self._lane_change_probability.proto.CopyFrom(value.proto)
+        self.proto.lane_change_probability.CopyFrom(value.proto)
+        self._lane_change_probability = value
+        self._lane_change_probability._update_proto_references(self.proto.lane_change_probability)
 
     @property
     def lane_drift_amplitude(self) -> _pd_distributions_pb2.ContinousUniformDistribution:
@@ -3202,7 +3773,9 @@ class VehicleBehavior(ProtoMessageClass):
 
     @lane_drift_amplitude.setter
     def lane_drift_amplitude(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
-        self._lane_drift_amplitude.proto.CopyFrom(value.proto)
+        self.proto.lane_drift_amplitude.CopyFrom(value.proto)
+        self._lane_drift_amplitude = value
+        self._lane_drift_amplitude._update_proto_references(self.proto.lane_drift_amplitude)
 
     @property
     def lane_drift_scale(self) -> _pd_distributions_pb2.ContinousUniformDistribution:
@@ -3210,7 +3783,9 @@ class VehicleBehavior(ProtoMessageClass):
 
     @lane_drift_scale.setter
     def lane_drift_scale(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
-        self._lane_drift_scale.proto.CopyFrom(value.proto)
+        self.proto.lane_drift_scale.CopyFrom(value.proto)
+        self._lane_drift_scale = value
+        self._lane_drift_scale._update_proto_references(self.proto.lane_drift_scale)
 
     @property
     def lane_offset(self) -> _pd_distributions_pb2.ContinousUniformDistribution:
@@ -3218,7 +3793,29 @@ class VehicleBehavior(ProtoMessageClass):
 
     @lane_offset.setter
     def lane_offset(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
-        self._lane_offset.proto.CopyFrom(value.proto)
+        self.proto.lane_offset.CopyFrom(value.proto)
+        self._lane_offset = value
+        self._lane_offset._update_proto_references(self.proto.lane_offset)
+
+    @property
+    def parking_scenario_goal(self) -> PositionRequest:
+        return self._parking_scenario_goal
+
+    @parking_scenario_goal.setter
+    def parking_scenario_goal(self, value: PositionRequest):
+        self.proto.parking_scenario_goal.CopyFrom(value.proto)
+        self._parking_scenario_goal = value
+        self._parking_scenario_goal._update_proto_references(self.proto.parking_scenario_goal)
+
+    @property
+    def parking_scenario_time(self) -> _pd_distributions_pb2.ContinousUniformDistribution:
+        return self._parking_scenario_time
+
+    @parking_scenario_time.setter
+    def parking_scenario_time(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
+        self.proto.parking_scenario_time.CopyFrom(value.proto)
+        self._parking_scenario_time = value
+        self._parking_scenario_time._update_proto_references(self.proto.parking_scenario_time)
 
     @property
     def start_gear(self) -> int:
@@ -3234,7 +3831,9 @@ class VehicleBehavior(ProtoMessageClass):
 
     @start_separation_time.setter
     def start_separation_time(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
-        self._start_separation_time.proto.CopyFrom(value.proto)
+        self.proto.start_separation_time.CopyFrom(value.proto)
+        self._start_separation_time = value
+        self._start_separation_time._update_proto_references(self.proto.start_separation_time)
 
     @property
     def start_speed(self) -> _pd_distributions_pb2.ContinousUniformDistribution:
@@ -3242,7 +3841,9 @@ class VehicleBehavior(ProtoMessageClass):
 
     @start_speed.setter
     def start_speed(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
-        self._start_speed.proto.CopyFrom(value.proto)
+        self.proto.start_speed.CopyFrom(value.proto)
+        self._start_speed = value
+        self._start_speed._update_proto_references(self.proto.start_speed)
 
     @property
     def target_separation_time(self) -> _pd_distributions_pb2.ContinousUniformDistribution:
@@ -3250,7 +3851,9 @@ class VehicleBehavior(ProtoMessageClass):
 
     @target_separation_time.setter
     def target_separation_time(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
-        self._target_separation_time.proto.CopyFrom(value.proto)
+        self.proto.target_separation_time.CopyFrom(value.proto)
+        self._target_separation_time = value
+        self._target_separation_time._update_proto_references(self.proto.target_separation_time)
 
     @property
     def target_speed(self) -> _pd_distributions_pb2.ContinousUniformDistribution:
@@ -3258,7 +3861,9 @@ class VehicleBehavior(ProtoMessageClass):
 
     @target_speed.setter
     def target_speed(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
-        self._target_speed.proto.CopyFrom(value.proto)
+        self.proto.target_speed.CopyFrom(value.proto)
+        self._target_speed = value
+        self._target_speed._update_proto_references(self.proto.target_speed)
 
     @property
     def vehicle_aggression(self) -> _pd_distributions_pb2.ContinousUniformDistribution:
@@ -3266,7 +3871,24 @@ class VehicleBehavior(ProtoMessageClass):
 
     @vehicle_aggression.setter
     def vehicle_aggression(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
-        self._vehicle_aggression.proto.CopyFrom(value.proto)
+        self.proto.vehicle_aggression.CopyFrom(value.proto)
+        self._vehicle_aggression = value
+        self._vehicle_aggression._update_proto_references(self.proto.vehicle_aggression)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.VehicleBehavior):
+        self.proto = proto
+        self._lane_change_cooldown._update_proto_references(proto.lane_change_cooldown)
+        self._lane_change_probability._update_proto_references(proto.lane_change_probability)
+        self._lane_drift_amplitude._update_proto_references(proto.lane_drift_amplitude)
+        self._lane_drift_scale._update_proto_references(proto.lane_drift_scale)
+        self._lane_offset._update_proto_references(proto.lane_offset)
+        self._parking_scenario_goal._update_proto_references(proto.parking_scenario_goal)
+        self._parking_scenario_time._update_proto_references(proto.parking_scenario_time)
+        self._start_separation_time._update_proto_references(proto.start_separation_time)
+        self._start_speed._update_proto_references(proto.start_speed)
+        self._target_separation_time._update_proto_references(proto.target_separation_time)
+        self._target_speed._update_proto_references(proto.target_speed)
+        self._vehicle_aggression._update_proto_references(proto.vehicle_aggression)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.VehicleGeneratorParameters)
 class VehicleGeneratorParameters(AtomicGeneratorMessage):
@@ -3319,7 +3941,9 @@ class VehicleGeneratorParameters(AtomicGeneratorMessage):
 
     @position_request.setter
     def position_request(self, value: PositionRequest):
-        self._position_request.proto.CopyFrom(value.proto)
+        self.proto.position_request.CopyFrom(value.proto)
+        self._position_request = value
+        self._position_request._update_proto_references(self.proto.position_request)
 
     @property
     def vehicle_spawn_data(self) -> VehicleSpawnData:
@@ -3327,7 +3951,14 @@ class VehicleGeneratorParameters(AtomicGeneratorMessage):
 
     @vehicle_spawn_data.setter
     def vehicle_spawn_data(self, value: VehicleSpawnData):
-        self._vehicle_spawn_data.proto.CopyFrom(value.proto)
+        self.proto.vehicle_spawn_data.CopyFrom(value.proto)
+        self._vehicle_spawn_data = value
+        self._vehicle_spawn_data._update_proto_references(self.proto.vehicle_spawn_data)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.VehicleGeneratorParameters):
+        self.proto = proto
+        self._position_request._update_proto_references(proto.position_request)
+        self._vehicle_spawn_data._update_proto_references(proto.vehicle_spawn_data)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.VehiclePeripheral)
 class VehiclePeripheral(ProtoMessageClass):
@@ -3415,7 +4046,13 @@ class VehiclePeripheral(ProtoMessageClass):
 
     @trailer_initial_yaw.setter
     def trailer_initial_yaw(self, value: _pd_distributions_pb2.ContinousUniformDistribution):
-        self._trailer_initial_yaw.proto.CopyFrom(value.proto)
+        self.proto.trailer_initial_yaw.CopyFrom(value.proto)
+        self._trailer_initial_yaw = value
+        self._trailer_initial_yaw._update_proto_references(self.proto.trailer_initial_yaw)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.VehiclePeripheral):
+        self.proto = proto
+        self._trailer_initial_yaw._update_proto_references(proto.trailer_initial_yaw)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.VehicleSpawnData)
 class VehicleSpawnData(ProtoMessageClass):
@@ -3461,7 +4098,9 @@ class VehicleSpawnData(ProtoMessageClass):
 
     @agent_spawn_data.setter
     def agent_spawn_data(self, value: AgentSpawnData):
-        self._agent_spawn_data.proto.CopyFrom(value.proto)
+        self.proto.agent_spawn_data.CopyFrom(value.proto)
+        self._agent_spawn_data = value
+        self._agent_spawn_data._update_proto_references(self.proto.agent_spawn_data)
 
     @property
     def vehicle_behavior(self) -> VehicleBehavior:
@@ -3469,7 +4108,9 @@ class VehicleSpawnData(ProtoMessageClass):
 
     @vehicle_behavior.setter
     def vehicle_behavior(self, value: VehicleBehavior):
-        self._vehicle_behavior.proto.CopyFrom(value.proto)
+        self.proto.vehicle_behavior.CopyFrom(value.proto)
+        self._vehicle_behavior = value
+        self._vehicle_behavior._update_proto_references(self.proto.vehicle_behavior)
 
     @property
     def vehicle_peripheral(self) -> VehiclePeripheral:
@@ -3477,7 +4118,15 @@ class VehicleSpawnData(ProtoMessageClass):
 
     @vehicle_peripheral.setter
     def vehicle_peripheral(self, value: VehiclePeripheral):
-        self._vehicle_peripheral.proto.CopyFrom(value.proto)
+        self.proto.vehicle_peripheral.CopyFrom(value.proto)
+        self._vehicle_peripheral = value
+        self._vehicle_peripheral._update_proto_references(self.proto.vehicle_peripheral)
+
+    def _update_proto_references(self, proto: pd_unified_generator_pb2.VehicleSpawnData):
+        self.proto = proto
+        self._agent_spawn_data._update_proto_references(proto.agent_spawn_data)
+        self._vehicle_behavior._update_proto_references(proto.vehicle_behavior)
+        self._vehicle_peripheral._update_proto_references(proto.vehicle_peripheral)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.AgentType)
 class AgentType(ProtoEnumClass):
@@ -3555,7 +4204,7 @@ class PedestrianBehavior(ProtoEnumClass):
 @register_wrapper(proto_type=pd_unified_generator_pb2.SpecialAgentTag)
 class SpecialAgentTag(ProtoEnumClass):
     """
-    Special Tag used in relative position requests.
+    DEPRECATED: Special Tag used in relative position requests.
 
     Args:
 """

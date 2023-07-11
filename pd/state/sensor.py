@@ -14,20 +14,19 @@ Additionally, we support loading sensor definitions from a JSON file via the
 :func:`sensors_from_json` function.
 """
 
-from dataclasses import dataclass, field
-from abc import ABC
-from enum import IntEnum, Enum
-from typing import List, Dict, Optional, Union, Any, Tuple
 import json
-from pathlib import Path
 import logging
+from abc import ABC
+from dataclasses import dataclass, field
+from enum import IntEnum, Enum
+from pathlib import Path
+from typing import List, Dict, Optional, Union, Any, Tuple
 
 import numpy as np
 
-from pd.state.pose6d import Pose6D
 from pd.core.errors import PdError
 from pd.internal.labels import id_to_color_lookup, id_to_label
-
+from pd.state.pose6d import Pose6D
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +90,7 @@ class NoiseParams:
     gauss_noise_sigma: float = 0.0
     poisson_noise_lambda: float = 0.0
 
-    denoise_filter: DenoiseFilter = DenoiseFilter.AverageFilter
+    denoise_filter: Union[DenoiseFilter, int] = DenoiseFilter.AverageFilter
     denoise_filter_size: int = 0
     bilateral_sigma_d: float = 0.0
     bilateral_sigma_r: float = 0.0
@@ -562,10 +561,17 @@ def sensors_from_json(json_dict: Dict[Any, Any]) -> List[Sensor]:
             raise PdBadSensorConfigError("Missing sensor extrinsics")
         _ext = sensor_config["sensor_extrinsic"]
         try:
-            pose = Pose6D.from_rpy_angles(
-                x_metres=_ext["x"], y_metres=_ext["y"], z_metres=_ext["z"],
-                roll_degrees=_ext["roll"], pitch_degrees=_ext["pitch"], yaw_degrees=_ext["yaw"]
-            )
+            if "sensor_to_vehicle" in _ext:
+                pose = np.array(_ext["sensor_to_vehicle"], dtype=float).reshape((4, 4))
+            else:
+                pose = Pose6D.from_rpy_angles(
+                    x_metres=_ext["x"],
+                    y_metres=_ext["y"],
+                    z_metres=_ext["z"],
+                    roll_degrees=_ext["roll"],
+                    pitch_degrees=_ext["pitch"],
+                    yaw_degrees=_ext["yaw"],
+                )
         except KeyError as e:
             raise PdBadSensorConfigError(str(e))
 
@@ -718,8 +724,9 @@ def sensors_from_json(json_dict: Dict[Any, Any]) -> List[Sensor]:
         else:
             raise PdBadSensorConfigError("Missing sensor intrinsics")
 
-        sensor.attach_socket = _ext.get('attach_socket', sensor.attach_socket) or None
-        sensor.follow_rotation = _ext.get('follow_rotation', sensor.follow_rotation)
+        sensor.attach_socket = _ext.get("attach_socket", sensor.attach_socket) or None
+        sensor.follow_rotation = _ext.get("follow_rotation", sensor.follow_rotation)
+        sensor.lock_to_yaw = _ext.get("log_to_yaw", sensor.lock_to_yaw)
 
     return sensors
 

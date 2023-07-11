@@ -3,10 +3,12 @@
 #
 # Use of this file is only permitted if you have entered into a
 # separate written license agreement with Parallel Domain, Inc.
+import contextlib
+import time
 
 import click
 import sys
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 import random
 from pathlib import Path
 
@@ -17,7 +19,10 @@ import pd.session
 import pd.state
 import pd.umd
 from pd.core import PdError
+from pd.label_engine import load_pipeline_config, simulation_time_as_timestamp
 from pd.util.scripting import common_step_options, StepScriptContext
+
+from pd.internal.proto.label_engine.generated.python.bounding_box_2d_pb2 import VisibilitySampleMetadata, VisibilitySampleType
 
 
 DEFAULT_LOCATION = ('SF_6thAndMission_medium', 'v2.0.1')
@@ -34,23 +39,42 @@ MAX_SIM_DISTANCE_METRES = 1000
 # Given a render frame rate of 100fps, CAPTURE_INTERVAL=10 will yield an output frame rate of 10fps.
 #
 # Default values of RENDER_INTERVAL=1, CAPTURE_INTERVAL=10 yield render rate of 100fps and output frame rate of 10fps.
-RENDER_FRAME_INTERVAL = 1  # Every Nth simulation state is rendered
-CAPTURE_FRAME_INTERVAL = 10  # Every Nth render is saved/displayed
+RENDER_FRAME_INTERVAL = 10  # Every Nth simulation state is rendered
+CAPTURE_FRAME_INTERVAL = 1  # Every Nth render is saved/displayed
 
 
-def save_image(base_path: Path, sensor: str, frame: int, image):
+def save_image(base_path: Path, sensor: str, timestamp: str, image):
     """
     Save cv2 image to disk
     Args:
         base_path: Base output directory path
         sensor: Name of sensor
-        frame: Frame number
+        timestamp: Frame timestamp
         image: CV2 image to save
     """
-    image_path = base_path / sensor / f"{frame:06d}.png"
+    image_path = base_path / sensor / f"{timestamp}.png"
     image_path.parent.mkdir(parents=True, exist_ok=True)
     click.echo(f"Saving image: {image_path}")
     cv2.imwrite(str(image_path), image)
+
+
+def save_proto(base_path: Path, sensor: Optional[str], timestamp: str, data: bytes):
+    """
+    Save proto message to disk
+    Args:
+        base_path: Base output directory path
+        sensor: Name of sensor
+        timestamp: Frame timestamp
+        image: CV2 image to save
+    """
+    proto_path = base_path
+    if sensor:
+        proto_path = proto_path / sensor
+    proto_path = proto_path / f"{timestamp}.pb.json"
+    proto_path.parent.mkdir(parents=True, exist_ok=True)
+    click.echo(f"Saving proto: {proto_path}")
+    with proto_path.open('w') as f:
+        f.write(data.decode())
 
 
 def get_velocity(prev_pose: pd.state.Pose6D, curr_pose: pd.state.Pose6D, time_delta_sec: float) \
@@ -116,7 +140,7 @@ def generate_route(umd_map) -> List[Tuple[float, float, float]]:
 
 
 @click.command()
-@common_step_options()
+@common_step_options(require_label_engine=True)
 @click.option('--preview/--no-preview', default=True, show_default=True, help="Preview rendered frame")
 @click.option('--location', default=DEFAULT_LOCATION, help="Location name and version", type=(str, str),
               show_default=True)
@@ -140,7 +164,6 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
     It also demonstrates how to send State information to and retrieve simulator sensor data from
     a Step server.
     """
-    request_addr = step_options.ig
     client_cert_file = step_options.client_cert_file
 
     random.seed(seed)
@@ -154,6 +177,7 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
     semseg_output_path = output_path / "semantic_segmentation_2d"
     instance_output_path = output_path / "instance_segmentation_2d"
     normals_2d_output_path = output_path / "surface_normals_2d"
+    bbox2d_output_path = output_path / "bounding_box_2d"
 
     # Load route information
     level_name, level_version = location
@@ -168,14 +192,25 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
     # Load sensor rig
     sensor_list = pd.state.load_sensor_rig(sensor if sensor else pd.state.SensorRig.DEMO_RIG_SIMPLE_FRONT_ALL)
 
-    click.echo("Connecting to server...", nl=False)
-    session = pd.session.StepSession(request_addr=request_addr, client_cert_file=client_cert_file)
-    with session:
+    click.echo("Connecting to Step server(s)...", nl=False)
+    ig_session = pd.session.StepIgSession(request_addr=step_options.ig, client_cert_file=client_cert_file)
+    if step_options.label_engine:
+        le_session = pd.session.LabelEngineSession(request_addr=step_options.label_engine, client_cert_file=client_cert_file)
+    else:
+        le_session = contextlib.nullcontext()
+    with ig_session, le_session:
         click.echo("done.")
-        version = session.system_info.version
-        click.echo(f"Server version: {version.major}.{version.minor}.{version.patch}-{version.build}")
+        ig_version = ig_session.system_info.version
+        click.echo(f"IG version: {ig_version.major}.{ig_version.minor}.{ig_version.patch}-{ig_version.build}")
+
+        if step_options.label_engine:
+            le_config_name = 'pipeline_minimal'
+            click.echo(f"Configuring Label Engine with pipeline '{le_config_name}'")
+            le_config = load_pipeline_config(le_config_name)
+            le_session.configure(le_config)
+
         click.echo(f"Loading map {level_name}...", nl=False)
-        session.load_location(level_name, lighting)
+        ig_session.load_location(level_name, lighting)
         click.echo("done")
 
         # Initialize simulation state
@@ -184,7 +219,8 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
         time_sec = 0.0
         ego_pose = next(ego_poses)
         ego_velocity = (0.0, 0.0, 0.0)
-        ego_agent_id = pd.state.rand_agent_id()
+        ego_agent_id = 2 # (FIXME: PD-27812 bug in Data Lab mode in IG) pd.state.rand_agent_id()
+        click.echo(f"Ego agent id = {ego_agent_id}")
 
         # Main loop
         while time_sec < MAX_SIM_TIME_SEC:
@@ -208,68 +244,117 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
                 world_info=world_info,
                 agents=[ego_agent]
             )
+            frame_timestamp = simulation_time_as_timestamp(state.simulation_time_sec)
 
             if do_render_frame:
                 # Send state to server
-                session.update_state(state)
+                ig_session.update_state(state)
 
             if do_capture_frame:
-                # Loop over all the sensors
                 preview_rgb_image = None
-                for sensor in sensor_list:
-                    if not isinstance(sensor, pd.state.sensor.CameraSensor):
-                        continue
 
-                    # Query RGB data
-                    try:
-                        sensor_data = session.query_sensor_data(ego_agent.id, sensor.name, pd.state.SensorBuffer.RGB)
-                    except PdError:
-                        sys.exit("Error: Failed to query RGB data from IG")
-                    rgb_image = sensor_data.data_as_rgb
-                    save_image(rgb_output_path, sensor.name, frame_count,
+                if step_options.label_engine:
+                    # Grab annotations from Label Engine
+                    # Wait for Label Engine annotations to be ready
+                    click.echo(f"Waiting for Label Engine annotations to be ready for timestamp '{frame_timestamp}'...")
+                    wait_for_annotations = ('rgb', 'semantic_mask_xyz', 'instance_mask_xyz', 'normals', 'bounding_box_2d_xyz')
+                    while not all(le_session.query_annotation_status(frame_timestamp, annotation) for annotation in wait_for_annotations):
+                        time.sleep(0.5)
+
+                    # Query RGB
+                    label_data = le_session.request_annotation_data(frame_timestamp, 'rgb')
+                    rgb_image = label_data[0].data_as_rgb
+                    save_image(rgb_output_path, label_data[0].sensor_name, label_data[0].timestamp,
                                cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR))
                     preview_rgb_image = rgb_image if preview_rgb_image is None else preview_rgb_image  # save for preview
 
-                    # Query depth data
-                    if sensor.capture_depth:
-                        try:
-                            sensor_data = session.query_sensor_data(ego_agent.id, sensor.name, pd.state.SensorBuffer.DEPTH)
-                            depth_data = sensor_data.data_as_depth
-                            depth_image = depth_data.astype(np.uint8)
-                            save_image(depth_output_path, sensor.name, frame_count,
-                                       cv2.applyColorMap(depth_image, cv2.COLORMAP_JET))
-                        except PdError:
-                            pass
+                    # Query semantic segmentation
+                    label_data = le_session.request_annotation_data(frame_timestamp, 'semantic_mask_xyz')
+                    semseg_image = label_data[0].data_as_segmentation_rgb
+                    save_image(semseg_output_path, label_data[0].sensor_name, label_data[0].timestamp,
+                               cv2.cvtColor(semseg_image, cv2.COLOR_RGB2BGR))
 
-                    # Query semantic segmentation data
-                    if sensor.capture_segmentation:
-                        try:
-                            sensor_data = session.query_sensor_data(ego_agent.id, sensor.name, pd.state.SensorBuffer.SEGMENTATION)
-                            semseg_image = sensor_data.data_as_segmentation_rgb
-                            save_image(semseg_output_path, sensor.name, frame_count,
-                                       cv2.cvtColor(semseg_image, cv2.COLOR_RGB2BGR))
-                        except PdError:
-                            pass
+                    # Query instance segmentation
+                    label_data = le_session.request_annotation_data(frame_timestamp, 'instance_mask_xyz')
+                    instance_image = label_data[0].get_data_as_merged_instance_rgb(rgb_image)
+                    save_image(instance_output_path, label_data[0].sensor_name, label_data[0].timestamp,
+                               cv2.cvtColor(instance_image, cv2.COLOR_RGB2BGR))
 
-                    # Query instance segmentation data
-                    if sensor.capture_instances:
-                        try:
-                            sensor_data = session.query_sensor_data(ego_agent.id, sensor.name, pd.state.SensorBuffer.INSTANCES)
-                            instance_image = sensor_data.get_data_as_merged_instance_rgb(rgb_image)
-                            save_image(instance_output_path, sensor.name, frame_count,
-                                       cv2.cvtColor(instance_image, cv2.COLOR_RGB2BGR))
-                        except PdError:
-                            pass
+                    # Query normals
+                    label_data = le_session.request_annotation_data(frame_timestamp, 'normals')
+                    normals_2d_image = label_data[0].data_as_rgb
+                    save_image(normals_2d_output_path, label_data[0].sensor_name, label_data[0].timestamp,
+                               cv2.cvtColor(normals_2d_image, cv2.COLOR_RGB2BGR))
 
-                    # Query normals data
-                    if sensor.capture_normals:
+                    # Query BBox2D
+                    label_data = le_session.request_annotation_data(frame_timestamp, 'bounding_box_2d_xyz')
+                    bbox_2d_annotation = label_data[0].data_as_annotation
+                    save_proto(bbox2d_output_path, label_data[0].sensor_name, label_data[0].timestamp, label_data[0].data)
+                    num_2d_bboxes = 0
+                    for primitive in bbox_2d_annotation.geometry.primitives:
+                        visibility_sample_metadata = VisibilitySampleMetadata()
+                        primitive.metadata.Unpack(visibility_sample_metadata)
+                        if visibility_sample_metadata.type == VisibilitySampleType.eInstanceSample:
+                            num_2d_bboxes += 1
+                    click.echo(f"Number of 2D bounding boxes = {num_2d_bboxes}")
+
+                else:
+                    # Old method of grabbing annotations directly from IG
+                    # Loop over all the sensors
+                    for sensor in sensor_list:
+                        if not isinstance(sensor, pd.state.sensor.CameraSensor):
+                            continue
+
+                        # Query RGB data
                         try:
-                            sensor_data = session.query_sensor_data(ego_agent.id, sensor.name, pd.state.SensorBuffer.NORMALS)
-                            normals_2d_image = sensor_data.data_as_rgb
-                            save_image(normals_2d_output_path, sensor.name, frame_count,
-                                       cv2.cvtColor(normals_2d_image, cv2.COLOR_RGB2BGR))
+                            sensor_data = ig_session.query_sensor_data(ego_agent.id, sensor.name, pd.state.SensorBuffer.RGB)
                         except PdError:
-                            pass
+                            sys.exit("Error: Failed to query RGB data from IG")
+                        rgb_image = sensor_data.data_as_rgb
+                        save_image(rgb_output_path, sensor.name, frame_timestamp,
+                                   cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR))
+                        preview_rgb_image = rgb_image if preview_rgb_image is None else preview_rgb_image  # save for preview
+
+                        # Query depth data
+                        if sensor.capture_depth:
+                            try:
+                                sensor_data = ig_session.query_sensor_data(ego_agent.id, sensor.name, pd.state.SensorBuffer.DEPTH)
+                                depth_data = sensor_data.data_as_depth
+                                depth_image = depth_data.astype(np.uint8)
+                                save_image(depth_output_path, sensor.name, frame_timestamp,
+                                           cv2.applyColorMap(depth_image, cv2.COLORMAP_JET))
+                            except PdError:
+                                pass
+
+                        # Query semantic segmentation data
+                        if sensor.capture_segmentation:
+                            try:
+                                sensor_data = ig_session.query_sensor_data(ego_agent.id, sensor.name, pd.state.SensorBuffer.SEGMENTATION)
+                                semseg_image = sensor_data.data_as_segmentation_rgb
+                                save_image(semseg_output_path, sensor.name, frame_timestamp,
+                                           cv2.cvtColor(semseg_image, cv2.COLOR_RGB2BGR))
+                            except PdError:
+                                pass
+
+                        # Query instance segmentation data
+                        if sensor.capture_instances:
+                            try:
+                                sensor_data = ig_session.query_sensor_data(ego_agent.id, sensor.name, pd.state.SensorBuffer.INSTANCES)
+                                instance_image = sensor_data.get_data_as_merged_instance_rgb(rgb_image)
+                                save_image(instance_output_path, sensor.name, frame_timestamp,
+                                           cv2.cvtColor(instance_image, cv2.COLOR_RGB2BGR))
+                            except PdError:
+                                pass
+
+                        # Query normals data
+                        if sensor.capture_normals:
+                            try:
+                                sensor_data = ig_session.query_sensor_data(ego_agent.id, sensor.name, pd.state.SensorBuffer.NORMALS)
+                                normals_2d_image = sensor_data.data_as_rgb
+                                save_image(normals_2d_output_path, sensor.name, frame_timestamp,
+                                           cv2.cvtColor(normals_2d_image, cv2.COLOR_RGB2BGR))
+                            except PdError:
+                                pass
 
                 if preview:
                     try:

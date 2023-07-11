@@ -12,7 +12,7 @@ class LevelCookInfo(ProtoMessageClass):
         if proto is None:
             proto = pd_levelcook_pb2.LevelCookInfo()
         self.proto = proto
-        self._location_list = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.location_list], attr_name='location_list', list_owner=proto)
+        self._location_list = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.location_list], attr_name='location_list', list_owner=self)
         if artifact_key is not None:
             self.artifact_key = artifact_key
         if location_list is not None:
@@ -45,3 +45,8 @@ class LevelCookInfo(ProtoMessageClass):
     @output_artifact_uid.setter
     def output_artifact_uid(self, value: str):
         self.proto.output_artifact_uid = value
+
+    def _update_proto_references(self, proto: pd_levelcook_pb2.LevelCookInfo):
+        self.proto = proto
+        for i, v in enumerate(self.location_list):
+            v._update_proto_references(self.proto.location_list[i])

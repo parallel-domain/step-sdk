@@ -9,34 +9,27 @@
                 "width": 1280,
                 "height": 720,
                 "fov": 65,
-
+                "post_process": [
+                  {
+                      "material": "MaterialInstanceConstant'\/Game\/pd\/material\/vfx\/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens'",
+                      "weight": 1.0
+                  }
+                ],
+                "lut": "Texture2D'\/Game\/pd\/Textures\/LUT\/T_LUT_Aladdin_overcast_01.T_LUT_Aladdin_overcast_01'",
+                "lut_weight": 0.8,
                 "capture_rgb": true,
                 "capture_depth": true,
                 "capture_normals": true,
                 "capture_segmentation": true,
                 "capture_instance": true,
-                "capture_motionvectors": true
-            },
-            "post_process": [
-              {
-                  "material": "MaterialInstanceConstant'\/Game\/pd\/material\/vfx\/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens'",
-                  "weight": 1.0
-              }
-            ],
-            "lut": "Texture2D'\/Game\/pd\/Textures\/LUT\/T_LUT_Aladdin_overcast_01.T_LUT_Aladdin_overcast_01'",
-            "lut_weight": 0.8,
-            "capture_rgb": true,
-            "capture_depth": true,
-            "capture_normals": true,
-            "capture_segmentation": true,
-            "capture_instance": true,
-            "capture_motionvectors": true,
-            "noise_params": {
-                "enable_bayer": true,
-                "enable_gauss_noise": true,
-                "enable_poisson_noise": true,
-                "enable_denoise": true,
-                "iso_level": 200
+                "capture_motionvectors": true,
+                "noise_params": {
+                    "enable_bayer": true,
+                    "enable_gauss_noise": true,
+                    "enable_poisson_noise": true,
+                    "enable_denoise": true,
+                    "iso_level": 200
+                }
             },
             "sensor_extrinsic":
             {

@@ -6,7 +6,7 @@
 
 import os
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional, Union
 
 import numpy as np
@@ -31,7 +31,7 @@ class SimState:
         self.frame_count = 0
         self.sim_time: float = 0.0
         self.frame_ids = [str(0)]
-        self.frame_date_times = [datetime.fromtimestamp(self.sim_time)]
+        self.frame_date_times = [datetime.fromtimestamp(self.sim_time, tz=timezone.utc)]
         self.time_since_last_frame: float = 0
 
         self._current_agents = list()
@@ -72,7 +72,7 @@ class SimState:
         self._current_agents = [SimulationAgent(step_agent=a) for a in state.agents]
 
         self.frame_ids.append(str(self.frame_count))
-        self.frame_date_times.append(datetime.fromtimestamp(self.sim_time))
+        self.frame_date_times.append(datetime.fromtimestamp(self.sim_time, tz=timezone.utc))
 
         self.frame_count += 1
         self.time_since_last_frame = time_delta

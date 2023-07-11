@@ -37,7 +37,8 @@ message InstancedSemanticFilter
 
 message GenerateInstanceMapConfig
 {
-    string merge_instance_map_filepath = 1 [(type)=eConfiguration];;
+    string merge_instance_map_filepath = 1 [(type)=eConfiguration];
+    bool apply_recursive_merge_rules = 4;
 
     string input_semantic_map = 2 [(type)=eMeshIDMap, (stream)=eInput];
     string output_path = 3 [(type)=eMeshIDMap, (stream)=eOutput];

@@ -4,8 +4,7 @@ import pytest
 import requests_mock
 
 import pd.management
-from pd.management import Ig, IgVersion, IgStatus, Levelpak, LevelpakVersion, IgQuality, SimVersion
-
+from pd.management import Ig, IgVersion, IgStatus, Levelpak, LevelpakVersion, IgQuality, SimVersion, LabelEngineVersion
 
 _BASE_URL = pd.management.api_url
 
@@ -76,6 +75,26 @@ class TestIg:
         assert m.last_request
         data = m.last_request.json()
         assert data['sim_version'] == 'my-sim-version'
+        assert ig
+
+    @requests_mock.Mocker(kw='m')
+    def test_create_with_le_version(self, **kwargs):
+        """Correctly calls API to create Ig object with le_version"""
+        m = kwargs['m']
+        m.post(f'{_BASE_URL}/test/ig', json={
+            'sim_version': '',
+            'ig_version': '',
+            'le_version': 'my-le-version',
+            'self_url': 'https://domain/org/ig/abc123',
+            'status': 'starting',
+            'ig_url': None,
+            'created_at': '2022-04-08T07:36:04+05:00',
+            'levelpak': {}
+        })
+        ig = Ig.create(le_version='my-le-version')
+        assert m.last_request
+        data = m.last_request.json()
+        assert data['le_version'] == 'my-le-version'
         assert ig
 
     @requests_mock.Mocker(kw='m')
@@ -179,8 +198,8 @@ class TestIg:
         assert ig
 
     @requests_mock.Mocker(kw='m')
-    def test_create_with_missing_sim(self, **kwargs):
-        """Correctly calls API with missing Sim support to create Ig"""
+    def test_create_with_missing_sim_and_le(self, **kwargs):
+        """Correctly calls API with missing Sim and Label Engine support to create Ig"""
         m = kwargs['m']
         m.post(f'{_BASE_URL}/test/ig', json={
             'ig_version': 'test',
@@ -203,10 +222,12 @@ class TestIg:
         requests_mock.get(f'{_BASE_URL}/test/ig/abc123', json={
             'sim_version': 'v4.5.6',
             'ig_version': 'v1.2.3',
+            'le_version': 'v7.8.9',
             'self_url': 'https://domain/org/ig/abc123',
             'status': 'starting',
             'sim_url': None,
             'ig_url': None,
+            'le_url': None,
             'created_at': '2022-04-08T07:36:04+05:00',
             'levelpak': {
                 'A2_Kerrytown': 'v2.0.0',
@@ -218,18 +239,20 @@ class TestIg:
         assert ig
         assert ig.sim_version == 'v4.5.6'
         assert ig.ig_version == 'v1.2.3'
+        assert ig.le_version == 'v7.8.9'
         assert ig.self_url == 'https://domain/org/ig/abc123'
         assert ig.status == IgStatus.Starting
         assert ig.sim_url is None
         assert ig.ig_url is None
+        assert ig.le_url is None
         assert ig.created_at == datetime(2022, 4, 8, 7, 36, 4, tzinfo=timezone(timedelta(seconds=18000)))
         assert len(ig.levelpak.keys()) == 3
         assert ig.levelpak['A2_Kerrytown'] == 'v2.0.0'
         assert ig.levelpak['SF_6thAndMission_medium'] == 'v1.14.0'
         assert ig.levelpak['SJ_237AndNorth1st'] == 'v0.0.1'
 
-    def test_read_missing_sim(self, requests_mock):
-        """Correctly reads from Ig API with missing Sim support"""
+    def test_read_missing_sim_and_le(self, requests_mock):
+        """Correctly reads from Ig API with missing Sim and Label Engine support"""
         requests_mock.get(f'{_BASE_URL}/test/ig/abc123', json={
             'ig_version': 'v1.2.3',
             'self_url': 'https://domain/org/ig/abc123',
@@ -269,9 +292,11 @@ class TestIg:
                 {
                     'sim_version': 'v4.5.6',
                     'ig_version': 'v1.2.3',
+                    'le_version': 'v7.8.9',
                     'self_url': 'https://domain/org/ig/abc123',
                     'status': 'starting',
                     'ig_url': None,
+                    'le_url': None,
                     'created_at': '2022-04-08T07:36:04+05:00',
                     'shutdown_time': None,
                     'levelpak': {}
@@ -279,10 +304,12 @@ class TestIg:
                 {
                     'sim_version': 'other',
                     'ig_version': 'another',
+                    'le_version': 'another2',
                     'self_url': 'https://domain/org/ig/another123',
                     'status': 'running',
                     'sim_url': 'ssl://example.com:3001',
                     'ig_url': 'ssl://example.com:3000',
+                    'le_url': 'ssl://example.com:3002',
                     'created_at': '2022-04-08T07:37:04+00:00',
                     'shutdown_time': '2022-04-08T07:42:05+00:00',
                     'levelpak': {}
@@ -290,10 +317,12 @@ class TestIg:
                 {
                     'sim_version': 'latest',
                     'ig_version': 'default',
+                    'le_version': 'other',
                     'self_url': 'https://domain/org/ig/default123',
                     'status': 'stopped',
                     'sim_url': None,
                     'ig_url': None,
+                    'le_url': None,
                     'created_at': '2022-04-08T08:36:04+01:00',
                     'shutdown_time': None,
                     'levelpak': {}
@@ -301,10 +330,12 @@ class TestIg:
                 {
                     'sim_version': 'v4.5.6',
                     'ig_version': 'v1.2.3',
+                    'le_version': 'v7.8.9',
                     'self_url': 'https://domain/org/ig/abc123',
                     'status': 'configuring',
                     'sim_url': None,
                     'ig_url': None,
+                    'le_url': None,
                     'created_at': '2022-04-08T07:36:04+05:00',
                     'shutdown_time': None,
                     'levelpak': {
@@ -318,42 +349,50 @@ class TestIg:
         assert len(igs) == 4
         assert igs[0].sim_version == 'v4.5.6'
         assert igs[0].ig_version == 'v1.2.3'
+        assert igs[0].le_version == 'v7.8.9'
         assert igs[0].self_url == 'https://domain/org/ig/abc123'
         assert igs[0].status == IgStatus.Starting
         assert igs[0].sim_url is None
         assert igs[0].ig_url is None
+        assert igs[0].le_url is None
         assert igs[0].created_at == datetime(2022, 4, 8, 7, 36, 4, tzinfo=timezone(timedelta(seconds=18000)))
         assert igs[0].shutdown_time is None
         assert igs[0].levelpak == {}
         assert igs[1].sim_version == 'other'
         assert igs[1].ig_version == 'another'
+        assert igs[1].le_version == 'another2'
         assert igs[1].self_url == 'https://domain/org/ig/another123'
         assert igs[1].status == IgStatus.Running
         assert igs[1].sim_url == 'ssl://example.com:3001'
         assert igs[1].ig_url == 'ssl://example.com:3000'
+        assert igs[1].le_url == 'ssl://example.com:3002'
         assert igs[1].created_at == datetime(2022, 4, 8, 7, 37, 4, tzinfo=timezone.utc)
         assert igs[1].shutdown_time == datetime(2022, 4, 8, 7, 42, 5, tzinfo=timezone.utc)
         assert igs[1].levelpak == {}
         assert igs[2].sim_version == 'latest'
         assert igs[2].ig_version == 'default'
+        assert igs[2].le_version == 'other'
         assert igs[2].self_url == 'https://domain/org/ig/default123'
         assert igs[2].status == IgStatus.Stopped
         assert igs[2].sim_url is None
         assert igs[2].ig_url is None
+        assert igs[2].le_url is None
         assert igs[2].created_at == datetime(2022, 4, 8, 8, 36, 4, tzinfo=timezone(timedelta(seconds=3600)))
         assert igs[2].shutdown_time is None
         assert igs[2].levelpak == {}
         assert igs[3].sim_version == 'v4.5.6'
         assert igs[3].ig_version == 'v1.2.3'
+        assert igs[3].le_version == 'v7.8.9'
         assert igs[3].self_url == 'https://domain/org/ig/abc123'
         assert igs[3].status == IgStatus.Configuring
         assert igs[3].sim_url is None
         assert igs[3].ig_url is None
+        assert igs[3].le_url is None
         assert igs[3].created_at == datetime(2022, 4, 8, 7, 36, 4, tzinfo=timezone(timedelta(seconds=18000)))
         assert igs[3].shutdown_time is None
         assert igs[3].levelpak == {'SF_6thAndMission_medium': 'v1'}
 
-    def test_list_missing_sim(self, requests_mock):
+    def test_list_missing_sim_and_le(self, requests_mock):
         """Correctly calls API to list Ig objects"""
         requests_mock.get(f'{_BASE_URL}/test/ig', json={
             'igs': [
@@ -518,3 +557,25 @@ class TestSimVersion:
         assert sim_versions[0].name == 'v1.2.3'
         assert sim_versions[1].name == 'another'
         assert sim_versions[2].name == 'default'
+
+
+class TestLabelEngineVersion:
+    def test_list(self, requests_mock):
+        """Correctly calls API to list Label Engine objects"""
+        requests_mock.get(f'{_BASE_URL}/test/le_versions', json=[
+            {
+                'name': 'v1.2.3'
+            },
+            {
+                'name': 'another'
+            },
+            {
+                'name': 'default'
+            }
+        ])
+        le_versions = LabelEngineVersion.list()
+        assert le_versions
+        assert len(le_versions) == 3
+        assert le_versions[0].name == 'v1.2.3'
+        assert le_versions[1].name == 'another'
+        assert le_versions[2].name == 'default'

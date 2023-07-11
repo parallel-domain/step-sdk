@@ -298,6 +298,9 @@ table pdStartDatasetCapture
 
     // Activate new data pipeline
     new_data_pipeline : bool = false;
+
+    // Specified whether rendering merged batches
+    use_lidar_rolling_shutter : bool = true;
 }
 
 table pdSetCaptureParameters
@@ -425,6 +428,55 @@ table pdRaycastHits
    hits : [pdRaycastHit];
 }
 
+table pdConfigLabelEngine
+{
+    // JSON blob defining our pipeline config
+    config : string;
+}
+
+table pdRequestLabelEngineTimestamp
+{
+    // Label for the timestep that we are requesting
+    timestamp : string;
+    sensors : [string];
+}
+
+table pdQueryLabelEngineAnnotationStatus
+{
+    timestamp : string;
+    label : string;
+}
+
+table pdReturnLabelEngineAnnotationStatus
+{
+    status : bool;
+}
+
+table pdRequestLabelEngineAnnotationData
+{
+    timestamp : string;
+    label: string;
+}
+
+table pdLabelData
+{
+    sensor : string;
+    label_data: [uint8];
+}
+
+table pdReturnLabelEngineAnnotationData
+{
+    label_data : [pdLabelData];
+}
+
+table pdUpdateLabelEngineAnnotationData
+{
+    timestamp : string;
+    sensor : string;
+    label : string;
+    data_type : int;
+    label_data : [uint8];
+}
 
 union pdMessageType
 {
@@ -462,7 +514,16 @@ union pdMessageType
     
     // Query world
     pdRaycastQuery,
-    pdRaycastHits
+    pdRaycastHits,
+
+    // Label Engine
+    pdConfigLabelEngine,
+    pdRequestLabelEngineTimestamp,
+    pdQueryLabelEngineAnnotationStatus,
+    pdReturnLabelEngineAnnotationStatus,
+    pdRequestLabelEngineAnnotationData,
+    pdReturnLabelEngineAnnotationData,
+    pdUpdateLabelEngineAnnotationData
 }
 
 table pdMessage

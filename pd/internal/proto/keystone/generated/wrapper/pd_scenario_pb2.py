@@ -12,7 +12,7 @@ class AgentTag(ProtoMessageClass):
         if proto is None:
             proto = pd_scenario_pb2.AgentTag()
         self.proto = proto
-        self._tags = ProtoListWrapper(container=[str(v) for v in proto.tags], attr_name='tags', list_owner=proto)
+        self._tags = ProtoListWrapper(container=[str(v) for v in proto.tags], attr_name='tags', list_owner=self)
         if agent_id is not None:
             self.agent_id = agent_id
         if tags is not None:
@@ -36,6 +36,9 @@ class AgentTag(ProtoMessageClass):
         for v in value:
             self._tags.append(v)
 
+    def _update_proto_references(self, proto: pd_scenario_pb2.AgentTag):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_scenario_pb2.LinearMover)
 class LinearMover(ProtoMessageClass):
     _proto_message = pd_scenario_pb2.LinearMover
@@ -44,9 +47,9 @@ class LinearMover(ProtoMessageClass):
         if proto is None:
             proto = pd_scenario_pb2.LinearMover()
         self.proto = proto
-        self._origin = ProtoListWrapper(container=[float(v) for v in proto.origin], attr_name='origin', list_owner=proto)
-        self._rotation = ProtoListWrapper(container=[float(v) for v in proto.rotation], attr_name='rotation', list_owner=proto)
-        self._velocity_keys = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.velocity_keys], attr_name='velocity_keys', list_owner=proto)
+        self._origin = ProtoListWrapper(container=[float(v) for v in proto.origin], attr_name='origin', list_owner=self)
+        self._rotation = ProtoListWrapper(container=[float(v) for v in proto.rotation], attr_name='rotation', list_owner=self)
+        self._velocity_keys = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.velocity_keys], attr_name='velocity_keys', list_owner=self)
         if agent_id is not None:
             self.agent_id = agent_id
         if model is not None:
@@ -114,6 +117,11 @@ class LinearMover(ProtoMessageClass):
         for v in value:
             self._velocity_keys.append(v)
 
+    def _update_proto_references(self, proto: pd_scenario_pb2.LinearMover):
+        self.proto = proto
+        for i, v in enumerate(self.velocity_keys):
+            v._update_proto_references(self.proto.velocity_keys[i])
+
 @register_wrapper(proto_type=pd_scenario_pb2.ScenarioDefinition)
 class ScenarioDefinition(ProtoMessageClass):
 
@@ -126,10 +134,10 @@ class ScenarioDefinition(ProtoMessageClass):
         if proto is None:
             proto = pd_scenario_pb2.ScenarioDefinition()
         self.proto = proto
-        self._agent_tags = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.agent_tags], attr_name='agent_tags', list_owner=proto)
-        self._linear_movers = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.linear_movers], attr_name='linear_movers', list_owner=proto)
-        self._sensors = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.sensors], attr_name='sensors', list_owner=proto)
-        self._vehicles = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.vehicles], attr_name='vehicles', list_owner=proto)
+        self._agent_tags = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.agent_tags], attr_name='agent_tags', list_owner=self)
+        self._linear_movers = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.linear_movers], attr_name='linear_movers', list_owner=self)
+        self._sensors = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.sensors], attr_name='sensors', list_owner=self)
+        self._vehicles = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.vehicles], attr_name='vehicles', list_owner=self)
         if HighFidelityMode is not None:
             self.HighFidelityMode = HighFidelityMode
         if PerformanceMode is not None:
@@ -359,6 +367,17 @@ class ScenarioDefinition(ProtoMessageClass):
     def world(self, value: str):
         self.proto.world = value
 
+    def _update_proto_references(self, proto: pd_scenario_pb2.ScenarioDefinition):
+        self.proto = proto
+        for i, v in enumerate(self.agent_tags):
+            v._update_proto_references(self.proto.agent_tags[i])
+        for i, v in enumerate(self.linear_movers):
+            v._update_proto_references(self.proto.linear_movers[i])
+        for i, v in enumerate(self.sensors):
+            v._update_proto_references(self.proto.sensors[i])
+        for i, v in enumerate(self.vehicles):
+            v._update_proto_references(self.proto.vehicles[i])
+
 @register_wrapper(proto_type=pd_scenario_pb2.ScenarioGenConfig)
 class ScenarioGenConfig(ProtoMessageClass):
     _proto_message = pd_scenario_pb2.ScenarioGenConfig
@@ -432,7 +451,10 @@ class ScenarioGenConfig(ProtoMessageClass):
 
     @environment.setter
     def environment(self, value: _pd_environments_pb2.EnvironmentDefinition):
-        self._environment.proto.CopyFrom(value.proto)
+        self.proto.environment.CopyFrom(value.proto)
+        
+        self._environment = value
+        self._environment._update_proto_references(self.proto.environment)
 
     @property
     def merge_batches(self) -> bool:
@@ -520,7 +542,10 @@ class ScenarioGenConfig(ProtoMessageClass):
 
     @spawn_config.setter
     def spawn_config(self, value: _pd_spawn_pb2.SpawnConfig):
-        self._spawn_config.proto.CopyFrom(value.proto)
+        self.proto.spawn_config.CopyFrom(value.proto)
+        
+        self._spawn_config = value
+        self._spawn_config._update_proto_references(self.proto.spawn_config)
 
     @property
     def start_skip_frames(self) -> int:
@@ -529,6 +554,11 @@ class ScenarioGenConfig(ProtoMessageClass):
     @start_skip_frames.setter
     def start_skip_frames(self, value: int):
         self.proto.start_skip_frames = value
+
+    def _update_proto_references(self, proto: pd_scenario_pb2.ScenarioGenConfig):
+        self.proto = proto
+        self._environment._update_proto_references(proto.environment)
+        self._spawn_config._update_proto_references(proto.spawn_config)
 
 @register_wrapper(proto_type=pd_scenario_pb2.ScenarioLocation)
 class ScenarioLocation(ProtoMessageClass):
@@ -556,7 +586,10 @@ class ScenarioLocation(ProtoMessageClass):
 
     @generator_config.setter
     def generator_config(self, value: _pd_spawn_pb2.GeneratorConfig):
-        self._generator_config.proto.CopyFrom(value.proto)
+        self.proto.generator_config.CopyFrom(value.proto)
+        
+        self._generator_config = value
+        self._generator_config._update_proto_references(self.proto.generator_config)
 
     @property
     def location(self) -> str:
@@ -590,6 +623,10 @@ class ScenarioLocation(ProtoMessageClass):
     def num_scenarios(self, value: int):
         self.proto.num_scenarios = value
 
+    def _update_proto_references(self, proto: pd_scenario_pb2.ScenarioLocation):
+        self.proto = proto
+        self._generator_config._update_proto_references(proto.generator_config)
+
 @register_wrapper(proto_type=pd_scenario_pb2.Sensor)
 class Sensor(ProtoMessageClass):
     _proto_message = pd_scenario_pb2.Sensor
@@ -598,8 +635,8 @@ class Sensor(ProtoMessageClass):
         if proto is None:
             proto = pd_scenario_pb2.Sensor()
         self.proto = proto
-        self._origin = ProtoListWrapper(container=[float(v) for v in proto.origin], attr_name='origin', list_owner=proto)
-        self._rotation = ProtoListWrapper(container=[float(v) for v in proto.rotation], attr_name='rotation', list_owner=proto)
+        self._origin = ProtoListWrapper(container=[float(v) for v in proto.origin], attr_name='origin', list_owner=self)
+        self._rotation = ProtoListWrapper(container=[float(v) for v in proto.rotation], attr_name='rotation', list_owner=self)
         if agent_id is not None:
             self.agent_id = agent_id
         if origin is not None:
@@ -635,6 +672,9 @@ class Sensor(ProtoMessageClass):
         for v in value:
             self._rotation.append(v)
 
+    def _update_proto_references(self, proto: pd_scenario_pb2.Sensor):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_scenario_pb2.Vehicle)
 class Vehicle(ProtoMessageClass):
     _proto_message = pd_scenario_pb2.Vehicle
@@ -643,8 +683,8 @@ class Vehicle(ProtoMessageClass):
         if proto is None:
             proto = pd_scenario_pb2.Vehicle()
         self.proto = proto
-        self._lane_path = ProtoListWrapper(container=[int(v) for v in proto.lane_path], attr_name='lane_path', list_owner=proto)
-        self._position = ProtoListWrapper(container=[float(v) for v in proto.position], attr_name='position', list_owner=proto)
+        self._lane_path = ProtoListWrapper(container=[int(v) for v in proto.lane_path], attr_name='lane_path', list_owner=self)
+        self._position = ProtoListWrapper(container=[float(v) for v in proto.position], attr_name='position', list_owner=self)
         if agent_id is not None:
             self.agent_id = agent_id
         if aggression is not None:
@@ -870,6 +910,9 @@ class Vehicle(ProtoMessageClass):
     def velocity(self, value: float):
         self.proto.velocity = value
 
+    def _update_proto_references(self, proto: pd_scenario_pb2.Vehicle):
+        self.proto = proto
+
 @register_wrapper(proto_type=pd_scenario_pb2.VelocityKey)
 class VelocityKey(ProtoMessageClass):
     _proto_message = pd_scenario_pb2.VelocityKey
@@ -878,7 +921,7 @@ class VelocityKey(ProtoMessageClass):
         if proto is None:
             proto = pd_scenario_pb2.VelocityKey()
         self.proto = proto
-        self._velocity = ProtoListWrapper(container=[float(v) for v in proto.velocity], attr_name='velocity', list_owner=proto)
+        self._velocity = ProtoListWrapper(container=[float(v) for v in proto.velocity], attr_name='velocity', list_owner=self)
         if t is not None:
             self.t = t
         if velocity is not None:
@@ -901,3 +944,6 @@ class VelocityKey(ProtoMessageClass):
         self._velocity.clear()
         for v in value:
             self._velocity.append(v)
+
+    def _update_proto_references(self, proto: pd_scenario_pb2.VelocityKey):
+        self.proto = proto

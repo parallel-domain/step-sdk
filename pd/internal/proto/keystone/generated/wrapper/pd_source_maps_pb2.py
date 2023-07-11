@@ -70,7 +70,10 @@ class SourceMaps(ProtoMessageClass):
 
     @map_sector.setter
     def map_sector(self, value: SourceMaps.MapSector):
-        self._map_sector.proto.CopyFrom(value.proto)
+        self.proto.map_sector.CopyFrom(value.proto)
+        
+        self._map_sector = value
+        self._map_sector._update_proto_references(self.proto.map_sector)
 
     @property
     def osm_branch(self) -> str:
@@ -143,3 +146,7 @@ class SourceMaps(ProtoMessageClass):
     @zoom_level.setter
     def zoom_level(self, value: int):
         self.proto.zoom_level = value
+
+    def _update_proto_references(self, proto: pd_source_maps_pb2.SourceMaps):
+        self.proto = proto
+        self._map_sector._update_proto_references(proto.map_sector)
