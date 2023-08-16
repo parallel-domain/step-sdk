@@ -69,9 +69,13 @@ class Area(ProtoMessageClass):
         EMPTY_LOT: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.EMPTY_LOT
         PARK: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.PARK
         PARKING_LOT: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.PARKING_LOT
+        PARKING_SPACE: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.PARKING_SPACE
         POWER: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.POWER
         RAIL: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.RAIL
+        SIDEWALK: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.SIDEWALK
         SPEEDBUMP: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.SPEEDBUMP
+        UNCLASSIFIED: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.UNCLASSIFIED
+        WATER: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.WATER
         YARD: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.YARD
         ZONE_BROWN: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.ZONE_BROWN
         ZONE_COMMERCIAL: UMD_pb2.Area.AreaType = UMD_pb2.Area.AreaType.ZONE_COMMERCIAL
@@ -381,6 +385,8 @@ class LaneSegment(ProtoMessageClass):
         CROSSWALK: UMD_pb2.LaneSegment.LaneType = UMD_pb2.LaneSegment.LaneType.CROSSWALK
         DRIVABLE: UMD_pb2.LaneSegment.LaneType = UMD_pb2.LaneSegment.LaneType.DRIVABLE
         NON_DRIVABLE: UMD_pb2.LaneSegment.LaneType = UMD_pb2.LaneSegment.LaneType.NON_DRIVABLE
+        PARKING: UMD_pb2.LaneSegment.LaneType = UMD_pb2.LaneSegment.LaneType.PARKING
+        PARKING_AISLE: UMD_pb2.LaneSegment.LaneType = UMD_pb2.LaneSegment.LaneType.PARKING_AISLE
         RESTRICTED: UMD_pb2.LaneSegment.LaneType = UMD_pb2.LaneSegment.LaneType.RESTRICTED
         SHOULDER: UMD_pb2.LaneSegment.LaneType = UMD_pb2.LaneSegment.LaneType.SHOULDER
         UNDEFINED_LANE: UMD_pb2.LaneSegment.LaneType = UMD_pb2.LaneSegment.LaneType.UNDEFINED_LANE
@@ -393,6 +399,7 @@ class LaneSegment(ProtoMessageClass):
         SLIGHT_LEFT: UMD_pb2.LaneSegment.TurnType = UMD_pb2.LaneSegment.TurnType.SLIGHT_LEFT
         SLIGHT_RIGHT: UMD_pb2.LaneSegment.TurnType = UMD_pb2.LaneSegment.TurnType.SLIGHT_RIGHT
         STRAIGHT: UMD_pb2.LaneSegment.TurnType = UMD_pb2.LaneSegment.TurnType.STRAIGHT
+        U_TURN: UMD_pb2.LaneSegment.TurnType = UMD_pb2.LaneSegment.TurnType.U_TURN
     _proto_message = UMD_pb2.LaneSegment
 
     def __init__(self, *, proto: Optional[UMD_pb2.LaneSegment]=None, compass_angle: Optional[float]=None, direction: Optional[LaneSegment.Direction]=None, id: Optional[int]=None, left_edge: Optional[int]=None, left_neighbor: Optional[int]=None, predecessors: Optional[List[int]]=None, reference_line: Optional[int]=None, right_edge: Optional[int]=None, right_neighbor: Optional[int]=None, road: Optional[int]=None, successors: Optional[List[int]]=None, turn_angle: Optional[float]=None, turn_type: Optional[LaneSegment.TurnType]=None, type: Optional[LaneSegment.LaneType]=None, user_data: Optional[str]=None):
@@ -971,7 +978,10 @@ class RoadMarking(ProtoMessageClass):
     class Color(ProtoEnumClass):
         _proto_message = UMD_pb2.RoadMarking.Color
         BLUE: UMD_pb2.RoadMarking.Color = UMD_pb2.RoadMarking.Color.BLUE
+        GREEN: UMD_pb2.RoadMarking.Color = UMD_pb2.RoadMarking.Color.GREEN
+        RED: UMD_pb2.RoadMarking.Color = UMD_pb2.RoadMarking.Color.RED
         WHITE: UMD_pb2.RoadMarking.Color = UMD_pb2.RoadMarking.Color.WHITE
+        YELLOW: UMD_pb2.RoadMarking.Color = UMD_pb2.RoadMarking.Color.YELLOW
 
     @register_wrapper(proto_type=UMD_pb2.RoadMarking.Type)
     class Type(ProtoEnumClass):
@@ -1087,6 +1097,7 @@ class RoadSegment(ProtoMessageClass):
     @register_wrapper(proto_type=UMD_pb2.RoadSegment.RoadType)
     class RoadType(ProtoEnumClass):
         _proto_message = UMD_pb2.RoadSegment.RoadType
+        UNCLASSIFIED: UMD_pb2.RoadSegment.RoadType = UMD_pb2.RoadSegment.RoadType.UNCLASSIFIED
         PARKING_AISLE: UMD_pb2.RoadSegment.RoadType = UMD_pb2.RoadSegment.RoadType.PARKING_AISLE
         DRIVEWAY: UMD_pb2.RoadSegment.RoadType = UMD_pb2.RoadSegment.RoadType.DRIVEWAY
         DRIVEWAY_PARKING_ENTRY: UMD_pb2.RoadSegment.RoadType = UMD_pb2.RoadSegment.RoadType.DRIVEWAY_PARKING_ENTRY
@@ -1094,6 +1105,7 @@ class RoadSegment(ProtoMessageClass):
         MOTORWAY_LINK: UMD_pb2.RoadSegment.RoadType = UMD_pb2.RoadSegment.RoadType.MOTORWAY_LINK
         PRIMARY: UMD_pb2.RoadSegment.RoadType = UMD_pb2.RoadSegment.RoadType.PRIMARY
         PRIMARY_LINK: UMD_pb2.RoadSegment.RoadType = UMD_pb2.RoadSegment.RoadType.PRIMARY_LINK
+        RESIDENTIAL: UMD_pb2.RoadSegment.RoadType = UMD_pb2.RoadSegment.RoadType.RESIDENTIAL
         SECONDARY: UMD_pb2.RoadSegment.RoadType = UMD_pb2.RoadSegment.RoadType.SECONDARY
         SECONDARY_LINK: UMD_pb2.RoadSegment.RoadType = UMD_pb2.RoadSegment.RoadType.SECONDARY_LINK
         SERVICE: UMD_pb2.RoadSegment.RoadType = UMD_pb2.RoadSegment.RoadType.SERVICE
@@ -1544,6 +1556,7 @@ class TrafficLightBulb(ProtoMessageClass):
     @register_wrapper(proto_type=UMD_pb2.TrafficLightBulb.Color)
     class Color(ProtoEnumClass):
         _proto_message = UMD_pb2.TrafficLightBulb.Color
+        GREEN: UMD_pb2.TrafficLightBulb.Color = UMD_pb2.TrafficLightBulb.Color.GREEN
         RED: UMD_pb2.TrafficLightBulb.Color = UMD_pb2.TrafficLightBulb.Color.RED
         YELLOW: UMD_pb2.TrafficLightBulb.Color = UMD_pb2.TrafficLightBulb.Color.YELLOW
 

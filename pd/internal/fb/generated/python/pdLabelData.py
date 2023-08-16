@@ -47,8 +47,16 @@ class pdLabelData(object):
             return self._tab.VectorLen(o)
         return 0
 
-def pdLabelDataStart(builder): builder.StartObject(2)
+    # pdLabelData
+    def Timestamp(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return bytes()
+
+def pdLabelDataStart(builder): builder.StartObject(3)
 def pdLabelDataAddSensor(builder, sensor): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(sensor), 0)
 def pdLabelDataAddLabelData(builder, labelData): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(labelData), 0)
 def pdLabelDataStartLabelDataVector(builder, numElems): return builder.StartVector(1, numElems, 1)
+def pdLabelDataAddTimestamp(builder, timestamp): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(timestamp), 0)
 def pdLabelDataEnd(builder): return builder.EndObject()

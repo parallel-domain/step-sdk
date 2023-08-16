@@ -12,4 +12,13 @@ class StreetParkingDelineationType(object):
     T_SHAPE = 6
     NO_LINE = 7
     RANDOM = 8
+    BOX_CLOSED = 9
+    BOX_OPEN_CURB = 10
+    BOX_DOUBLE = 11
+    SINGLE_SQUARED_OPEN_CURB = 12
+    DOUBLE_ROUND_50CM_GAP = 13
+    DOUBLE_ROUND_50CM_GAP_OPEN_CURB = 14
+    DOUBLE_SQUARED_50CM_GAP_OPEN_CURB = 15
+    T_FULL = 16
+    T_SHORT = 17
 

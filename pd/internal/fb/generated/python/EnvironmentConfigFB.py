@@ -29,18 +29,6 @@ class EnvironmentConfigFB(object):
             return obj
         return None
 
-    # EnvironmentConfigFB
-    def ObjectDecorationInfo(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
-        if o != 0:
-            x = self._tab.Indirect(o + self._tab.Pos)
-            from .ObjectDecorationsInfoFB import ObjectDecorationsInfoFB
-            obj = ObjectDecorationsInfoFB()
-            obj.Init(self._tab.Bytes, x)
-            return obj
-        return None
-
 def EnvironmentConfigFBStart(builder): builder.StartObject(2)
 def EnvironmentConfigFBAddParkingConfig(builder, parkingConfig): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(parkingConfig), 0)
-def EnvironmentConfigFBAddObjectDecorationInfo(builder, objectDecorationInfo): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(objectDecorationInfo), 0)
 def EnvironmentConfigFBEnd(builder): return builder.EndObject()

@@ -11,7 +11,7 @@ State description and construction
 from .state import (
     State, SensorAgent, ModelAgent, VehicleAgent, PerformanceMode, WorldInfo,
     SignalAgent, PhaseBulbLogicalState, PhaseBulbValue,
-    rand_agent_id
+    rand_agent_id, get_render_and_capture_flag_from_frame_index
 )
 from .sensor import (
     CameraSensor, LiDARSensor,

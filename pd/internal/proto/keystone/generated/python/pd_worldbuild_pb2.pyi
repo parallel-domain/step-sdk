@@ -6,7 +6,7 @@ from typing import ClassVar, Iterable, Mapping, Optional, Union
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class WorldBuildInfo(_message.Message):
-    __slots__ = ["artifact_key", "base_changelist", "code_build_artifact_uid", "image_generator_core_artifact_uid", "location_list", "output_artifact_uid", "qa_render", "unshelve_changelist", "world_preview_uid"]
+    __slots__ = ["artifact_key", "base_changelist", "code_build_artifact_uid", "do_houdini_only", "image_generator_core_artifact_uid", "levelcook_batch_size", "location_list", "output_artifact_uid", "qa_render", "unshelve_changelist", "world_preview_uid"]
     class Location(_message.Message):
         __slots__ = ["artifact_key", "geojson_path", "image_gen_level_artifact_uid", "imported_level_output_artifact_uid", "input_file_path", "location_name", "location_output_artifact_uid", "parameters_path", "worldgen_output_artifact_uid"]
         ARTIFACT_KEY_FIELD_NUMBER: ClassVar[int]
@@ -31,7 +31,9 @@ class WorldBuildInfo(_message.Message):
     ARTIFACT_KEY_FIELD_NUMBER: ClassVar[int]
     BASE_CHANGELIST_FIELD_NUMBER: ClassVar[int]
     CODE_BUILD_ARTIFACT_UID_FIELD_NUMBER: ClassVar[int]
+    DO_HOUDINI_ONLY_FIELD_NUMBER: ClassVar[int]
     IMAGE_GENERATOR_CORE_ARTIFACT_UID_FIELD_NUMBER: ClassVar[int]
+    LEVELCOOK_BATCH_SIZE_FIELD_NUMBER: ClassVar[int]
     LOCATION_LIST_FIELD_NUMBER: ClassVar[int]
     OUTPUT_ARTIFACT_UID_FIELD_NUMBER: ClassVar[int]
     QA_RENDER_FIELD_NUMBER: ClassVar[int]
@@ -40,10 +42,12 @@ class WorldBuildInfo(_message.Message):
     artifact_key: str
     base_changelist: str
     code_build_artifact_uid: str
+    do_houdini_only: bool
     image_generator_core_artifact_uid: str
+    levelcook_batch_size: int
     location_list: _containers.RepeatedCompositeFieldContainer[WorldBuildInfo.Location]
     output_artifact_uid: str
     qa_render: bool
     unshelve_changelist: str
     world_preview_uid: str
-    def __init__(self, artifact_key: Optional[str] = ..., output_artifact_uid: Optional[str] = ..., code_build_artifact_uid: Optional[str] = ..., base_changelist: Optional[str] = ..., unshelve_changelist: Optional[str] = ..., qa_render: bool = ..., image_generator_core_artifact_uid: Optional[str] = ..., world_preview_uid: Optional[str] = ..., location_list: Optional[Iterable[Union[WorldBuildInfo.Location, Mapping]]] = ...) -> None: ...
+    def __init__(self, artifact_key: Optional[str] = ..., output_artifact_uid: Optional[str] = ..., code_build_artifact_uid: Optional[str] = ..., base_changelist: Optional[str] = ..., unshelve_changelist: Optional[str] = ..., qa_render: bool = ..., image_generator_core_artifact_uid: Optional[str] = ..., world_preview_uid: Optional[str] = ..., levelcook_batch_size: Optional[int] = ..., do_houdini_only: bool = ..., location_list: Optional[Iterable[Union[WorldBuildInfo.Location, Mapping]]] = ...) -> None: ...

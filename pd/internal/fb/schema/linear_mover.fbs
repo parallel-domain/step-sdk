@@ -29,4 +29,5 @@ table PedestrianStateFB
     state_timer : float;
     animation_data : string;
 	surface_flags : uint64;
+	pathGoal : float4x4_t;
 }

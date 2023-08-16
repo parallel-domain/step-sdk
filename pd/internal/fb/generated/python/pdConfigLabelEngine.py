@@ -25,6 +25,14 @@ class pdConfigLabelEngine(object):
             return self._tab.String(o + self._tab.Pos)
         return bytes()
 
-def pdConfigLabelEngineStart(builder): builder.StartObject(1)
+    # pdConfigLabelEngine
+    def SceneName(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return bytes()
+
+def pdConfigLabelEngineStart(builder): builder.StartObject(2)
 def pdConfigLabelEngineAddConfig(builder, config): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(config), 0)
+def pdConfigLabelEngineAddSceneName(builder, sceneName): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(sceneName), 0)
 def pdConfigLabelEngineEnd(builder): return builder.EndObject()

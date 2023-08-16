@@ -83,6 +83,11 @@ table SimpleVehicleStateFB
     vehicle_2d_motion : Vehicle2DMotionFB;
 
     gear : Gear = NEUTRAL;
+
+    // physx index of which gear ratios is in use
+    gears_ratios_index : uint32;
+
+    headlight_on : bool = false;
 }
 
 table EventCollisionFB

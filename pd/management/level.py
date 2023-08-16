@@ -7,11 +7,12 @@
 """
 Level and related objects
 """
-
+from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Type, TypeVar, Optional
+from uuid import UUID
 
-from dacite import from_dict
+from dacite import from_dict, Config
 
 from pd.management.http_client import get_http_client
 
@@ -55,17 +56,18 @@ class LevelpakVersion:
     version: str
     """Levelpak version"""
 
-    internal_version: str
+    internal_version: UUID
     """Levelpak internal version"""
 
     _RESOURCE_NAME = 'levelpaks/versions'
+    _DACITE_CONFIG = Config(cast=[UUID])
 
     @classmethod
-    def list(cls: Type[T]) -> List[T]:
+    def list(cls) -> List[LevelpakVersion]:
         http_client = get_http_client()
         url = cls._RESOURCE_NAME
         _, content = http_client.request('get', url)
-        levelpak_versions = [from_dict(data_class=LevelpakVersion, data=v) for v in content]
+        levelpak_versions = [from_dict(data_class=LevelpakVersion, data=v, config=cls._DACITE_CONFIG) for v in content]
         return levelpak_versions
 
 

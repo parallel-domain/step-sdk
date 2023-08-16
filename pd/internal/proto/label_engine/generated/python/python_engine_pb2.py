@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 from . import options_pb2 as options__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13python_engine.proto\x12\x07pd.data\x1a\roptions.proto\"\x81\x02\n\x12PythonEngineConfig\x12\x17\n\x0fscript_filepath\x18\x01 \x01(\t\x12\x15\n\rfunction_name\x18\x02 \x01(\t\x12.\n\x0boutput_dims\x18\x03 \x01(\x0e\x32\x19.pd.data.StreamDimensions\x12&\n\x0boutput_type\x18\x04 \x01(\x0e\x32\x11.pd.data.DataType\x12\x19\n\x0boutput_path\x18\x05 \x01(\tB\x04\x88\xb5\x18\x01\x12\x19\n\x0binput_paths\x18\x06 \x03(\tB\x04\x88\xb5\x18\x00\x12-\n\ninput_dims\x18\x07 \x03(\x0e\x32\x19.pd.data.StreamDimensionsb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13python_engine.proto\x12\x07pd.data\x1a\roptions.proto\"\xac\x02\n\x12PythonEngineConfig\x12\x17\n\x0fscript_filepath\x18\x01 \x01(\t\x12\x15\n\rfunction_name\x18\x02 \x01(\t\x12.\n\x0boutput_dims\x18\x03 \x01(\x0e\x32\x19.pd.data.StreamDimensions\x12&\n\x0boutput_type\x18\x04 \x01(\x0e\x32\x11.pd.data.DataType\x12\x19\n\x0boutput_path\x18\x05 \x01(\tB\x04\x88\xb5\x18\x01\x12\x19\n\x0binput_paths\x18\x06 \x03(\tB\x04\x88\xb5\x18\x00\x12-\n\ninput_dims\x18\x07 \x03(\x0e\x32\x19.pd.data.StreamDimensions\x12)\n\x0csensor_types\x18\x08 \x03(\x0e\x32\x13.pd.data.SensorTypeb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'python_engine_pb2', globals())
@@ -26,5 +26,5 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _PYTHONENGINECONFIG.fields_by_name['input_paths']._options = None
   _PYTHONENGINECONFIG.fields_by_name['input_paths']._serialized_options = b'\210\265\030\000'
   _PYTHONENGINECONFIG._serialized_start=48
-  _PYTHONENGINECONFIG._serialized_end=305
+  _PYTHONENGINECONFIG._serialized_end=348
 # @@protoc_insertion_point(module_scope)

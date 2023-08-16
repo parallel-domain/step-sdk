@@ -57,6 +57,50 @@ def rand_agent_id() -> int:
     return uuid.uuid1().int >> 64
 
 
+def get_render_and_capture_flag_from_frame_index(
+        frame_index: int,
+        render_interval: int = 1,
+        capture_interval: int = 10,
+        start_skip_frames: int = 5
+) -> Tuple[bool, bool]:
+    """
+    Given a frame index, returns whether the frame should be rendered and/or captured.
+
+    Determination of which frames should be rendered and/or captured is based on the rest of the parameters.
+    Render flag indicates whether the frame should be rendered by the IG server
+    via the the :func:`pd.session.StepIgSession.update_state` call.
+    Capture flag should be passed to :class:`pd.state.State`.
+    It indicates whether annotation data will be generated for the given frame.
+
+    Assuming a simulation rate of 100 hz, default values of `render_interval=1`, `capture_interval=10`
+    yield render rate of 100 fps and output annotation frame rate of 10 fps.
+
+    Args:
+        frame_index: Index of the frame for which to derive the flags. First frame corresponds to `frame_index=0`.
+        render_interval: Render interval controls render frame rate. Lower render interval yields higher fidelity camera data.
+                         Simulation rate is typically 100fps. `render_interval=1` will yield a render frame rate of 100fps.
+                         `render_interval=10` will yield a render frame rate of 10fps.
+                         Smallest allowed value is 1.
+        capture_interval: Capture interval controls the frame rate of output annotation data.
+                          Lower capture interval yields higher output annotation frame rate.
+                          Given a render frame rate of 100fps, `capture_interval=10` will yield an output annotation frame rate of 10fps.
+                          Smallest allowed value is 1.
+        start_skip_frames: Number of renders frames to skip before capturing the first annotation frame.
+                           Smallest allowed value is 1.
+
+    Returns:
+        Tuple containing (render, capture) flags
+    """
+    start_skip_frames = max(start_skip_frames, 1)
+    render_interval = max(render_interval, 1)
+    capture_interval = max(capture_interval, 1)
+    render_flag = frame_index % render_interval == 0
+    render_index = frame_index / render_interval
+    render_index_with_offset = render_index - start_skip_frames
+    capture_flag = render_index_with_offset % capture_interval == 0 and render_index_with_offset >= 0
+    return render_flag, capture_flag
+
+
 @dataclass
 class Agent(ABC):
     """
@@ -182,6 +226,9 @@ class VehicleAgent(Agent, PosedAgent):
     brake_light_on: bool = False
     """Whether vehicle brake light is on"""
 
+    emergency_lights_on: bool = False
+    """Whether vehicle emergency lights are on"""
+
     indicator_state: Union[VehicleIndicatorState, int] = VehicleIndicatorState.Inactive
     """State of the vehicle's turn indicator"""
 
@@ -190,6 +237,9 @@ class VehicleAgent(Agent, PosedAgent):
 
     sensors: List[Sensor] = field(default_factory=list)
     """List of sensors attached to agent"""
+
+    headlight_on: bool = False
+    """Whether vehicle has its headlight on"""
 
     def __post_init__(self):
         if self.vehicle_actor is not None:
@@ -282,8 +332,16 @@ class LotParkingDelineationType(IntEnum):
     DoubleRound = 4
     TShape = 5
     NoLine = 6
-    Random = 7
-
+    Random = 7 # Deprecated, will display no lines if chosen.
+    BoxClosed = 8
+    BoxOpenCurb = 9
+    BoxDouble = 10
+    SingleSquaredOpenCurb = 11
+    DoubleRound50CMGap = 12
+    DoubleRound50CMGapOpenCurb = 13
+    DoubleSquared50CMGapOpenCurb = 14
+    TFull = 15
+    TShort = 16
 
 class StreetParkingDelineationType(IntEnum):
     Single = 0
@@ -294,7 +352,16 @@ class StreetParkingDelineationType(IntEnum):
     DoubleRound = 5
     TShape = 6
     NoLine = 7
-    Random = 8
+    Random = 8 # Deprecated, will display no lines if chosen.
+    BoxClosed = 9
+    BoxOpenCurb = 10
+    BoxDouble = 11
+    SingleSquaredOpenCurb = 12
+    DoubleRound50CMGap = 13
+    DoubleRound50CMGapOpenCurb = 14
+    DoubleSquared50CMGapOpenCurb = 15
+    TFull = 16
+    TShort = 17
 
 
 class StreetParkingAngleZeroOverride(IntEnum):
@@ -306,8 +373,17 @@ class StreetParkingAngleZeroOverride(IntEnum):
     DoubleRound = 5
     TShape = 6
     NoLine = 7
-    Random = 8
+    Random = 8 # Deprecated, will display no lines if chosen.
     Unmetered = 9
+    BoxClosed = 10
+    BoxOpenCurb = 11
+    BoxDouble = 12
+    SingleSquaredOpenCurb = 13
+    DoubleRound50CMGap = 14
+    DoubleRound50CMGapOpenCurb = 15
+    DoubleSquared50CMGapOpenCurb = 16
+    TFull = 17
+    TShort = 18
 
 
 class ParkingSpaceMaterial(IntEnum):
@@ -354,6 +430,9 @@ class ParkingConfig:
 
     parking_space_material: Union[ParkingSpaceMaterial, int] = ParkingSpaceMaterial.MI_pavement_01
     """Material to show inside parking spaces"""
+
+    global_parking_decal_wear: float = 0.0
+    """Parking spot decal wear between 0 and 1"""
 
 
 class PerformanceMode(Enum):

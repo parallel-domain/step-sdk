@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import List, Dict, Optional, Union
 from pd.internal.proto.keystone.generated.python import pd_unified_generator_pb2
 from pd.internal.proto.keystone.generated.wrapper.utils import WRAPPER_REGISTRY, register_wrapper, get_wrapper, ProtoMessageClass, ProtoEnumClass, AtomicGeneratorMessage, ProtoListWrapper, ProtoDictWrapper
-from pd.internal.proto.keystone.generated.wrapper import pd_distributions_pb2 as _pd_distributions_pb2, pd_environments_pb2 as _pd_environments_pb2, pd_keystone_pb2 as _pd_keystone_pb2, pd_levelcook_pb2 as _pd_levelcook_pb2, pd_package_maps_from_p4_pb2 as _pd_package_maps_from_p4_pb2, pd_post_process_pb2 as _pd_post_process_pb2, pd_render_pb2 as _pd_render_pb2, pd_scenario_pb2 as _pd_scenario_pb2, pd_sensor_pb2 as _pd_sensor_pb2, pd_sim_state_pb2 as _pd_sim_state_pb2, pd_source_maps_pb2 as _pd_source_maps_pb2, pd_spawn_pb2 as _pd_spawn_pb2, pd_types_pb2 as _pd_types_pb2, pd_unified_generator_pb2 as _pd_unified_generator_pb2, pd_world_cook_from_p4_pb2 as _pd_world_cook_from_p4_pb2, pd_worldbuild_pb2 as _pd_worldbuild_pb2, pd_worldgen_pb2 as _pd_worldgen_pb2
+from pd.internal.proto.keystone.generated.wrapper import pd_distributions_pb2 as _pd_distributions_pb2, pd_environments_pb2 as _pd_environments_pb2, pd_keystone_pb2 as _pd_keystone_pb2, pd_levelcook_pb2 as _pd_levelcook_pb2, pd_package_maps_from_p4_pb2 as _pd_package_maps_from_p4_pb2, pd_post_process_pb2 as _pd_post_process_pb2, pd_recook_pb2 as _pd_recook_pb2, pd_render_pb2 as _pd_render_pb2, pd_scenario_pb2 as _pd_scenario_pb2, pd_sensor_pb2 as _pd_sensor_pb2, pd_sim_state_pb2 as _pd_sim_state_pb2, pd_source_maps_pb2 as _pd_source_maps_pb2, pd_spawn_pb2 as _pd_spawn_pb2, pd_types_pb2 as _pd_types_pb2, pd_unified_generator_pb2 as _pd_unified_generator_pb2, pd_world_cook_from_p4_pb2 as _pd_world_cook_from_p4_pb2, pd_worldbuild_pb2 as _pd_worldbuild_pb2, pd_worldgen_pb2 as _pd_worldgen_pb2
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.AbsolutePositionRequest)
 class AbsolutePositionRequest(ProtoMessageClass):
@@ -870,6 +870,19 @@ class EgoAgentGeneratorParameters(AtomicGeneratorMessage):
                   Determines where the ego vehicle will spawn
               Required:
                   Yes
+        use_traffic_light_color_probability:
+              Description:
+                  Specifies whether we want to set ego in front of certain traffic light color
+              Required:
+                  No, will default to false
+        traffic_light_color_probability:
+              Description:
+                  Specifies desired traffic light distribution to use if `use_traffic_light_color_probability` is true
+                  Possible values:
+                    Red
+                    Green
+              Required:
+                  No, will use default enum values
         vehicle_spawn_data:
               Description:
                   Used if `agent_type` is `AgentType.VEHICLE`
@@ -888,13 +901,14 @@ class EgoAgentGeneratorParameters(AtomicGeneratorMessage):
 """
     _proto_message = pd_unified_generator_pb2.EgoAgentGeneratorParameters
 
-    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.EgoAgentGeneratorParameters]=None, agent_type: Optional[AgentType]=None, drone_spawn_data: Optional[DroneSpawnData]=None, ego_model: Optional[str]=None, pedestrian_spawn_data: Optional[PedestrianSpawnData]=None, position_request: Optional[PositionRequest]=None, vehicle_spawn_data: Optional[VehicleSpawnData]=None):
+    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.EgoAgentGeneratorParameters]=None, agent_type: Optional[AgentType]=None, drone_spawn_data: Optional[DroneSpawnData]=None, ego_model: Optional[str]=None, pedestrian_spawn_data: Optional[PedestrianSpawnData]=None, position_request: Optional[PositionRequest]=None, traffic_light_color_probability: Optional[_pd_distributions_pb2.EnumDistribution]=None, use_traffic_light_color_probability: Optional[bool]=None, vehicle_spawn_data: Optional[VehicleSpawnData]=None):
         if proto is None:
             proto = pd_unified_generator_pb2.EgoAgentGeneratorParameters()
         self.proto = proto
         self._drone_spawn_data = get_wrapper(proto_type=proto.drone_spawn_data.__class__)(proto=proto.drone_spawn_data)
         self._pedestrian_spawn_data = get_wrapper(proto_type=proto.pedestrian_spawn_data.__class__)(proto=proto.pedestrian_spawn_data)
         self._position_request = get_wrapper(proto_type=proto.position_request.__class__)(proto=proto.position_request)
+        self._traffic_light_color_probability = get_wrapper(proto_type=proto.traffic_light_color_probability.__class__)(proto=proto.traffic_light_color_probability)
         self._vehicle_spawn_data = get_wrapper(proto_type=proto.vehicle_spawn_data.__class__)(proto=proto.vehicle_spawn_data)
         if agent_type is not None:
             self.agent_type = agent_type
@@ -906,6 +920,10 @@ class EgoAgentGeneratorParameters(AtomicGeneratorMessage):
             self.pedestrian_spawn_data = pedestrian_spawn_data
         if position_request is not None:
             self.position_request = position_request
+        if traffic_light_color_probability is not None:
+            self.traffic_light_color_probability = traffic_light_color_probability
+        if use_traffic_light_color_probability is not None:
+            self.use_traffic_light_color_probability = use_traffic_light_color_probability
         if vehicle_spawn_data is not None:
             self.vehicle_spawn_data = vehicle_spawn_data
 
@@ -956,6 +974,24 @@ class EgoAgentGeneratorParameters(AtomicGeneratorMessage):
         self._position_request._update_proto_references(self.proto.position_request)
 
     @property
+    def traffic_light_color_probability(self) -> _pd_distributions_pb2.EnumDistribution:
+        return self._traffic_light_color_probability
+
+    @traffic_light_color_probability.setter
+    def traffic_light_color_probability(self, value: _pd_distributions_pb2.EnumDistribution):
+        self.proto.traffic_light_color_probability.CopyFrom(value.proto)
+        self._traffic_light_color_probability = value
+        self._traffic_light_color_probability._update_proto_references(self.proto.traffic_light_color_probability)
+
+    @property
+    def use_traffic_light_color_probability(self) -> bool:
+        return self.proto.use_traffic_light_color_probability
+
+    @use_traffic_light_color_probability.setter
+    def use_traffic_light_color_probability(self, value: bool):
+        self.proto.use_traffic_light_color_probability = value
+
+    @property
     def vehicle_spawn_data(self) -> VehicleSpawnData:
         return self._vehicle_spawn_data
 
@@ -970,6 +1006,7 @@ class EgoAgentGeneratorParameters(AtomicGeneratorMessage):
         self._drone_spawn_data._update_proto_references(proto.drone_spawn_data)
         self._pedestrian_spawn_data._update_proto_references(proto.pedestrian_spawn_data)
         self._position_request._update_proto_references(proto.position_request)
+        self._traffic_light_color_probability._update_proto_references(proto.traffic_light_color_probability)
         self._vehicle_spawn_data._update_proto_references(proto.vehicle_spawn_data)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.EnvironmentParameters)
@@ -1166,16 +1203,41 @@ class JunctionSpawnPolicy(ProtoMessageClass):
         No
 
     Args:
+        distance_to_junction:
+              Description:
+                  Specifies minimum distance from junction
+              Range:
+                  Greater than or equal to 0
+              Required:
+                  No, will use default zero values
+        use_intersection_type_probability:
+              Description:
+                  Specifies whether we want to specify probabilities of intersection types
+              Required:
+                  No, will default to false
+        intersection_type_probability:
+              Description:
+                  Specifies distribution for intersection types to use if `use_intersection_type_probability` is true
+                  Possible values:
+                    Signaled
+                    Signed
+              Required:
+                  No, will use default values
 """
     _proto_message = pd_unified_generator_pb2.JunctionSpawnPolicy
 
-    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.JunctionSpawnPolicy]=None, distance_to_junction: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None):
+    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.JunctionSpawnPolicy]=None, distance_to_junction: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None, intersection_type_probability: Optional[_pd_distributions_pb2.EnumDistribution]=None, use_intersection_type_probability: Optional[bool]=None):
         if proto is None:
             proto = pd_unified_generator_pb2.JunctionSpawnPolicy()
         self.proto = proto
         self._distance_to_junction = get_wrapper(proto_type=proto.distance_to_junction.__class__)(proto=proto.distance_to_junction)
+        self._intersection_type_probability = get_wrapper(proto_type=proto.intersection_type_probability.__class__)(proto=proto.intersection_type_probability)
         if distance_to_junction is not None:
             self.distance_to_junction = distance_to_junction
+        if intersection_type_probability is not None:
+            self.intersection_type_probability = intersection_type_probability
+        if use_intersection_type_probability is not None:
+            self.use_intersection_type_probability = use_intersection_type_probability
 
     @property
     def distance_to_junction(self) -> _pd_distributions_pb2.ContinousUniformDistribution:
@@ -1187,9 +1249,28 @@ class JunctionSpawnPolicy(ProtoMessageClass):
         self._distance_to_junction = value
         self._distance_to_junction._update_proto_references(self.proto.distance_to_junction)
 
+    @property
+    def intersection_type_probability(self) -> _pd_distributions_pb2.EnumDistribution:
+        return self._intersection_type_probability
+
+    @intersection_type_probability.setter
+    def intersection_type_probability(self, value: _pd_distributions_pb2.EnumDistribution):
+        self.proto.intersection_type_probability.CopyFrom(value.proto)
+        self._intersection_type_probability = value
+        self._intersection_type_probability._update_proto_references(self.proto.intersection_type_probability)
+
+    @property
+    def use_intersection_type_probability(self) -> bool:
+        return self.proto.use_intersection_type_probability
+
+    @use_intersection_type_probability.setter
+    def use_intersection_type_probability(self, value: bool):
+        self.proto.use_intersection_type_probability = value
+
     def _update_proto_references(self, proto: pd_unified_generator_pb2.JunctionSpawnPolicy):
         self.proto = proto
         self._distance_to_junction._update_proto_references(proto.distance_to_junction)
+        self._intersection_type_probability._update_proto_references(proto.intersection_type_probability)
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.LaneCurvatureSpawnPolicy)
 class LaneCurvatureSpawnPolicy(ProtoMessageClass):
@@ -1748,7 +1829,6 @@ class ObjectDecorationParams(ProtoMessageClass):
                 TAXI_icon,
                 NO_PARKING_text,
                 LOADING_ZONE_text,
-                NO_PARKING_full,
                 EV_JP_01_A_icon,
                 EV_JP_01_B_icon,
                 EV_JP_01_C_icon,
@@ -1972,19 +2052,25 @@ class ParkingSpaceData(ProtoMessageClass):
         lot_parking_delineation_type:
                 Description:
                     Specifies delineation type for parking lot spaces. Each scenario samples a delineation type from this distribution.
-                    Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `RANDOM`
+                    Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`
+                    `BOX_OPEN_CURB`, `BOX_DOUBLE`, `SINGLE_SQUARED_OPEN_CURB`, `DOUBLE_ROUND_50CM_GAP`, `DOUBLE_ROUND_50CM_GAP_OPEN_CURB`,
+                    `DOUBLE_SQUARED_50CM_GAP_OPEN_CURB`, `T_FULL`, `T_SHORT`
                     Default: `SINGLE`
                     Omitted values are treated as having 0 probability.
         street_parking_delineation_type:
                 Description:
                     Specifies delineation type for non parallel street parking spaces. Each scenario samples a delineation type from this distribution.
-                    Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `RANDOM`
+                    Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`
+                    `BOX_OPEN_CURB`, `BOX_DOUBLE`, `SINGLE_SQUARED_OPEN_CURB`, `DOUBLE_ROUND_50CM_GAP`, `DOUBLE_ROUND_50CM_GAP_OPEN_CURB`,
+                    `DOUBLE_SQUARED_50CM_GAP_OPEN_CURB`, `T_FULL`, `T_SHORT`
                     Default: `SINGLE`
                     Omitted values are treated as having 0 probability.
         street_parking_angle_zero_override:
                 Description:
                     Specifies delineation type for parallel street parking spaces. Each scenario samples a delineation type from this distribution.
-                    Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `RANDOM`, `UNMETERED`
+                    Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `UNMETERED`
+                    `BOX_OPEN_CURB`, `BOX_DOUBLE`, `SINGLE_SQUARED_OPEN_CURB`, `DOUBLE_ROUND_50CM_GAP`, `DOUBLE_ROUND_50CM_GAP_OPEN_CURB`,
+                    `DOUBLE_SQUARED_50CM_GAP_OPEN_CURB`, `T_FULL`, `T_SHORT`
                     Default: Will use what was selected for `street_parking_delineation_type` if empty.
                     Omitted values are treated as having 0 probability.
         delineation_color:
@@ -3245,6 +3331,7 @@ class TrafficGeneratorParameters(AtomicGeneratorMessage):
         spawn_probability:
               Description:
                   Within spawn radius, probability that a vehicle will spawn in an available spot. (i.e. controls density)
+                  The distance between available spots is tuned by start_separation_time_map.
               Range:
                   `0.0` to `1.0`, with `1.0` being the most dense. Recommended to use `0.8` for high density.
               Required:
@@ -3272,6 +3359,8 @@ class TrafficGeneratorParameters(AtomicGeneratorMessage):
                     FULLSIZE  0.184
         start_separation_time_map:
               Description:
+                  Controls the minimum distance between traffic vehicles. Actual spawn distance may be higher as
+                  spawn points are skipped based on spawn_probability.
                   Recommended to leave as default. Map of vehicle type to their start separation time distributions.
                   Uses initial speed * separation time to determine distance between vehicles.
               Required:
@@ -3645,11 +3734,11 @@ class VehicleBehavior(ProtoMessageClass):
                                 probabilities: {
                                     "ParkingSpace": 1.0
                                 }
-                            }
-                        },
-                        road_type: {
-                            probabilities: {
-                                "Parking_Aisle": 1.0
+                            },
+                            road_type: {
+                                probabilities: {
+                                    "Parking_Aisle": 1.0
+                                }
                             }
                         }
                     }
@@ -3979,10 +4068,24 @@ class VehiclePeripheral(ProtoMessageClass):
         emergency_light_probability:
               Chance of turning on emergency lights for police/service vehicles
               Ignored if the vehicle has no emergency lights
+        set_headlight_based_on_time_of_day:
+              Description:
+                If true, turn headlights on in night time scenarios and off in day time scenarios.
+                If false, use the next field headlight_probability to determine headlight state.
+              Required:
+                No, defaults to true
+        headlight_probability:
+              Description:
+                Probability of the vehicle having its headlights on. Only used if set_headlight_based_on_time_of_day
+                is false. Ignored if it's true. Has no impact on daytime running lights.
+              Range:
+                [0-1]
+              Required:
+                No, defaults to 1
 """
     _proto_message = pd_unified_generator_pb2.VehiclePeripheral
 
-    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.VehiclePeripheral]=None, disable_accessories: Optional[bool]=None, disable_occupants: Optional[bool]=None, emergency_light_probability: Optional[float]=None, randomize_vehicle_parts: Optional[bool]=None, spawn_trailer_probability: Optional[float]=None, trailer_initial_yaw: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None):
+    def __init__(self, *, proto: Optional[pd_unified_generator_pb2.VehiclePeripheral]=None, disable_accessories: Optional[bool]=None, disable_occupants: Optional[bool]=None, emergency_light_probability: Optional[float]=None, headlight_probability: Optional[float]=None, randomize_vehicle_parts: Optional[bool]=None, set_headlight_based_on_time_of_day: Optional[bool]=None, spawn_trailer_probability: Optional[float]=None, trailer_initial_yaw: Optional[_pd_distributions_pb2.ContinousUniformDistribution]=None):
         if proto is None:
             proto = pd_unified_generator_pb2.VehiclePeripheral()
         self.proto = proto
@@ -3993,8 +4096,12 @@ class VehiclePeripheral(ProtoMessageClass):
             self.disable_occupants = disable_occupants
         if emergency_light_probability is not None:
             self.emergency_light_probability = emergency_light_probability
+        if headlight_probability is not None:
+            self.headlight_probability = headlight_probability
         if randomize_vehicle_parts is not None:
             self.randomize_vehicle_parts = randomize_vehicle_parts
+        if set_headlight_based_on_time_of_day is not None:
+            self.set_headlight_based_on_time_of_day = set_headlight_based_on_time_of_day
         if spawn_trailer_probability is not None:
             self.spawn_trailer_probability = spawn_trailer_probability
         if trailer_initial_yaw is not None:
@@ -4025,12 +4132,28 @@ class VehiclePeripheral(ProtoMessageClass):
         self.proto.emergency_light_probability = value
 
     @property
+    def headlight_probability(self) -> float:
+        return self.proto.headlight_probability
+
+    @headlight_probability.setter
+    def headlight_probability(self, value: float):
+        self.proto.headlight_probability = value
+
+    @property
     def randomize_vehicle_parts(self) -> bool:
         return self.proto.randomize_vehicle_parts
 
     @randomize_vehicle_parts.setter
     def randomize_vehicle_parts(self, value: bool):
         self.proto.randomize_vehicle_parts = value
+
+    @property
+    def set_headlight_based_on_time_of_day(self) -> bool:
+        return self.proto.set_headlight_based_on_time_of_day
+
+    @set_headlight_based_on_time_of_day.setter
+    def set_headlight_based_on_time_of_day(self, value: bool):
+        self.proto.set_headlight_based_on_time_of_day = value
 
     @property
     def spawn_trailer_probability(self) -> float:

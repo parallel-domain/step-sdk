@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import List, Dict, Optional, Union
 from pd.internal.proto.keystone.generated.python import pd_sensor_pb2
 from pd.internal.proto.keystone.generated.wrapper.utils import WRAPPER_REGISTRY, register_wrapper, get_wrapper, ProtoMessageClass, ProtoEnumClass, AtomicGeneratorMessage, ProtoListWrapper, ProtoDictWrapper
-from pd.internal.proto.keystone.generated.wrapper import pd_distributions_pb2 as _pd_distributions_pb2, pd_environments_pb2 as _pd_environments_pb2, pd_keystone_pb2 as _pd_keystone_pb2, pd_levelcook_pb2 as _pd_levelcook_pb2, pd_package_maps_from_p4_pb2 as _pd_package_maps_from_p4_pb2, pd_post_process_pb2 as _pd_post_process_pb2, pd_render_pb2 as _pd_render_pb2, pd_scenario_pb2 as _pd_scenario_pb2, pd_sensor_pb2 as _pd_sensor_pb2, pd_sim_state_pb2 as _pd_sim_state_pb2, pd_source_maps_pb2 as _pd_source_maps_pb2, pd_spawn_pb2 as _pd_spawn_pb2, pd_types_pb2 as _pd_types_pb2, pd_unified_generator_pb2 as _pd_unified_generator_pb2, pd_world_cook_from_p4_pb2 as _pd_world_cook_from_p4_pb2, pd_worldbuild_pb2 as _pd_worldbuild_pb2, pd_worldgen_pb2 as _pd_worldgen_pb2
+from pd.internal.proto.keystone.generated.wrapper import pd_distributions_pb2 as _pd_distributions_pb2, pd_environments_pb2 as _pd_environments_pb2, pd_keystone_pb2 as _pd_keystone_pb2, pd_levelcook_pb2 as _pd_levelcook_pb2, pd_package_maps_from_p4_pb2 as _pd_package_maps_from_p4_pb2, pd_post_process_pb2 as _pd_post_process_pb2, pd_recook_pb2 as _pd_recook_pb2, pd_render_pb2 as _pd_render_pb2, pd_scenario_pb2 as _pd_scenario_pb2, pd_sensor_pb2 as _pd_sensor_pb2, pd_sim_state_pb2 as _pd_sim_state_pb2, pd_source_maps_pb2 as _pd_source_maps_pb2, pd_spawn_pb2 as _pd_spawn_pb2, pd_types_pb2 as _pd_types_pb2, pd_unified_generator_pb2 as _pd_unified_generator_pb2, pd_world_cook_from_p4_pb2 as _pd_world_cook_from_p4_pb2, pd_worldbuild_pb2 as _pd_worldbuild_pb2, pd_worldgen_pb2 as _pd_worldgen_pb2
 
 @register_wrapper(proto_type=pd_sensor_pb2.AlbedoWeights)
 class AlbedoWeights(ProtoMessageClass):
@@ -1732,10 +1732,18 @@ class RadarBasicParameters(ProtoMessageClass):
 class RadarDetectorParameters(ProtoMessageClass):
     _proto_message = pd_sensor_pb2.RadarDetectorParameters
 
-    def __init__(self, *, proto: Optional[pd_sensor_pb2.RadarDetectorParameters]=None, detector_constant_gain: Optional[float]=None, detector_radiometric_decay: Optional[float]=None, detector_radiometric_gain: Optional[float]=None, detector_type: Optional[str]=None):
+    def __init__(self, *, proto: Optional[pd_sensor_pb2.RadarDetectorParameters]=None, cfar_guard_cell: Optional[int]=None, cfar_neighbor_cell: Optional[int]=None, cfar_threshold_scale: Optional[float]=None, cfar_type: Optional[str]=None, detector_constant_gain: Optional[float]=None, detector_radiometric_decay: Optional[float]=None, detector_radiometric_gain: Optional[float]=None, detector_type: Optional[str]=None, enable_cfar: Optional[bool]=None):
         if proto is None:
             proto = pd_sensor_pb2.RadarDetectorParameters()
         self.proto = proto
+        if cfar_guard_cell is not None:
+            self.cfar_guard_cell = cfar_guard_cell
+        if cfar_neighbor_cell is not None:
+            self.cfar_neighbor_cell = cfar_neighbor_cell
+        if cfar_threshold_scale is not None:
+            self.cfar_threshold_scale = cfar_threshold_scale
+        if cfar_type is not None:
+            self.cfar_type = cfar_type
         if detector_constant_gain is not None:
             self.detector_constant_gain = detector_constant_gain
         if detector_radiometric_decay is not None:
@@ -1744,6 +1752,40 @@ class RadarDetectorParameters(ProtoMessageClass):
             self.detector_radiometric_gain = detector_radiometric_gain
         if detector_type is not None:
             self.detector_type = detector_type
+        if enable_cfar is not None:
+            self.enable_cfar = enable_cfar
+
+    @property
+    def cfar_guard_cell(self) -> int:
+        return self.proto.cfar_guard_cell
+
+    @cfar_guard_cell.setter
+    def cfar_guard_cell(self, value: int):
+        self.proto.cfar_guard_cell = value
+
+    @property
+    def cfar_neighbor_cell(self) -> int:
+        return self.proto.cfar_neighbor_cell
+
+    @cfar_neighbor_cell.setter
+    def cfar_neighbor_cell(self, value: int):
+        self.proto.cfar_neighbor_cell = value
+
+    @property
+    def cfar_threshold_scale(self) -> float:
+        return self.proto.cfar_threshold_scale
+
+    @cfar_threshold_scale.setter
+    def cfar_threshold_scale(self, value: float):
+        self.proto.cfar_threshold_scale = value
+
+    @property
+    def cfar_type(self) -> str:
+        return self.proto.cfar_type
+
+    @cfar_type.setter
+    def cfar_type(self, value: str):
+        self.proto.cfar_type = value
 
     @property
     def detector_constant_gain(self) -> float:
@@ -1776,6 +1818,14 @@ class RadarDetectorParameters(ProtoMessageClass):
     @detector_type.setter
     def detector_type(self, value: str):
         self.proto.detector_type = value
+
+    @property
+    def enable_cfar(self) -> bool:
+        return self.proto.enable_cfar
+
+    @enable_cfar.setter
+    def enable_cfar(self, value: bool):
+        self.proto.enable_cfar = value
 
     def _update_proto_references(self, proto: pd_sensor_pb2.RadarDetectorParameters):
         self.proto = proto

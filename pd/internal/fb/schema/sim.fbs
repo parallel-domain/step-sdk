@@ -19,6 +19,11 @@ include "vehicle_traffic_control_output.fbs";
 include "events.fbs";
 include "environment.fbs";
 
+// -----=====######## READ ME ########=====-----
+// Before you add to the StateObject union, realize elements can not be removed or the order modified without breaking backwards compatibility of state files.
+// Ensure design diligence and review your change with the team to validate this information is well thought out as its structure will be essentially PERMANENT.
+// -----=====######## READ ME ########=====-----
+
 union StateObject
 {
     TransformStateFB,
@@ -58,6 +63,10 @@ union StateObject
     ObjectDecorationsInfoFB,
 	EnvironmentConfigFB,
 }
+// -----=====######## READ ME ########=====-----
+// Before you add to the StateObject union, realize elements can not be removed or the order modified without breaking backwards compatibility of state files.
+// Ensure design diligence and review your change with the team to validate this information is well thought out as its structure will be essentially PERMANENT.
+// -----=====######## READ ME ########=====-----
 
 table StateObjectFB
 {

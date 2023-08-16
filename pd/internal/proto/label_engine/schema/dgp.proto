@@ -32,6 +32,7 @@ message WriteDGPDatasetExtraConfig {
     bool output_only_visible_3d_bounds = 2;
     repeated DGPDatasetFilterByKeypointNameAndInstanceOntologyConfig filter_out_keypoints_by_name_and_ontology = 3;
     float distance_cull_2d_keypoints = 4;
+	bool enable_motion_vector_child_mesh_rotation = 5;
 }
 
 message DGPDatasetFilterByKeypointNameAndInstanceOntologyConfig {

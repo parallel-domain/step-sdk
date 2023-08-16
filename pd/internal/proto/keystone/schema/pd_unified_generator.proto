@@ -200,7 +200,9 @@ message ParkingSpaceData
     /*
     Description:
         Specifies delineation type for parking lot spaces. Each scenario samples a delineation type from this distribution.
-        Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `RANDOM`
+        Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`
+        `BOX_OPEN_CURB`, `BOX_DOUBLE`, `SINGLE_SQUARED_OPEN_CURB`, `DOUBLE_ROUND_50CM_GAP`, `DOUBLE_ROUND_50CM_GAP_OPEN_CURB`, 
+        `DOUBLE_SQUARED_50CM_GAP_OPEN_CURB`, `T_FULL`, `T_SHORT`
         Default: `SINGLE`
         Omitted values are treated as having 0 probability.
     */
@@ -208,7 +210,9 @@ message ParkingSpaceData
     /*
     Description:
         Specifies delineation type for non parallel street parking spaces. Each scenario samples a delineation type from this distribution.
-        Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `RANDOM`
+        Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`
+        `BOX_OPEN_CURB`, `BOX_DOUBLE`, `SINGLE_SQUARED_OPEN_CURB`, `DOUBLE_ROUND_50CM_GAP`, `DOUBLE_ROUND_50CM_GAP_OPEN_CURB`, 
+        `DOUBLE_SQUARED_50CM_GAP_OPEN_CURB`, `T_FULL`, `T_SHORT`
         Default: `SINGLE`
         Omitted values are treated as having 0 probability.
     */
@@ -216,7 +220,9 @@ message ParkingSpaceData
     /*
     Description:
         Specifies delineation type for parallel street parking spaces. Each scenario samples a delineation type from this distribution.
-        Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `RANDOM`, `UNMETERED`
+        Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `UNMETERED`
+        `BOX_OPEN_CURB`, `BOX_DOUBLE`, `SINGLE_SQUARED_OPEN_CURB`, `DOUBLE_ROUND_50CM_GAP`, `DOUBLE_ROUND_50CM_GAP_OPEN_CURB`, 
+        `DOUBLE_SQUARED_50CM_GAP_OPEN_CURB`, `T_FULL`, `T_SHORT`
         Default: Will use what was selected for `street_parking_delineation_type` if empty.
         Omitted values are treated as having 0 probability.
     */
@@ -418,7 +424,6 @@ message ObjectDecorationParams
     TAXI_icon,
     NO_PARKING_text,
     LOADING_ZONE_text,
-    NO_PARKING_full,
     EV_JP_01_A_icon,
     EV_JP_01_B_icon,
     EV_JP_01_C_icon,
@@ -482,6 +487,28 @@ message EgoAgentGeneratorParameters
   */
   optional PositionRequest position_request = 3;
 
+    /*
+  Description:
+      Specifies whether we want to set ego in front of certain traffic light color
+
+  Required:
+      No, will default to false
+  */
+  optional bool use_traffic_light_color_probability = 4 [default = false];
+
+  /*
+  Description:
+      Specifies desired traffic light distribution to use if `use_traffic_light_color_probability` is true
+
+      Possible values: 
+        Red
+        Green 
+
+  Required:
+      No, will use default enum values
+  */
+  optional EnumDistribution traffic_light_color_probability = 5; 
+
   /*
   Description:
       Used if `agent_type` is `AgentType.VEHICLE`
@@ -489,7 +516,7 @@ message EgoAgentGeneratorParameters
   Required:
       No, will use defaults specified in `VehicleSpawnData`
   */
-  optional VehicleSpawnData vehicle_spawn_data = 4;
+  optional VehicleSpawnData vehicle_spawn_data = 6;
 
   /*
   Description:
@@ -498,7 +525,7 @@ message EgoAgentGeneratorParameters
   Required:
       No, will use defaults specified in `PedestrianSpawnData`
   */
-  optional PedestrianSpawnData pedestrian_spawn_data = 5;
+  optional PedestrianSpawnData pedestrian_spawn_data = 7;
 
   /*
   Description:
@@ -507,7 +534,7 @@ message EgoAgentGeneratorParameters
   Required:
       No, will use defaults specified in `DroneSpawnData`
   */
-  optional DroneSpawnData drone_spawn_data = 6;
+  optional DroneSpawnData drone_spawn_data = 8;
 }
 /*
 Description:
@@ -583,6 +610,7 @@ message TrafficGeneratorParameters
   /*
   Description:
       Within spawn radius, probability that a vehicle will spawn in an available spot. (i.e. controls density)
+      The distance between available spots is tuned by start_separation_time_map. 
 
   Range:
       `0.0` to `1.0`, with `1.0` being the most dense. Recommended to use `0.8` for high density.
@@ -623,8 +651,11 @@ message TrafficGeneratorParameters
 
   /*
   Description:
+      Controls the minimum distance between traffic vehicles. Actual spawn distance may be higher as
+      spawn points are skipped based on spawn_probability.
       Recommended to leave as default. Map of vehicle type to their start separation time distributions.
       Uses initial speed * separation time to determine distance between vehicles.
+
 
   Required:
       No, if not specified will use defaults, see map below::
@@ -1039,7 +1070,39 @@ Required:
 */
 message JunctionSpawnPolicy
 {
+  /*
+  Description:
+      Specifies minimum distance from junction
+
+  Range:
+      Greater than or equal to 0
+
+  Required:
+      No, will use default zero values
+  */
   optional ContinousUniformDistribution distance_to_junction = 1;
+
+  /*
+  Description:
+      Specifies whether we want to specify probabilities of intersection types
+
+  Required:
+      No, will default to false
+  */
+  optional bool use_intersection_type_probability = 2 [default = false];
+
+  /*
+  Description:
+      Specifies distribution for intersection types to use if `use_intersection_type_probability` is true
+
+      Possible values: 
+        Signaled
+        Signed
+
+  Required:
+      No, will use default values
+  */
+  optional EnumDistribution intersection_type_probability = 3;
 }
 /*
 Description:
@@ -1627,11 +1690,11 @@ message VehicleBehavior
                     probabilities: {
                         "ParkingSpace": 1.0
                     }
-                }
-            },
-            road_type: {
-                probabilities: {
-                    "Parking_Aisle": 1.0
+                },
+                road_type: {
+                    probabilities: {
+                        "Parking_Aisle": 1.0
+                    }
                 }
             }
         }
@@ -1695,6 +1758,26 @@ message VehiclePeripheral
   Ignored if the vehicle has no emergency lights
   */
   optional float emergency_light_probability = 6 [default = 0.5];
+
+  /*
+  Description:
+    If true, turn headlights on in night time scenarios and off in day time scenarios.
+    If false, use the next field headlight_probability to determine headlight state.
+  Required:
+    No, defaults to true 
+  */
+  optional bool set_headlight_based_on_time_of_day = 7 [default = true];
+
+  /*
+  Description:
+    Probability of the vehicle having its headlights on. Only used if set_headlight_based_on_time_of_day
+    is false. Ignored if it's true. Has no impact on daytime running lights. 
+  Range:
+    [0-1]
+  Required:
+    No, defaults to 1
+  */
+  optional float headlight_probability = 8 [default = 0.0];
 }
 
 /*
@@ -1919,7 +2002,6 @@ enum SpecialAgentTag
   STAR = 1;
 }
 
-
 /*
 Description:
     Specifies distribution of bulb color in the traffic signal lights.
@@ -1930,6 +2012,7 @@ message SignalLightDistribution
   optional float red = 2 [default = 0.3333];
   optional float yellow = 3 [default = 0.3333];
 }
+
 /*
 Description:
     Specifies distribution of turns types of incoming lanes in a junction.

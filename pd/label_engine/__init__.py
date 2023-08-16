@@ -8,4 +8,4 @@
 Label Engine messages
 """
 
-from .label_engine import LabelData, load_pipeline_config, simulation_time_as_timestamp
+from .label_engine import LabelData, load_pipeline_config, simulation_time_as_timestamp, DataType

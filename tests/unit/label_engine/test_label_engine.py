@@ -61,7 +61,7 @@ class TestLabelData:
         label_data = LabelData(
             timestamp="001",
             label="test_annotation",
-            sensor_name="test_sensor",
+            sensor_id_and_name=(123, "testsensor"),
             data=annotation_data.encode()
         )
         test_annotation = label_data.data_as_annotation

@@ -9,12 +9,15 @@ Label Engine messages
 """
 import math
 from dataclasses import dataclass
+from enum import IntEnum
 from pathlib import Path
 import io
+from typing import Optional, Tuple
 
 import cv2
 import numpy as np
 from google.protobuf.json_format import Parse
+from io import BytesIO
 
 from pd.core import PdError
 
@@ -41,20 +44,40 @@ _ID_U16_TO_COLOR_LOOKUP = cv2.applyColorMap(
 ).reshape(-1, 3).astype(np.float32)
 
 
+# TODO: auto generate wrapper class from proto
+class DataType(IntEnum):
+    NoneType = 0
+    Image = 1
+    Mesh = 2
+    MeshMap = 3
+    Null = 4
+    TransformMap = 5
+    Sensor = 6
+    MeshIDMap = 7
+    PointCloud = 8
+    Annotation = 9
+    UMD = 10
+    SimState = 11
+    CameraDistortionCalibration = 12
+    Configuration = 13
+    IGMetadata = 14
+    Telemetry = 15
+
+
 @dataclass
 class LabelData:
     """
     Label data for a single data object
     """
 
-    timestamp: str
-    """Timestamp of the data object"""
+    timestamp: Optional[str]
+    """Timestamp of the data object, if applicable"""
+
+    sensor_id_and_name: Optional[Tuple[int, str]]
+    """Agent id and name of the sensor of the data object, if applicable"""
 
     label: str
     """Name of the data stream"""
-
-    sensor_name: str
-    """Name of sensor to which the data object belongs"""
 
     data: bytes
     """Label data"""
@@ -66,6 +89,15 @@ class LabelData:
         """
         im_bgr = cv2.imdecode(np.frombuffer(io.BytesIO(self.data).read(), np.uint8), cv2.IMREAD_COLOR)
         return cv2.cvtColor(im_bgr, cv2.COLOR_BGR2RGB)
+
+    @property
+    def data_as_depth(self) -> np.ndarray:
+        """
+        Returns data array as a single-channel float32 depth buffer
+        """
+        with np.load(BytesIO(self.data)) as npz_data:
+            data = npz_data['data']
+            return data
 
     @property
     def data_as_segmentation_ids(self) -> np.ndarray:

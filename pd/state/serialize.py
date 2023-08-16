@@ -781,8 +781,9 @@ class SerializeAgent:
             states_data.append(
                 SerializeSimpleVehicleState.SimpleVehicleStateData(
                     wheel_to_world=wheels_to_world,
-                    emergency_lights_on=False,
-                    brake_light_on=obj.brake_light_on
+                    emergency_lights_on=obj.emergency_lights_on,
+                    brake_light_on=obj.brake_light_on,
+                    headlight_on=obj.headlight_on
                 )
             )
             if obj.is_parked:
@@ -893,8 +894,10 @@ class SerializeAgent:
                 accessories=vehicle_model_config_data.accessories,
                 occupants=vehicle_model_config_data.occupants,
                 brake_light_on=vehicle_state_data.brake_light_on,
+                emergency_lights_on=vehicle_state_data.emergency_lights_on,
                 indicator_state=indicator_state,
-                is_parked=simple_control_state_data is not None
+                is_parked=simple_control_state_data is not None,
+                headlight_on=vehicle_state_data.headlight_on
             )
             agent.angular_velocity = transform_state_data.angular_velocity
         elif model_config_data and transform_state_data:
@@ -1308,6 +1311,7 @@ class SerializeSimpleVehicleState:
         wheel_to_world: List[np.ndarray]
         emergency_lights_on: bool
         brake_light_on: bool
+        headlight_on: bool
 
     @staticmethod
     def serialize(builder: flatbuffers.Builder, obj: SimpleVehicleStateData):
@@ -1322,6 +1326,7 @@ class SerializeSimpleVehicleState:
         SimpleVehicleStateFB.SimpleVehicleStateFBAddHasBrakeLightOn(builder, True)
         SimpleVehicleStateFB.SimpleVehicleStateFBAddBrakeLightOn(builder, obj.brake_light_on)
         SimpleVehicleStateFB.SimpleVehicleStateFBAddEmergencyLightsOn(builder, obj.emergency_lights_on)
+        SimpleVehicleStateFB.SimpleVehicleStateFBAddHeadlightOn(builder, obj.headlight_on)
         if wheels_vec_fb:
             SimpleVehicleStateFB.SimpleVehicleStateFBAddWheelToWorld(builder, wheels_vec_fb)
         state = SimpleVehicleStateFB.SimpleVehicleStateFBEnd(builder)
@@ -1332,7 +1337,8 @@ class SerializeSimpleVehicleState:
         simple_vehicle_state = SerializeSimpleVehicleState.SimpleVehicleStateData(
             wheel_to_world=[],
             emergency_lights_on=bool(fb.EmergencyLightsOn()),
-            brake_light_on=bool(fb.BrakeLightOn())
+            brake_light_on=bool(fb.BrakeLightOn()),
+            headlight_on=bool(fb.HeadlightOn())
         )
         for i in range(fb.WheelToWorldLength()):
             wheel_to_world_element_fb = fb.WheelToWorld(i)
@@ -1459,6 +1465,7 @@ class SerializeEnvironmentConfig:
             ParkingConfigFB.ParkingConfigFBAddStreetParkingDelineationType(builder, int(obj.parking_config.street_parking_delineation_type))
             ParkingConfigFB.ParkingConfigFBAddStreetParkingAngleZeroOverride(builder, int(obj.parking_config.street_parking_angle_zero_override))
             ParkingConfigFB.ParkingConfigFBAddParkingSpaceMaterial(builder, int(obj.parking_config.parking_space_material))
+            ParkingConfigFB.ParkingConfigFBAddGlobalParkingDecalWear(builder, obj.parking_config.global_parking_decal_wear)
             parking_config_fb = ParkingConfigFB.ParkingConfigFBEnd(builder)
         EnvironmentConfigFB.EnvironmentConfigFBStart(builder)
         if parking_config_fb:
@@ -1490,7 +1497,8 @@ class SerializeEnvironmentConfig:
                 lot_parking_delineation_type=LotParkingDelineationType(parking_config_fb.LotParkingDelineationType()),
                 street_parking_delineation_type=StreetParkingDelineationType(parking_config_fb.StreetParkingDelineationType()),
                 street_parking_angle_zero_override=StreetParkingAngleZeroOverride(parking_config_fb.StreetParkingAngleZeroOverride()),
-                parking_space_material=ParkingSpaceMaterial(parking_config_fb.ParkingSpaceMaterial())
+                parking_space_material=ParkingSpaceMaterial(parking_config_fb.ParkingSpaceMaterial()),
+                global_parking_decal_wear=parking_config_fb.GlobalParkingDecalWear()
             )
         environment_config = SerializeEnvironmentConfig.EnvironmentConfigData(
             parking_config=parking_config

@@ -27,4 +27,7 @@ message PythonEngineConfig
     // Input stream dimensions, in same order as stream names
     // TODO: streams should explicitly track this information (PD-22096)
     repeated StreamDimensions input_dims = 7;
+	
+	// What sensor types to run the transform on
+	repeated SensorType sensor_types = 8;
 };

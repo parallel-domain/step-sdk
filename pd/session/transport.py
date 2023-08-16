@@ -28,6 +28,22 @@ from pd.core import PdError
 logger = logging.getLogger(__name__)
 
 
+_ZMQ_CONTEXT: Optional[zmq.Context] = None
+
+
+def get_zmq_context() -> zmq.Context:
+    """
+    Returns the Zmq context used by transports
+
+    Returns:
+        Zmq context
+    """
+    global _ZMQ_CONTEXT
+    if _ZMQ_CONTEXT is None:
+        _ZMQ_CONTEXT = zmq.Context()
+    return _ZMQ_CONTEXT
+
+
 class IZmqTransportListener(abc.ABC):
     """
     Interface for observing Zmq transport messages
@@ -186,7 +202,7 @@ class ZmqTransport(IZmqTransport):
         self.listeners.append(listener)
 
     def _connect(self):
-        context = zmq.Context()
+        context = get_zmq_context()
         self._request_socket = context.socket(zmq.REQ)
         self._request_socket.setsockopt(zmq.RCVTIMEO, self.timeout_recv_ms)
         self._request_socket.setsockopt(zmq.LINGER, self._TIMEOUT_LINGER_MS)
@@ -206,10 +222,12 @@ class ZmqTransport(IZmqTransport):
             self._state_socket.disconnect(self.state_socket_addr)
             for l in self.listeners:
                 l.on_disconnect_state(timestamp=time.time())
+            self._state_socket.close()
         if self._request_socket:
             self._request_socket.disconnect(self.request_socket_addr)
             for l in self.listeners:
                 l.on_disconnect_request(timestamp=time.time())
+            self._request_socket.close()
 
     def send_request_msg(self, msg_bytes: bytearray) -> bytes:
         self._request_socket.send(msg_bytes)

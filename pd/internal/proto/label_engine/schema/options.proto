@@ -41,3 +41,10 @@ extend google.protobuf.FieldOptions {
   DataType type = 50000;
   StreamType stream = 50001;
 }
+
+enum SensorType
+{
+	eCamera = 0;
+	eLiDAR = 1;
+	eRadar = 2;
+}

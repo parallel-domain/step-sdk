@@ -4,26 +4,29 @@
 # Use of this file is only permitted if you have entered into a
 # separate written license agreement with Parallel Domain, Inc.
 
-from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Union
 
+from pd.data_lab.labeled_state_reference import StateReference
 from pd.session import StepSession
-from pd.state import State
+from pd.state import State, CameraSensor, LiDARSensor
 
 
-class TemporalSessionReference:
-    def __init__(self, session: StepSession, state: State, date_time: datetime):
+class TemporalSessionReference(StateReference):
+    def __init__(
+        self,
+        session: StepSession,
+        state: State,
+        frame_id: str,
+        sensor_rig: List[Union[CameraSensor, LiDARSensor]],
+        ego_agent_id: int,
+    ):
+        super().__init__(state=state, frame_id=frame_id, ego_agent_id=ego_agent_id)
         self._session = session
-        self._state = state
-        self.date_time = date_time
+        self.sensor_rig = sensor_rig
 
     @property
     def session(self) -> Optional[StepSession]:
         return self._session
-
-    @property
-    def state(self) -> Optional[State]:
-        return self._state
 
     def on_session_state_changed(self):
         self._session = None

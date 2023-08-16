@@ -29,6 +29,7 @@ message VisibilitySampleMetadata
     uint32 semantic_id = 13;
     uint32 mesh_id = 4;
     uint32 submesh_index = 5;
+    uint32 material_index = 14;
 
     Box2D bounds = 6;
     Box2D visible_bounds = 7;

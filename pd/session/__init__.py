@@ -27,5 +27,6 @@ from .session import (
     create_stream_session,
     stop_step_session,
     stop_stream_session,
-    is_server_url
+    is_server_url,
+    generate_scene_name
 )

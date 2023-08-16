@@ -1028,6 +1028,7 @@ class TestSerializeAgent:
             accessories=['a1', 'a2'],
             occupants=['o1', 'o2'],
             brake_light_on=True,
+            emergency_lights_on=True,
             indicator_state=VehicleIndicatorState.Hazards,
             sensors=[
                 CameraSensor(
@@ -1043,7 +1044,8 @@ class TestSerializeAgent:
                     rotation_rate=0.2
                 )
             ],
-            is_parked=False
+            is_parked=False,
+            headlight_on=True
         )
         builder.Finish(SerializeAgent.serialize(builder, vehicle_agent))
         fb = AgentStateFB.AgentStateFB.GetRootAsAgentStateFB(builder.Output(), 0)
@@ -1077,8 +1079,10 @@ class TestSerializeAgent:
         assert isinstance(result.wheel_poses[2], np.ndarray)
         assert np.allclose(result.wheel_poses[2], Pose6D.from_translation(7.7, 8.8, 9.9).as_transformation_matrix())
         assert result.brake_light_on
+        assert result.emergency_lights_on
         assert result.indicator_state == VehicleIndicatorState.Hazards
         assert not result.is_parked
+        assert result.headlight_on
 
     def test_serdes_vehicle_agent_enums_as_int(self, builder, helpers):
         vehicle_agent = VehicleAgent(
@@ -1258,7 +1262,8 @@ class TestSerializeAgent:
                 lot_parking_delineation_type=LotParkingDelineationType.Random,
                 street_parking_delineation_type=StreetParkingDelineationType.DoubleOpen,
                 street_parking_angle_zero_override=StreetParkingAngleZeroOverride.Dashed,
-                parking_space_material=ParkingSpaceMaterial.MI_ParkingTiles_CobbleStone_01
+                parking_space_material=ParkingSpaceMaterial.MI_ParkingTiles_CobbleStone_01,
+                global_parking_decal_wear=.456
             ),
             object_decorations={
                 10756: ObjectDecorations(
@@ -1292,6 +1297,8 @@ class TestSerializeAgent:
         assert result.parking_config.street_parking_delineation_type == StreetParkingDelineationType.DoubleOpen
         assert result.parking_config.street_parking_angle_zero_override == StreetParkingAngleZeroOverride.Dashed
         assert result.parking_config.parking_space_material == ParkingSpaceMaterial.MI_ParkingTiles_CobbleStone_01
+        assert helpers.fisclose(result.parking_config.global_parking_decal_wear, 0.456)
+ 
 
         assert result.object_decorations
         assert len(result.object_decorations.items()) == 1
@@ -1514,7 +1521,8 @@ class TestSerializeSimpleVehicleState:
                 Pose6D.from_translation(3.1, 3.2, 3.3).as_transformation_matrix(),
             ],
             emergency_lights_on=True,
-            brake_light_on=True
+            brake_light_on=True,
+            headlight_on=True
         )
         builder.Finish(SerializeSimpleVehicleState.serialize(builder, simple_vehicle_state))
         fb = SimpleVehicleStateFB.SimpleVehicleStateFB.GetRootAsSimpleVehicleStateFB(builder.Output(), 0)
@@ -1531,6 +1539,7 @@ class TestSerializeSimpleVehicleState:
         assert np.allclose(result.wheel_to_world[2], Pose6D.from_translation(3.1, 3.2, 3.3).as_transformation_matrix())
         assert result.emergency_lights_on
         assert result.brake_light_on
+        assert result.headlight_on
 
     def test_deserialize_default(self, builder, helpers):
         SimpleVehicleStateFB.SimpleVehicleStateFBStart(builder)
@@ -1543,6 +1552,7 @@ class TestSerializeSimpleVehicleState:
         assert len(default.wheel_to_world) == 0
         assert not default.emergency_lights_on
         assert not default.brake_light_on
+        assert not default.headlight_on # expect headlights to be off by default
 
 
 class TestSerializeControlState:
@@ -1677,7 +1687,8 @@ class TestSerializeEnvironmentConfig:
                 lot_parking_delineation_type=LotParkingDelineationType.Random,
                 street_parking_delineation_type=StreetParkingDelineationType.DoubleOpen,
                 street_parking_angle_zero_override=StreetParkingAngleZeroOverride.Dashed,
-                parking_space_material=ParkingSpaceMaterial.MI_ParkingTiles_CobbleStone_01
+                parking_space_material=ParkingSpaceMaterial.MI_ParkingTiles_CobbleStone_01,
+                global_parking_decal_wear=.456
             )
         )
         builder.Finish(SerializeEnvironmentConfig.serialize(builder, environment_config))
@@ -1699,6 +1710,7 @@ class TestSerializeEnvironmentConfig:
         assert result.parking_config.street_parking_delineation_type == StreetParkingDelineationType.DoubleOpen
         assert result.parking_config.street_parking_angle_zero_override == StreetParkingAngleZeroOverride.Dashed
         assert result.parking_config.parking_space_material == ParkingSpaceMaterial.MI_ParkingTiles_CobbleStone_01
+        assert helpers.fisclose(result.parking_config.global_parking_decal_wear, 0.456)
 
     def test_deserialize_default(self, builder, helpers):
         EnvironmentConfigFB.EnvironmentConfigFBStart(builder)

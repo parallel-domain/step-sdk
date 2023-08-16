@@ -7,11 +7,12 @@
 """
 IG and related objects
 """
-
+from __future__ import annotations
 from dataclasses import dataclass
 from typing import TypeVar, Type, Optional, List, Dict
 from enum import Enum
 from datetime import datetime
+from uuid import UUID
 
 from dacite import from_dict, Config
 
@@ -115,7 +116,7 @@ class Ig:
         Args:
             sim_version: Sim version
             ig_version: Ig version
-            ig_version: Label Engine version
+            le_version: Label Engine version
             quality: Ig quality
             levelpaks: :obj:`dict` specifying versions of Levelpaks that will be available in the Ig.
                        Only the Levelpaks specified will be available.
@@ -192,28 +193,37 @@ class IgVersion:
     name: str
     """Ig version name"""
 
+    internal_version: Optional[UUID] = None
+    """Ig internal version"""
+
     _RESOURCE_NAME = 'ig_versions'
+    _DACITE_CONFIG = Config(cast=[UUID])
 
     @classmethod
-    def list(cls: Type[T]) -> List[T]:
+    def list(cls) -> List[IgVersion]:
         http_client = get_http_client()
         url = cls._RESOURCE_NAME
         _, content = http_client.request('get', url)
-        ig_versions = [from_dict(data_class=IgVersion, data=v) for v in content]
+        ig_versions = [from_dict(data_class=IgVersion, data=v, config=cls._DACITE_CONFIG) for v in content]
         return ig_versions
 
 
-def fetch_ig_asset_registry(ig_version: str) -> bytes:
+def fetch_ig_asset_registry(ig_version: str | UUID) -> bytes:
     """
     Fetch the Asset Registry file associated with an :class:`IgVersion`
 
     Args:
-        ig_version: :class:`IgVersion` name
+        ig_version: :class:`IgVersion` name or resolved IG artifact UUID
 
     Returns:
         Bytes of the Asset Registry file
     """
     http_client = get_http_client()
-    url = f'ig_versions/{ig_version}/asset_registry'
+    if isinstance(ig_version, UUID):
+        # switch to new API if internal version is available
+        url = f'asset_registry/{ig_version}'
+    else:
+        # TODO: remove usage of this endpoint after the new API is up
+        url = f'ig_versions/{ig_version}/asset_registry'
     _, content = http_client.request('get', url, raw_response=True)
     return content

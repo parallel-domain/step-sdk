@@ -7,7 +7,7 @@
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Literal
 
 import pd.management
 from pd.assets import init_asset_registry_version, init_asset_registry_file
@@ -63,7 +63,9 @@ def get_datalab_context() -> DataLabContext:
         raise PdError("Data Lab context is not set. Did you remember to call pd.data_lab.context.setup_datalab()?")
 
 
-def setup_datalab(version: str, fail_on_version_mismatch: bool = True):
+def setup_datalab(version: str,
+                  environment: Literal['prod', 'stage', 'dev'] = 'prod',
+                  fail_on_version_mismatch: bool = True):
     """
     Set up global context for Data Lab
 
@@ -76,6 +78,7 @@ def setup_datalab(version: str, fail_on_version_mismatch: bool = True):
 
     Args:
         version: Data Lab version for cloud workflow, or "local" for local workflow
+        environment: Environment name, one of 'prod', 'stage' or 'dev'
         fail_on_version_mismatch: Fail when version of components (Sim, Ig, etc) doesn't match Data Lab version
     """
     global _GLOBAL_CONTEXT
@@ -88,8 +91,14 @@ def setup_datalab(version: str, fail_on_version_mismatch: bool = True):
                           + ", ".join(needed_env_vars_for_cloud))
         pd.management.api_key = os.environ["PD_CLIENT_STEP_API_KEY_ENV"]
         pd.management.org = os.environ["PD_CLIENT_ORG_ENV"]
+        if environment == 'stage':
+            pd.management.api_url = pd.management._API_URL_STAGE
+        elif environment == 'dev':
+            pd.management.api_url = pd.management._API_URL_DEV
+        elif environment != 'prod':
+            raise PdError(f"Unknown environment name '{environment}' passed in setup_datalab().")
         ig_versions = set(iv.name for iv in IgVersion.list())
-        if version not in ig_versions:
+        if version not in ig_versions and fail_on_version_mismatch:
             raise PdError(f"Data Lab version '{version}' is not available. Please choose a different version "
                           "when calling setup_datalab().")
         init_asset_registry_version(version)

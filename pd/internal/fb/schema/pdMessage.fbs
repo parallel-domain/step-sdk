@@ -22,6 +22,11 @@ table pdLoadLocation
 {
     location_name : string;
     time_of_day : string;
+
+    // Scene name for annotation data
+    // Each load location call must provide a unique scene name
+    // Leave blank if using old style of querying annotations from IG
+    scene_name: string;
 }
 
 table pdSetGlobalParams
@@ -428,47 +433,93 @@ table pdRaycastHits
    hits : [pdRaycastHit];
 }
 
+// Initialize the Label Engine server with a pipeline config
 table pdConfigLabelEngine
 {
     // JSON blob defining our pipeline config
     config : string;
+
+    // Scene name
+    scene_name: string;
 }
 
+// Request the Label Engine server to execute the pipeline for a single timestamp
 table pdRequestLabelEngineTimestamp
 {
-    // Label for the timestep that we are requesting
+    // Timestamp to process
     timestamp : string;
+
+    // List of sensor names to process
     sensors : [string];
+
+    // Scene name
+    scene_name: string;
 }
 
+// Query Label Engine server to check if an output Data Stream (label)
+// from a single timestamp request is ready
 table pdQueryLabelEngineAnnotationStatus
 {
+    // Timestamp of the Data Objects
+    // Should only be provided for Data Streams that vary over time, and NULL otherwise
     timestamp : string;
+
+    // Data Stream name
     label : string;
+
+    // Sensors to check. Sensor name is in the form `<sensor_name>-<agent_id>`
+    // Should only be provided for Data Streams that vary over sensor, and NULL otherwise
+    sensors : [string];
+
+    // Scene name
+    scene_name: string;
 }
 
+// Response from pdQueryLabelEngineAnnotationStatus
 table pdReturnLabelEngineAnnotationStatus
 {
+    // True if output is ready
     status : bool;
 }
 
+// Request label data from Label Engine for a single Data Stream (label)
 table pdRequestLabelEngineAnnotationData
 {
+    // Timestamp of the Data Objects
+    // Should only be provided for Data Streams that vary over time, and NULL otherwise
     timestamp : string;
+
+    // Data Stream name
     label: string;
+
+    // Sensors to retrieve. Sensor name is in the form `<sensor_name>-<agent_id>`
+    // Should only be provided for Data Streams that vary over sensor, and NULL otherwise
+    sensors : [string];
+
+    // Scene name
+    scene_name: string;
 }
 
 table pdLabelData
 {
+    // Sensor name for the Data Object, if applicable
     sensor : string;
+
+    // Data Object bytes
     label_data: [uint8];
+
+    // Timestamp for the Data Object, if applicable
+    timestamp : string;
 }
 
+// Response for pdRequestLabelEngineAnnotationData
 table pdReturnLabelEngineAnnotationData
 {
+    // Each element corresponds to a single Data Object
     label_data : [pdLabelData];
 }
 
+// Send a Data Object to Label Engine server
 table pdUpdateLabelEngineAnnotationData
 {
     timestamp : string;
@@ -476,6 +527,7 @@ table pdUpdateLabelEngineAnnotationData
     label : string;
     data_type : int;
     label_data : [uint8];
+    scene_name: string;
 }
 
 union pdMessageType

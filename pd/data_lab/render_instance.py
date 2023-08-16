@@ -6,20 +6,17 @@
 
 import abc
 import logging
-import os
-from datetime import datetime
 from time import sleep
 from typing import List, Literal, Optional
 
-import pd.state
 from pd.core import PdError
-from pd.data_lab.sim_state import SimState
-from pd.management.ig import Ig, IgQuality, IgStatus
-from pd.session import StepSession
-
 from pd.data_lab.config.location import Location
 from pd.data_lab.context import get_datalab_context
 from pd.data_lab.session_reference import TemporalSessionReference
+from pd.data_lab.sim_state import SimState
+from pd.management.ig import Ig, IgQuality, IgStatus
+from pd.session import StepSession
+from pd.state import State
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +31,10 @@ class AbstractRenderInstance(abc.ABC):
         self._location_is_set: bool = False
         self._loaded_location: Optional[Location] = None
         self._loaded_time_of_day: Optional[str] = None
+        self._unique_scene_name = None
+
+    def set_unique_scene_name(self, unique_scene_name: str):
+        self._unique_scene_name = unique_scene_name
 
     @abc.abstractmethod
     def __enter__(self) -> StepSession:
@@ -41,11 +42,6 @@ class AbstractRenderInstance(abc.ABC):
 
     @abc.abstractmethod
     def __exit__(self):
-        pass
-
-    @property
-    @abc.abstractmethod
-    def loaded_location(self) -> Optional[Location]:
         pass
 
     def load_environment(self, location: Location, time_of_day: str):
@@ -58,7 +54,8 @@ class AbstractRenderInstance(abc.ABC):
                 or self._loaded_time_of_day != time_of_day
             ):
                 # For merge batches we don't want to reload an already loaded map
-                self.session.load_location(location_name=location.name, time_of_day=time_of_day)
+                self.session.load_location(location_name=location.name, time_of_day=time_of_day,
+                                           scene_name=self._unique_scene_name)
             self._location_is_set = True
             self._loaded_location = location
             self._loaded_time_of_day = time_of_day
@@ -70,14 +67,16 @@ class AbstractRenderInstance(abc.ABC):
     def location_is_set(self) -> bool:
         return self._location_is_set
 
-    @property
-    def temporal_session_reference(self) -> Optional[TemporalSessionReference]:
-        return self._temporal_session_reference
-
+    def update_state(self, sim_state: State) -> None:
+        if self.session is None:
+            raise ValueError("Need to create session before calling update_state!")
+        self.session.update_state(state=sim_state)
 
     def render_frame(self, sim_state: SimState) -> TemporalSessionReference:
+        """
+        Update and render used when not using label engine
+        """
         if self.session is not None:
-
             # invalidate previous frame session ref
             if self._temporal_session_reference is not None:
                 self._temporal_session_reference.on_session_state_changed()
@@ -89,9 +88,11 @@ class AbstractRenderInstance(abc.ABC):
             self._temporal_session_reference = TemporalSessionReference(
                 session=self.session,
                 state=sim_state.current_state,
-                date_time=sim_state.current_sim_date_time,
+                frame_id=sim_state.current_frame_id,
+                sensor_rig=sim_state.sensor_rig,
+                ego_agent_id=sim_state.ego_agent_id,
             )
-        return self.temporal_session_reference
+        return self._temporal_session_reference
 
     @property
     def loaded_location(self) -> Optional[Location]:
@@ -247,9 +248,9 @@ class ManagedRenderInstance(AbstractRenderInstance):
 
 class RenderInstance(AbstractRenderInstance):
     def __init__(
-            self,
-            name: Optional[str] = None,
-            address: Optional[str] = None,
+        self,
+        name: Optional[str] = None,
+        address: Optional[str] = None,
     ):
         """
         Create a render instance for an existing remote IG server
@@ -288,6 +289,8 @@ class RenderInstance(AbstractRenderInstance):
                         "To disable this check, pass fail_on_version_mismatch=False to setup_datalab()."
                     )
             self._address = ig.ig_url
+            if self._address is None:
+                raise PdError("Render Instance doesn't have a image generator server.")
 
     def create_session(self):
         if self.session is None:

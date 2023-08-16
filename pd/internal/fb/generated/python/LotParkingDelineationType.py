@@ -11,4 +11,13 @@ class LotParkingDelineationType(object):
     T_SHAPE = 5
     NO_LINE = 6
     RANDOM = 7
+    BOX_CLOSED = 8
+    BOX_OPEN_CURB = 9
+    BOX_DOUBLE = 10
+    SINGLE_SQUARED_OPEN_CURB = 11
+    DOUBLE_ROUND_50CM_GAP = 12
+    DOUBLE_ROUND_50CM_GAP_OPEN_CURB = 13
+    DOUBLE_SQUARED_50CM_GAP_OPEN_CURB = 14
+    T_FULL = 15
+    T_SHORT = 16
 

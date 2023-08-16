@@ -367,16 +367,26 @@ class RadarBasicParameters(_message.Message):
     def __init__(self, max_range: Optional[float] = ..., range_resolution: Optional[float] = ..., max_doppler: Optional[float] = ..., doppler_resolution: Optional[float] = ..., azimuth_fov: Optional[float] = ..., azimuth_resolution: Optional[float] = ..., elevation_fov: Optional[float] = ..., elevation_resolution: Optional[float] = ..., radar_output_2d: bool = ..., use_random_raycast: bool = ..., number_rays_per_frame: Optional[int] = ..., azimuth_accuracy: Optional[float] = ..., elevation_accuracy: Optional[float] = ..., prf_profile_file: Optional[str] = ...) -> None: ...
 
 class RadarDetectorParameters(_message.Message):
-    __slots__ = ["detector_constant_gain", "detector_radiometric_decay", "detector_radiometric_gain", "detector_type"]
+    __slots__ = ["cfar_guard_cell", "cfar_neighbor_cell", "cfar_threshold_scale", "cfar_type", "detector_constant_gain", "detector_radiometric_decay", "detector_radiometric_gain", "detector_type", "enable_cfar"]
+    CFAR_GUARD_CELL_FIELD_NUMBER: ClassVar[int]
+    CFAR_NEIGHBOR_CELL_FIELD_NUMBER: ClassVar[int]
+    CFAR_THRESHOLD_SCALE_FIELD_NUMBER: ClassVar[int]
+    CFAR_TYPE_FIELD_NUMBER: ClassVar[int]
     DETECTOR_CONSTANT_GAIN_FIELD_NUMBER: ClassVar[int]
     DETECTOR_RADIOMETRIC_DECAY_FIELD_NUMBER: ClassVar[int]
     DETECTOR_RADIOMETRIC_GAIN_FIELD_NUMBER: ClassVar[int]
     DETECTOR_TYPE_FIELD_NUMBER: ClassVar[int]
+    ENABLE_CFAR_FIELD_NUMBER: ClassVar[int]
+    cfar_guard_cell: int
+    cfar_neighbor_cell: int
+    cfar_threshold_scale: float
+    cfar_type: str
     detector_constant_gain: float
     detector_radiometric_decay: float
     detector_radiometric_gain: float
     detector_type: str
-    def __init__(self, detector_type: Optional[str] = ..., detector_constant_gain: Optional[float] = ..., detector_radiometric_gain: Optional[float] = ..., detector_radiometric_decay: Optional[float] = ...) -> None: ...
+    enable_cfar: bool
+    def __init__(self, detector_type: Optional[str] = ..., detector_constant_gain: Optional[float] = ..., detector_radiometric_gain: Optional[float] = ..., detector_radiometric_decay: Optional[float] = ..., enable_cfar: bool = ..., cfar_type: Optional[str] = ..., cfar_guard_cell: Optional[int] = ..., cfar_neighbor_cell: Optional[int] = ..., cfar_threshold_scale: Optional[float] = ...) -> None: ...
 
 class RadarEnergyParameters(_message.Message):
     __slots__ = ["beam_pattern_file", "enable_beam_pattern", "gain_jitter_std", "nominal_gain", "radiometric_coefficient"]

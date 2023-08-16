@@ -187,20 +187,24 @@ class DroneSpawnData(_message.Message):
     def __init__(self, ascend_probability: Optional[float] = ..., ground_asset_probability: Optional[float] = ..., ground_assets: Optional[Iterable[str]] = ..., flight_path_dir: Optional[str] = ..., agent_spawn_data: Optional[Union[AgentSpawnData, Mapping]] = ..., height_offset: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., ground_asset_height_offset: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ...) -> None: ...
 
 class EgoAgentGeneratorParameters(_message.Message):
-    __slots__ = ["agent_type", "drone_spawn_data", "ego_model", "pedestrian_spawn_data", "position_request", "vehicle_spawn_data"]
+    __slots__ = ["agent_type", "drone_spawn_data", "ego_model", "pedestrian_spawn_data", "position_request", "traffic_light_color_probability", "use_traffic_light_color_probability", "vehicle_spawn_data"]
     AGENT_TYPE_FIELD_NUMBER: ClassVar[int]
     DRONE_SPAWN_DATA_FIELD_NUMBER: ClassVar[int]
     EGO_MODEL_FIELD_NUMBER: ClassVar[int]
     PEDESTRIAN_SPAWN_DATA_FIELD_NUMBER: ClassVar[int]
     POSITION_REQUEST_FIELD_NUMBER: ClassVar[int]
+    TRAFFIC_LIGHT_COLOR_PROBABILITY_FIELD_NUMBER: ClassVar[int]
+    USE_TRAFFIC_LIGHT_COLOR_PROBABILITY_FIELD_NUMBER: ClassVar[int]
     VEHICLE_SPAWN_DATA_FIELD_NUMBER: ClassVar[int]
     agent_type: AgentType
     drone_spawn_data: DroneSpawnData
     ego_model: str
     pedestrian_spawn_data: PedestrianSpawnData
     position_request: PositionRequest
+    traffic_light_color_probability: _pd_distributions_pb2.EnumDistribution
+    use_traffic_light_color_probability: bool
     vehicle_spawn_data: VehicleSpawnData
-    def __init__(self, agent_type: Optional[Union[AgentType, str]] = ..., ego_model: Optional[str] = ..., position_request: Optional[Union[PositionRequest, Mapping]] = ..., vehicle_spawn_data: Optional[Union[VehicleSpawnData, Mapping]] = ..., pedestrian_spawn_data: Optional[Union[PedestrianSpawnData, Mapping]] = ..., drone_spawn_data: Optional[Union[DroneSpawnData, Mapping]] = ...) -> None: ...
+    def __init__(self, agent_type: Optional[Union[AgentType, str]] = ..., ego_model: Optional[str] = ..., position_request: Optional[Union[PositionRequest, Mapping]] = ..., use_traffic_light_color_probability: bool = ..., traffic_light_color_probability: Optional[Union[_pd_distributions_pb2.EnumDistribution, Mapping]] = ..., vehicle_spawn_data: Optional[Union[VehicleSpawnData, Mapping]] = ..., pedestrian_spawn_data: Optional[Union[PedestrianSpawnData, Mapping]] = ..., drone_spawn_data: Optional[Union[DroneSpawnData, Mapping]] = ...) -> None: ...
 
 class EnvironmentParameters(_message.Message):
     __slots__ = ["crosswalk_sign_spawn_probability", "marker_data_map", "parking_space_data", "region", "sign_spawn_probability"]
@@ -230,10 +234,14 @@ class FloatArray(_message.Message):
     def __init__(self, data: Optional[Iterable[float]] = ...) -> None: ...
 
 class JunctionSpawnPolicy(_message.Message):
-    __slots__ = ["distance_to_junction"]
+    __slots__ = ["distance_to_junction", "intersection_type_probability", "use_intersection_type_probability"]
     DISTANCE_TO_JUNCTION_FIELD_NUMBER: ClassVar[int]
+    INTERSECTION_TYPE_PROBABILITY_FIELD_NUMBER: ClassVar[int]
+    USE_INTERSECTION_TYPE_PROBABILITY_FIELD_NUMBER: ClassVar[int]
     distance_to_junction: _pd_distributions_pb2.ContinousUniformDistribution
-    def __init__(self, distance_to_junction: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ...) -> None: ...
+    intersection_type_probability: _pd_distributions_pb2.EnumDistribution
+    use_intersection_type_probability: bool
+    def __init__(self, distance_to_junction: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., use_intersection_type_probability: bool = ..., intersection_type_probability: Optional[Union[_pd_distributions_pb2.EnumDistribution, Mapping]] = ...) -> None: ...
 
 class LaneCurvatureSpawnPolicy(_message.Message):
     __slots__ = ["curvature_bounds", "min_section_length"]
@@ -616,20 +624,24 @@ class VehicleGeneratorParameters(_message.Message):
     def __init__(self, model: Optional[str] = ..., position_request: Optional[Union[PositionRequest, Mapping]] = ..., vehicle_spawn_data: Optional[Union[VehicleSpawnData, Mapping]] = ...) -> None: ...
 
 class VehiclePeripheral(_message.Message):
-    __slots__ = ["disable_accessories", "disable_occupants", "emergency_light_probability", "randomize_vehicle_parts", "spawn_trailer_probability", "trailer_initial_yaw"]
+    __slots__ = ["disable_accessories", "disable_occupants", "emergency_light_probability", "headlight_probability", "randomize_vehicle_parts", "set_headlight_based_on_time_of_day", "spawn_trailer_probability", "trailer_initial_yaw"]
     DISABLE_ACCESSORIES_FIELD_NUMBER: ClassVar[int]
     DISABLE_OCCUPANTS_FIELD_NUMBER: ClassVar[int]
     EMERGENCY_LIGHT_PROBABILITY_FIELD_NUMBER: ClassVar[int]
+    HEADLIGHT_PROBABILITY_FIELD_NUMBER: ClassVar[int]
     RANDOMIZE_VEHICLE_PARTS_FIELD_NUMBER: ClassVar[int]
+    SET_HEADLIGHT_BASED_ON_TIME_OF_DAY_FIELD_NUMBER: ClassVar[int]
     SPAWN_TRAILER_PROBABILITY_FIELD_NUMBER: ClassVar[int]
     TRAILER_INITIAL_YAW_FIELD_NUMBER: ClassVar[int]
     disable_accessories: bool
     disable_occupants: bool
     emergency_light_probability: float
+    headlight_probability: float
     randomize_vehicle_parts: bool
+    set_headlight_based_on_time_of_day: bool
     spawn_trailer_probability: float
     trailer_initial_yaw: _pd_distributions_pb2.ContinousUniformDistribution
-    def __init__(self, spawn_trailer_probability: Optional[float] = ..., trailer_initial_yaw: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., disable_occupants: bool = ..., disable_accessories: bool = ..., randomize_vehicle_parts: bool = ..., emergency_light_probability: Optional[float] = ...) -> None: ...
+    def __init__(self, spawn_trailer_probability: Optional[float] = ..., trailer_initial_yaw: Optional[Union[_pd_distributions_pb2.ContinousUniformDistribution, Mapping]] = ..., disable_occupants: bool = ..., disable_accessories: bool = ..., randomize_vehicle_parts: bool = ..., emergency_light_probability: Optional[float] = ..., set_headlight_based_on_time_of_day: bool = ..., headlight_probability: Optional[float] = ...) -> None: ...
 
 class VehicleSpawnData(_message.Message):
     __slots__ = ["agent_spawn_data", "vehicle_behavior", "vehicle_peripheral"]

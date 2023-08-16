@@ -10,12 +10,22 @@ Utility functions for instance management
 
 import logging
 import time
+from uuid import UUID
+
 
 from pd.management.ig import Ig, IgStatus
 from pd.core import PdError
 
 
 logger = logging.getLogger(__name__)
+
+
+def is_uuid(s: str) -> bool:
+    try:
+        UUID(s)
+    except ValueError:
+        return False
+    return True
 
 
 def create_ig_with_retry(max_retries: int = 0, **kwargs) -> Ig:

@@ -4,10 +4,10 @@
 # Use of this file is only permitted if you have entered into a
 # separate written license agreement with Parallel Domain, Inc.
 import abc
+import json
 from pathlib import Path
 from typing import List, Optional, Union
 
-import ujson
 from google.protobuf.json_format import MessageToDict, ParseDict, ParseError
 
 from pd.core import PdError
@@ -79,6 +79,14 @@ class SimulatedScenarioCollection(ScenarioSource):
         super().__init__()
         self._storage_folder = storage_folder
 
+    @property
+    def _scene_folders(self) -> List[Path]:
+        return [sf for sf in self._storage_folder.iterdir() if sf.is_dir()]
+
+    @property
+    def number_of_stored_scenes(self) -> int:
+        return len(self._scene_folders)
+
     def get_discrete_scenario(
         self,
         scenario_index: int,
@@ -90,8 +98,7 @@ class SimulatedScenarioCollection(ScenarioSource):
         start_skip_frames: Optional[int] = 5,
         merge_batches: Optional[bool] = None,
     ) -> "DiscreteScenario":
-        scene_folders = [sf for sf in self._storage_folder.iterdir() if sf.is_dir()]
-        scene_folder = scene_folders[scenario_index]
+        scene_folder = self._scene_folders[scenario_index]
         return SimulatedScenario(
             folder=scene_folder,
             state_callbacks=[c.clone() for c in self.state_callbacks],
@@ -186,13 +193,12 @@ class Scenario(ScenarioSource):
             self._location = location
         self._sim_state_message.locations[0].location = location.name
 
-    def add_objects(self, generator: Union[AtomicGeneratorMessage, CustomAtomicGenerator]) -> "Scenario":
-        if isinstance(generator, CustomAtomicGenerator):
-            self._custom_generators.append(generator)
-        else:
-            self._add_atomic(generator)
-
-        return self
+    def add_objects(
+        self, generator: Union[AtomicGeneratorMessage, CustomAtomicGenerator, CustomSimulationAgent]
+    ) -> "Scenario":
+        # At the moment we don't really differentiate between 'agents' and 'objects', but we may in the future.
+        # That's the reason for keeping this method.
+        return self.add_agents(generator)
 
     def _add_atomic(self, generator: AtomicGeneratorMessage):
         location = self._sim_state_message.locations[0]
@@ -256,7 +262,7 @@ class Scenario(ScenarioSource):
             fp.write(sim_state_str)
 
     def to_scenario_generation_json(self) -> str:
-        return ujson.dumps(
+        return json.dumps(
             MessageToDict(
                 message=self.sim_state.proto,
                 including_default_value_fields=False,
@@ -266,14 +272,13 @@ class Scenario(ScenarioSource):
                 float_precision=None,
             ),
             indent=2,
-            escape_forward_slashes=False,
         )
 
     @classmethod
     def load_scenario(cls, path: Union[str, Path], sensor_rig: SensorRig = None) -> "Scenario":
         path = Path(path) if isinstance(path, str) else path
         with path.open("r") as fp:
-            message_json = ujson.load(fp)
+            message_json = json.load(fp)
         try:
             if "stages" in message_json:
                 message = next(
@@ -401,7 +406,7 @@ class SampledScenario(DiscreteScenario):
         return decode_generator_preset(generator_preset=gen)
 
     def to_scenario_generation_json(self) -> str:
-        return ujson.dumps(
+        return json.dumps(
             MessageToDict(
                 message=self.sim_state.proto,
                 including_default_value_fields=False,
@@ -411,7 +416,6 @@ class SampledScenario(DiscreteScenario):
                 float_precision=None,
             ),
             indent=2,
-            escape_forward_slashes=False,
         )
 
     @property

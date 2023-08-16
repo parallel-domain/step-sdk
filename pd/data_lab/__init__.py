@@ -7,6 +7,7 @@
 from pathlib import Path
 from typing import Generator, Optional, Tuple, TypeVar, Type
 
+from pd.data_lab.labeled_state_reference import LabeledStateReference, StateReference
 from pd.data_lab.scenario import Scenario, ScenarioSource, DiscreteScenario
 from pd.data_lab.scenario_generator import ScenarioGenerator
 from pd.data_lab.session_reference import TemporalSessionReference
@@ -20,8 +21,7 @@ def sim_stream_from_discrete_scenario(
     discrete_scenario: DiscreteScenario,
     sim_state_type: Type[TSimState] = SimState,
     **kwargs,
-) -> Generator[Tuple[Optional[TemporalSessionReference], TSimState], None, None]:
-
+) -> Generator[StateReference, None, None]:
     with ScenarioGenerator(
         discrete_scenario=discrete_scenario,
         sim_state_type=sim_state_type,
@@ -42,7 +42,7 @@ def create_sensor_sim_stream(
     merge_batches: Optional[bool] = None,
     sim_state_type: Type[TSimState] = SimState,
     **kwargs,
-) -> Tuple[DiscreteScenario, Generator[Tuple[Optional[TemporalSessionReference], TSimState], None, None]]:
+) -> Tuple[DiscreteScenario, Generator[StateReference, None, None]]:
     discrete_scenario = scenario.get_discrete_scenario(
         dataset_name=dataset_name,
         end_skip_frames=end_skip_frames,
@@ -59,10 +59,10 @@ def create_sensor_sim_stream(
     )
 
 
-def _store_sim_state(state: SimState, output_folder: Path, scene_name: str):
-    path = output_folder / scene_name / f"{state.current_frame_id:0>10}.pd"
+def _store_sim_state(state_reference: StateReference, output_folder: Path, scene_name: str):
+    path = output_folder / scene_name / f"{state_reference.frame_id:0>10}.pd"
     path.parent.mkdir(parents=True, exist_ok=True)
-    state_bytes = state_to_bytes(state=state.current_state)
+    state_bytes = state_to_bytes(state=state_reference.state)
     with path.open("wb") as file:
         file.write(state_bytes)
 
@@ -86,5 +86,7 @@ def encode_sim_states(
             **kwargs,
         )
 
-        for temporal_sensor_session_reference, sim_state in gen:
-            _store_sim_state(state=sim_state, output_folder=output_folder, scene_name=discrete_scenario.name)
+        for state_reference in gen:
+            _store_sim_state(
+                state_reference=state_reference, output_folder=output_folder, scene_name=discrete_scenario.name
+            )

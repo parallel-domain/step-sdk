@@ -68,11 +68,19 @@ class pdUpdateLabelEngineAnnotationData(object):
             return self._tab.VectorLen(o)
         return 0
 
-def pdUpdateLabelEngineAnnotationDataStart(builder): builder.StartObject(5)
+    # pdUpdateLabelEngineAnnotationData
+    def SceneName(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return bytes()
+
+def pdUpdateLabelEngineAnnotationDataStart(builder): builder.StartObject(6)
 def pdUpdateLabelEngineAnnotationDataAddTimestamp(builder, timestamp): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(timestamp), 0)
 def pdUpdateLabelEngineAnnotationDataAddSensor(builder, sensor): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(sensor), 0)
 def pdUpdateLabelEngineAnnotationDataAddLabel(builder, label): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(label), 0)
 def pdUpdateLabelEngineAnnotationDataAddDataType(builder, dataType): builder.PrependInt32Slot(3, dataType, 0)
 def pdUpdateLabelEngineAnnotationDataAddLabelData(builder, labelData): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(labelData), 0)
 def pdUpdateLabelEngineAnnotationDataStartLabelDataVector(builder, numElems): return builder.StartVector(1, numElems, 1)
+def pdUpdateLabelEngineAnnotationDataAddSceneName(builder, sceneName): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(sceneName), 0)
 def pdUpdateLabelEngineAnnotationDataEnd(builder): return builder.EndObject()

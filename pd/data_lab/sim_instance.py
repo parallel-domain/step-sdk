@@ -314,6 +314,8 @@ class SimulationInstance(AbstractSimulationInstance):
                         "To disable this check, pass fail_on_version_mismatch=False to setup_datalab()."
                     )
             self._address = ig.sim_url
+            if self._address is None:
+                raise PdError("Render Instance doesn't have a simulation server.")
 
     @property
     def session(self) -> SimSession:

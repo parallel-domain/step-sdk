@@ -78,7 +78,18 @@ class PedestrianStateFB(object):
             return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
         return 0
 
-def PedestrianStateFBStart(builder): builder.StartObject(8)
+    # PedestrianStateFB
+    def PathGoal(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
+        if o != 0:
+            x = o + self._tab.Pos
+            from .float4x4_t import float4x4_t
+            obj = float4x4_t()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+def PedestrianStateFBStart(builder): builder.StartObject(9)
 def PedestrianStateFBAddGoal(builder, goal): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(goal), 0)
 def PedestrianStateFBAddMaxSpeed(builder, maxSpeed): builder.PrependFloat32Slot(1, maxSpeed, 0.0)
 def PedestrianStateFBAddPathDist(builder, pathDist): builder.PrependFloat32Slot(2, pathDist, 0.0)
@@ -87,4 +98,5 @@ def PedestrianStateFBAddBehaviorFlags(builder, behaviorFlags): builder.PrependUi
 def PedestrianStateFBAddStateTimer(builder, stateTimer): builder.PrependFloat32Slot(5, stateTimer, 0.0)
 def PedestrianStateFBAddAnimationData(builder, animationData): builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(animationData), 0)
 def PedestrianStateFBAddSurfaceFlags(builder, surfaceFlags): builder.PrependUint64Slot(7, surfaceFlags, 0)
+def PedestrianStateFBAddPathGoal(builder, pathGoal): builder.PrependStructSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(pathGoal), 0)
 def PedestrianStateFBEnd(builder): return builder.EndObject()

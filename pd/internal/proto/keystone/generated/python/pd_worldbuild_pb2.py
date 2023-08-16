@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13pd_worldbuild.proto\x12\x08keystone\"\xe1\x04\n\x0eWorldBuildInfo\x12\x14\n\x0c\x61rtifact_key\x18\x01 \x01(\t\x12\x1b\n\x13output_artifact_uid\x18\x02 \x01(\t\x12\x1f\n\x17\x63ode_build_artifact_uid\x18\x03 \x01(\t\x12\x17\n\x0f\x62\x61se_changelist\x18\x05 \x01(\t\x12\x1b\n\x13unshelve_changelist\x18\x06 \x01(\t\x12\x11\n\tqa_render\x18\x07 \x01(\x08\x12)\n!image_generator_core_artifact_uid\x18\x08 \x01(\t\x12\x19\n\x11world_preview_uid\x18\t \x01(\t\x12\x38\n\rlocation_list\x18\x04 \x03(\x0b\x32!.keystone.WorldBuildInfo.Location\x1a\xb1\x02\n\x08Location\x12\x18\n\x0c\x61rtifact_key\x18\x01 \x01(\tB\x02\x18\x01\x12$\n\x1clocation_output_artifact_uid\x18\x02 \x01(\t\x12(\n\x1cworldgen_output_artifact_uid\x18\x03 \x01(\tB\x02\x18\x01\x12.\n\"imported_level_output_artifact_uid\x18\x04 \x01(\tB\x02\x18\x01\x12(\n\x1cimage_gen_level_artifact_uid\x18\x05 \x01(\tB\x02\x18\x01\x12\x15\n\rlocation_name\x18\x06 \x01(\t\x12\x17\n\x0fparameters_path\x18\x07 \x01(\t\x12\x17\n\x0finput_file_path\x18\x08 \x01(\t\x12\x18\n\x0cgeojson_path\x18\t \x01(\tB\x02\x18\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13pd_worldbuild.proto\x12\x08keystone\"\x98\x05\n\x0eWorldBuildInfo\x12\x14\n\x0c\x61rtifact_key\x18\x01 \x01(\t\x12\x1b\n\x13output_artifact_uid\x18\x02 \x01(\t\x12\x1f\n\x17\x63ode_build_artifact_uid\x18\x03 \x01(\t\x12\x17\n\x0f\x62\x61se_changelist\x18\x05 \x01(\t\x12\x1b\n\x13unshelve_changelist\x18\x06 \x01(\t\x12\x11\n\tqa_render\x18\x07 \x01(\x08\x12)\n!image_generator_core_artifact_uid\x18\x08 \x01(\t\x12\x19\n\x11world_preview_uid\x18\t \x01(\t\x12\x1c\n\x14levelcook_batch_size\x18\n \x01(\x05\x12\x17\n\x0f\x64o_houdini_only\x18\x0b \x01(\x08\x12\x38\n\rlocation_list\x18\x04 \x03(\x0b\x32!.keystone.WorldBuildInfo.Location\x1a\xb1\x02\n\x08Location\x12\x18\n\x0c\x61rtifact_key\x18\x01 \x01(\tB\x02\x18\x01\x12$\n\x1clocation_output_artifact_uid\x18\x02 \x01(\t\x12(\n\x1cworldgen_output_artifact_uid\x18\x03 \x01(\tB\x02\x18\x01\x12.\n\"imported_level_output_artifact_uid\x18\x04 \x01(\tB\x02\x18\x01\x12(\n\x1cimage_gen_level_artifact_uid\x18\x05 \x01(\tB\x02\x18\x01\x12\x15\n\rlocation_name\x18\x06 \x01(\t\x12\x17\n\x0fparameters_path\x18\x07 \x01(\t\x12\x17\n\x0finput_file_path\x18\x08 \x01(\t\x12\x18\n\x0cgeojson_path\x18\t \x01(\tB\x02\x18\x01\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'pd_worldbuild_pb2', globals())
@@ -31,7 +31,7 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _WORLDBUILDINFO_LOCATION.fields_by_name['geojson_path']._options = None
   _WORLDBUILDINFO_LOCATION.fields_by_name['geojson_path']._serialized_options = b'\030\001'
   _WORLDBUILDINFO._serialized_start=34
-  _WORLDBUILDINFO._serialized_end=643
-  _WORLDBUILDINFO_LOCATION._serialized_start=338
-  _WORLDBUILDINFO_LOCATION._serialized_end=643
+  _WORLDBUILDINFO._serialized_end=698
+  _WORLDBUILDINFO_LOCATION._serialized_start=393
+  _WORLDBUILDINFO_LOCATION._serialized_end=698
 # @@protoc_insertion_point(module_scope)

@@ -19,7 +19,7 @@ import pd.session
 import pd.state
 import pd.umd
 from pd.core import PdError
-from pd.label_engine import load_pipeline_config, simulation_time_as_timestamp
+from pd.label_engine import load_pipeline_config, simulation_time_as_timestamp, DataType
 from pd.util.scripting import common_step_options, StepScriptContext
 
 from pd.internal.proto.label_engine.generated.python.bounding_box_2d_pb2 import VisibilitySampleMetadata, VisibilitySampleType
@@ -39,8 +39,12 @@ MAX_SIM_DISTANCE_METRES = 1000
 # Given a render frame rate of 100fps, CAPTURE_INTERVAL=10 will yield an output frame rate of 10fps.
 #
 # Default values of RENDER_INTERVAL=1, CAPTURE_INTERVAL=10 yield render rate of 100fps and output frame rate of 10fps.
-RENDER_FRAME_INTERVAL = 10  # Every Nth simulation state is rendered
-CAPTURE_FRAME_INTERVAL = 1  # Every Nth render is saved/displayed
+RENDER_FRAME_INTERVAL = 1  # Every Nth simulation state is rendered
+CAPTURE_FRAME_INTERVAL = 10  # Every Nth render is saved/displayed
+
+# Number of renders frames to skip before capturing the first one
+START_SKIP_FRAMES = 5
+
 
 
 def save_image(base_path: Path, sensor: str, timestamp: str, image):
@@ -178,6 +182,11 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
     instance_output_path = output_path / "instance_segmentation_2d"
     normals_2d_output_path = output_path / "surface_normals_2d"
     bbox2d_output_path = output_path / "bounding_box_2d"
+    bbox3d_output_path = output_path / "bounding_box_3d"
+    instance_points_2d_output_path = output_path / "instance_points_2d_xyz"
+    instance_points_3d_output_path = output_path / "instance_points_3d_xyz"
+    world_lines_output_path = output_path / "world_lines_xyz"
+    instance_states_output_path = output_path / "instance_state_xyz"
 
     # Load route information
     level_name, level_version = location
@@ -192,6 +201,9 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
     # Load sensor rig
     sensor_list = pd.state.load_sensor_rig(sensor if sensor else pd.state.SensorRig.DEMO_RIG_SIMPLE_FRONT_ALL)
 
+    # Scene name for this run
+    scene_name = pd.session.generate_scene_name()
+
     click.echo("Connecting to Step server(s)...", nl=False)
     ig_session = pd.session.StepIgSession(request_addr=step_options.ig, client_cert_file=client_cert_file)
     if step_options.label_engine:
@@ -204,13 +216,19 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
         click.echo(f"IG version: {ig_version.major}.{ig_version.minor}.{ig_version.patch}-{ig_version.build}")
 
         if step_options.label_engine:
-            le_config_name = 'pipeline_minimal'
+            le_config_name = 'pipeline_extended'
             click.echo(f"Configuring Label Engine with pipeline '{le_config_name}'")
             le_config = load_pipeline_config(le_config_name)
-            le_session.configure(le_config)
+            le_session.configure(scene_name, le_config)
+            click.echo(f"Sending Umd to Label Engine server")
+            le_session.update_annotation_data(
+                scene_name=scene_name, label='umd', timestamp=None, sensor_id_and_name=None,
+                data_type=DataType.UMD, data=umd_map.SerializeToString()
+            )
+
 
         click.echo(f"Loading map {level_name}...", nl=False)
-        ig_session.load_location(level_name, lighting)
+        ig_session.load_location(level_name, lighting, scene_name)
         click.echo("done")
 
         # Initialize simulation state
@@ -219,13 +237,17 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
         time_sec = 0.0
         ego_pose = next(ego_poses)
         ego_velocity = (0.0, 0.0, 0.0)
-        ego_agent_id = 2 # (FIXME: PD-27812 bug in Data Lab mode in IG) pd.state.rand_agent_id()
+        ego_agent_id = pd.state.rand_agent_id()
         click.echo(f"Ego agent id = {ego_agent_id}")
 
         # Main loop
         while time_sec < MAX_SIM_TIME_SEC:
-            do_render_frame = frame_count % RENDER_FRAME_INTERVAL == 0
-            do_capture_frame = frame_count % (RENDER_FRAME_INTERVAL * CAPTURE_FRAME_INTERVAL) == 0
+            do_render_frame, do_capture_frame = pd.state.get_render_and_capture_flag_from_frame_index(
+                frame_index=frame_count,
+                render_interval=RENDER_FRAME_INTERVAL,
+                capture_interval=CAPTURE_FRAME_INTERVAL,
+                start_skip_frames=START_SKIP_FRAMES
+            )
             click.echo(f"Frame {frame_count}, Time {time_sec:.3f}s, Render {do_render_frame}, Capture {do_capture_frame}")
 
             # Create state for current frame
@@ -242,12 +264,13 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
             state = pd.state.State(
                 simulation_time_sec=time_sec,
                 world_info=world_info,
-                agents=[ego_agent]
+                agents=[ego_agent],
+                capture=do_capture_frame
             )
             frame_timestamp = simulation_time_as_timestamp(state.simulation_time_sec)
 
             if do_render_frame:
-                # Send state to server
+                # Send state to IG server
                 ig_session.update_state(state)
 
             if do_capture_frame:
@@ -255,48 +278,137 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
 
                 if step_options.label_engine:
                     # Grab annotations from Label Engine
-                    # Wait for Label Engine annotations to be ready
-                    click.echo(f"Waiting for Label Engine annotations to be ready for timestamp '{frame_timestamp}'...")
-                    wait_for_annotations = ('rgb', 'semantic_mask_xyz', 'instance_mask_xyz', 'normals', 'bounding_box_2d_xyz')
-                    while not all(le_session.query_annotation_status(frame_timestamp, annotation) for annotation in wait_for_annotations):
-                        time.sleep(0.5)
 
-                    # Query RGB
-                    label_data = le_session.request_annotation_data(frame_timestamp, 'rgb')
-                    rgb_image = label_data[0].data_as_rgb
-                    save_image(rgb_output_path, label_data[0].sensor_name, label_data[0].timestamp,
-                               cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR))
-                    preview_rgb_image = rgb_image if preview_rgb_image is None else preview_rgb_image  # save for preview
+                    for sensor in sensor_list:
+                        if not isinstance(sensor, pd.state.sensor.CameraSensor):
+                            continue
+                        sensor_id_and_name = (ego_agent_id, sensor.name)
 
-                    # Query semantic segmentation
-                    label_data = le_session.request_annotation_data(frame_timestamp, 'semantic_mask_xyz')
-                    semseg_image = label_data[0].data_as_segmentation_rgb
-                    save_image(semseg_output_path, label_data[0].sensor_name, label_data[0].timestamp,
-                               cv2.cvtColor(semseg_image, cv2.COLOR_RGB2BGR))
+                        # Wait for Label Engine annotations to be ready
+                        click.echo(f"Waiting for Label Engine annotations to be ready for timestamp '{frame_timestamp}'...")
+                        wait_for_annotations_args = (
+                            ('rgb', frame_timestamp, sensor_id_and_name),
+                            ('depth', frame_timestamp, sensor_id_and_name),
+                            ('semantic_mask_xyz', frame_timestamp, sensor_id_and_name),
+                            ('instance_mask_xyz', frame_timestamp, sensor_id_and_name),
+                            ('normals', frame_timestamp, sensor_id_and_name),
+                            ('bounding_box_2d_xyz', frame_timestamp, sensor_id_and_name),
+                            ('bounding_box_3d_xyz', frame_timestamp),
+                            ('instance_points_2d_xyz', frame_timestamp, sensor_id_and_name),
+                            ('instance_points_3d_xyz', frame_timestamp),
+                            ('world_lines_xyz', ),
+                            ('instance_state_xyz', frame_timestamp),
+                        )
+                        while not all(
+                            le_session.query_annotation_status(scene_name, *args) for args in wait_for_annotations_args
+                        ):
+                            time.sleep(0.5)
+    
+                        # Query RGB
+                        label_data = le_session.request_annotation_data(scene_name=scene_name,
+                                                                        label='rgb',
+                                                                        timestamp=frame_timestamp,
+                                                                        sensor_id_and_name=sensor_id_and_name)
+                        rgb_image = label_data.data_as_rgb
+                        save_image(rgb_output_path, sensor.name, frame_timestamp,
+                                   cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR))
+                        preview_rgb_image = rgb_image if preview_rgb_image is None else preview_rgb_image  # save for preview
 
-                    # Query instance segmentation
-                    label_data = le_session.request_annotation_data(frame_timestamp, 'instance_mask_xyz')
-                    instance_image = label_data[0].get_data_as_merged_instance_rgb(rgb_image)
-                    save_image(instance_output_path, label_data[0].sensor_name, label_data[0].timestamp,
-                               cv2.cvtColor(instance_image, cv2.COLOR_RGB2BGR))
+                        # Query depth
+                        label_data = le_session.request_annotation_data(scene_name=scene_name,
+                                                                        label='depth',
+                                                                        timestamp=frame_timestamp,
+                                                                        sensor_id_and_name=sensor_id_and_name)
+                        depth_data = label_data.data_as_depth
+                        depth_image = depth_data.astype(np.uint8)
+                        save_image(depth_output_path, sensor.name, frame_timestamp,
+                                   cv2.applyColorMap(depth_image, cv2.COLORMAP_JET))
+    
+                        # Query semantic segmentation
+                        label_data = le_session.request_annotation_data(scene_name=scene_name,
+                                                                        label='semantic_mask_xyz',
+                                                                        timestamp=frame_timestamp,
+                                                                        sensor_id_and_name=sensor_id_and_name)
+                        semseg_image = label_data.data_as_segmentation_rgb
+                        save_image(semseg_output_path, sensor.name, frame_timestamp,
+                                   cv2.cvtColor(semseg_image, cv2.COLOR_RGB2BGR))
+    
+                        # Query instance segmentation
+                        label_data = le_session.request_annotation_data(scene_name=scene_name,
+                                                                        label='instance_mask_xyz',
+                                                                        timestamp=frame_timestamp,
+                                                                        sensor_id_and_name=sensor_id_and_name)
+                        instance_image = label_data.get_data_as_merged_instance_rgb(rgb_image)
+                        save_image(instance_output_path, sensor.name, frame_timestamp,
+                                   cv2.cvtColor(instance_image, cv2.COLOR_RGB2BGR))
+    
+                        # Query normals
+                        label_data = le_session.request_annotation_data(scene_name=scene_name,
+                                                                        label='normals',
+                                                                        timestamp=frame_timestamp,
+                                                                        sensor_id_and_name=sensor_id_and_name)
+                        normals_2d_image = label_data.data_as_rgb
+                        save_image(normals_2d_output_path, sensor.name, frame_timestamp,
+                                   cv2.cvtColor(normals_2d_image, cv2.COLOR_RGB2BGR))
+    
+                        # Query BBox2D
+                        label_data = le_session.request_annotation_data(scene_name=scene_name,
+                                                                        label='bounding_box_2d_xyz',
+                                                                        timestamp=frame_timestamp,
+                                                                        sensor_id_and_name=sensor_id_and_name)
+                        bbox_2d_annotation = label_data.data_as_annotation
+                        save_proto(bbox2d_output_path, sensor.name, frame_timestamp, label_data.data)
+                        num_2d_bboxes = 0
+                        for primitive in bbox_2d_annotation.geometry.primitives:
+                            visibility_sample_metadata = VisibilitySampleMetadata()
+                            primitive.metadata.Unpack(visibility_sample_metadata)
+                            if visibility_sample_metadata.type == VisibilitySampleType.eInstanceSample:
+                                num_2d_bboxes += 1
+                        click.echo(f"Number of 2D bounding boxes (sensor={sensor.name}) = {num_2d_bboxes}")
 
-                    # Query normals
-                    label_data = le_session.request_annotation_data(frame_timestamp, 'normals')
-                    normals_2d_image = label_data[0].data_as_rgb
-                    save_image(normals_2d_output_path, label_data[0].sensor_name, label_data[0].timestamp,
-                               cv2.cvtColor(normals_2d_image, cv2.COLOR_RGB2BGR))
+                        # Query BBox 3D
+                        label_data = le_session.request_annotation_data(scene_name=scene_name,
+                                                                        label='bounding_box_3d_xyz',
+                                                                        timestamp=frame_timestamp)
+                        bbox_3d_annotation = label_data.data_as_annotation
+                        save_proto(bbox3d_output_path, None, frame_timestamp, label_data.data)
+                        num_3d_bboxes = len(bbox_3d_annotation.geometry.primitives)
+                        click.echo(f"Number of 3D bounding boxes = {num_3d_bboxes}")
 
-                    # Query BBox2D
-                    label_data = le_session.request_annotation_data(frame_timestamp, 'bounding_box_2d_xyz')
-                    bbox_2d_annotation = label_data[0].data_as_annotation
-                    save_proto(bbox2d_output_path, label_data[0].sensor_name, label_data[0].timestamp, label_data[0].data)
-                    num_2d_bboxes = 0
-                    for primitive in bbox_2d_annotation.geometry.primitives:
-                        visibility_sample_metadata = VisibilitySampleMetadata()
-                        primitive.metadata.Unpack(visibility_sample_metadata)
-                        if visibility_sample_metadata.type == VisibilitySampleType.eInstanceSample:
-                            num_2d_bboxes += 1
-                    click.echo(f"Number of 2D bounding boxes = {num_2d_bboxes}")
+                        # Query Instance Points 2D
+                        label_data = le_session.request_annotation_data(scene_name=scene_name,
+                                                                        label='instance_points_2d_xyz',
+                                                                        timestamp=frame_timestamp,
+                                                                        sensor_id_and_name=sensor_id_and_name)
+                        instance_points_2d_annotation = label_data.data_as_annotation
+                        save_proto(instance_points_2d_output_path, None, frame_timestamp, label_data.data)
+                        num_2d_points = len(instance_points_2d_annotation.geometry.primitives)
+                        click.echo(f"Number of 2D instance points = {num_2d_points}")
+
+                        # Query Instance Points 3D
+                        label_data = le_session.request_annotation_data(scene_name=scene_name,
+                                                                        label='instance_points_3d_xyz',
+                                                                        timestamp=frame_timestamp)
+                        instance_points_3d_annotation = label_data.data_as_annotation
+                        save_proto(instance_points_3d_output_path, None, frame_timestamp, label_data.data)
+                        num_3d_points = len(instance_points_3d_annotation.geometry.primitives)
+                        click.echo(f"Number of 3D instance points = {num_3d_points}")
+
+                        # Query Instance State
+                        label_data = le_session.request_annotation_data(scene_name=scene_name,
+                                                                        label='instance_state_xyz',
+                                                                        timestamp=frame_timestamp)
+                        instance_states_annotation = label_data.data_as_annotation
+                        save_proto(instance_states_output_path, None, frame_timestamp, label_data.data)
+                        num_instance_states = len(instance_states_annotation.geometry.primitives)
+                        click.echo(f"Number of Instance states = {num_instance_states}")
+
+                    # Query World Lines
+                    label_data = le_session.request_annotation_data(scene_name=scene_name, label='world_lines_xyz')
+                    world_lines_annotation = label_data.data_as_annotation
+                    save_proto(world_lines_output_path, None, frame_timestamp, label_data.data)
+                    num_world_lines = len(world_lines_annotation.geometry.primitives)
+                    click.echo(f"Number of World Lines = {num_world_lines}")
 
                 else:
                     # Old method of grabbing annotations directly from IG

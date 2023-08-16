@@ -9,7 +9,16 @@ enum LotParkingDelineationType : int
     DOUBLE_ROUND,
     T_SHAPE,
     NO_LINE,
-    RANDOM
+    RANDOM,
+    BOX_CLOSED,
+    BOX_OPEN_CURB,
+    BOX_DOUBLE,
+    SINGLE_SQUARED_OPEN_CURB,
+    DOUBLE_ROUND_50CM_GAP,
+    DOUBLE_ROUND_50CM_GAP_OPEN_CURB,
+    DOUBLE_SQUARED_50CM_GAP_OPEN_CURB,
+    T_FULL,
+    T_SHORT
 }
 
 enum StreetParkingDelineationType : int
@@ -22,7 +31,16 @@ enum StreetParkingDelineationType : int
     DOUBLE_ROUND,
     T_SHAPE,
     NO_LINE,
-    RANDOM
+    RANDOM,
+    BOX_CLOSED,
+    BOX_OPEN_CURB,
+    BOX_DOUBLE,
+    SINGLE_SQUARED_OPEN_CURB,
+    DOUBLE_ROUND_50CM_GAP,
+    DOUBLE_ROUND_50CM_GAP_OPEN_CURB,
+    DOUBLE_SQUARED_50CM_GAP_OPEN_CURB,
+    T_FULL,
+    T_SHORT
 }
 
 // this enum is a superset of StreetParkingDelineationType
@@ -41,7 +59,16 @@ enum StreetParkingAngleZeroOverride : int
     T_SHAPE,
     NO_LINE,
     RANDOM,
-    UNMETERED
+    UNMETERED,
+    BOX_CLOSED,
+    BOX_OPEN_CURB,
+    BOX_DOUBLE,
+    SINGLE_SQUARED_OPEN_CURB,
+    DOUBLE_ROUND_50CM_GAP,
+    DOUBLE_ROUND_50CM_GAP_OPEN_CURB,
+    DOUBLE_SQUARED_50CM_GAP_OPEN_CURB,
+    T_FULL,
+    T_SHORT
 }
 
 enum ParkingSpaceMaterial : int
@@ -151,5 +178,6 @@ table ObjectDecorationsInfoFB
 table EnvironmentConfigFB
 {
     parking_config: ParkingConfigFB;
-    object_decoration_info: ObjectDecorationsInfoFB;
+	// DO NOT USE, deprecated and is in the StateObject union + world object. To be removed when we can make breaking changes PD-26628
+    object_decoration_info: ObjectDecorationsInfoFB (deprecated);
 }

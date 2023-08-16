@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package keystone;
+
+message Recook
+{
+    string artifact_key = 1;
+    string output_artifact_uid = 2;
+    string code_build_artifact_uid = 3;
+    string base_changelist = 4;
+    string unshelve_changelist = 5;
+    int32 levelcook_batch_size = 6;
+    bool do_reimport = 7;
+
+    message Location
+    {
+        string location_output_artifact_uid = 1;
+        string location_name = 2;
+        string location_guid = 3;
+    }
+    repeated Location location_list = 8;
+
+}
+// next idx 9

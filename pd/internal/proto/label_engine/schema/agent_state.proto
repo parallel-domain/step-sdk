@@ -22,6 +22,7 @@ message InstanceStateMetadata
         HumanState human_state = 4;
         SignState sign_state = 5;
 		ParkingMarkerState parking_marker_state = 6;
+        TrafficLightState traffic_light_state = 7;
     }
 }
 
@@ -110,6 +111,22 @@ message HumanState
     PedestrianPhoneState ped_phone_state = 1;
     PedestrianPoseSegmentationState ped_pose_segmentation_state = 2;
     uint32 connected_vehicle_instance_id = 3;
+}
+
+message TrafficLightState
+{
+    string attachment = 1;
+    uint32 num_bulbs = 2;
+    repeated BulbState active_bulbs = 3;
+}
+
+message BulbState
+{
+    string color = 1;
+    string shape = 2;
+    uint32 phase_id = 3;
+    float on = 4;
+    uint32 material_id = 5;
 }
 
 enum PedestrianPhoneState

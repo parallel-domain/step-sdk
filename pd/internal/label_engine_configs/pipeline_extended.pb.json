@@ -37,6 +37,16 @@
             }
         },
         {
+          "name": "gen_world_lines",
+          "config": {
+            "@type": "type.googleapis.com/pd.data.WorldLineAnnotatorConfig",
+            "extract_lane_left_edge": true,
+            "extract_lane_right_edge": true,
+            "extract_lane_reference_line": true,
+            "output_path": "world_lines_xyz"
+          }
+        },
+        {
             "name": "gen_semantic_mask",
             "depends_on": ["gen_semantic_map"],
             "config": {
@@ -52,6 +62,15 @@
                 "@type": "type.googleapis.com/pd.data.GenerateInstanceMaskConfig",
                 "input_instance_map": "instance_map_xyz",
                 "output_path": "instance_mask_xyz"
+            }
+        },
+        {
+            "name": "gen_instance_states",
+            "depends_on": ["gen_instance_map"],
+            "config": {
+                "@type": "type.googleapis.com/pd.data.InstanceStateAnnotatorConfig",
+                "input_instance_map": "instance_map_xyz",
+                "output_path": "instance_state_xyz"
             }
         },
         {

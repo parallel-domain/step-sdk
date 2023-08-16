@@ -14,6 +14,7 @@ from typing import Optional
 import pd.internal.umd.UMD_pb2 as schema
 from pd.core.errors import PdError
 from pd.management import LevelpakVersion, Levelpak, fetch_level_umd
+from pd.management.utils import is_uuid
 from pd.internal.proto.umd.generated.wrapper.UMD_pb2 import UniversalMap
 
 
@@ -109,15 +110,19 @@ def load_umd_map(name: str, version: Optional[str] = None) -> schema.UniversalMa
             version = next(l.default_version for l in levels if l.name == name)
         except StopIteration:
             raise PdError(f"Failed to fetch Umd for level named '{name}'. No such level exists.")
-    level_versions = LevelpakVersion.list()
-    try:
-        level_internal_version = next(lv.internal_version for lv in level_versions
-                                      if lv.levelpak == name and lv.version == version)
-    except StopIteration:
-        raise PdError(
-            f"Failed to fetch Umd for level '{name}' with version '{version}'. "
-            f"No such level and version combination exists."
-        )
+
+    if not is_uuid(version):
+        level_versions = LevelpakVersion.list()
+        try:
+            level_internal_version = next(lv.internal_version for lv in level_versions
+                                        if lv.levelpak == name and lv.version == version)
+        except StopIteration:
+            raise PdError(
+                f"Failed to fetch Umd for level '{name}' with version '{version}'. "
+                f"No such level and version combination exists."
+            )
+    else:
+        level_internal_version = version
     umd_path = maps_package_path / 'downloaded' / f'{name}' / f'{version}' / f'{name}.umd'
     if not umd_path.is_file():
         umd_content = fetch_level_umd(level_internal_version)

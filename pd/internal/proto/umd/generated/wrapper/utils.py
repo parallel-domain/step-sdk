@@ -1,19 +1,11 @@
 from abc import ABC, abstractmethod
-from sys import platform
 from typing import Any, Dict, List, Mapping, TypeVar, Type
-from enum import Enum
+
 from google.protobuf.json_format import MessageToDict, ParseDict
 
-# During proto interface update, this file is copied from di/update-internal/utils.py.in into the wrapper folders!
+# During proto interface update, this file is copied from `ci/update-internal/utils.py.in` into the wrapper folders!
 # Please add your changes to the utils.py.in file.
 
-
-if platform in ("linux", "linux2"):
-    from google.protobuf.pyext._message import MessageMapContainer as MessageMapContainer
-elif platform == "darwin":
-    from google.protobuf.internal.containers import MessageMap as MessageMapContainer
-elif platform == "win32":
-    from google.protobuf.pyext._message import MessageMapContainer as MessageMapContainer
 
 T = TypeVar("T")
 
@@ -114,7 +106,10 @@ class ProtoDictWrapper(Dict[Any, T]):
         super().__setitem__(key, value)
 
         dict_obj = getattr(self._dict_owner.proto, self._attr_name)
-        if isinstance(dict_obj, MessageMapContainer):
+
+        dict_obj_descriptor = next(f for f in self._dict_owner.proto.DESCRIPTOR.fields if f.name == self._attr_name)
+        dict_obj_value_descriptor = next(f for f in dict_obj_descriptor.message_type.fields if f.name == "value")
+        if dict_obj_value_descriptor.cpp_type == dict_obj_value_descriptor.CPPTYPE_MESSAGE:
             if hasattr(value, "proto"):
                 dict_obj.get_or_create(key).CopyFrom(value.proto)
                 # calling CopyFrom actually copies the proto, so we need to update wrapper proto

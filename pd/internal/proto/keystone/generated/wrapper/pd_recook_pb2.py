@@ -1,16 +1,16 @@
 from __future__ import annotations
 from typing import List, Dict, Optional, Union
-from pd.internal.proto.keystone.generated.python import pd_worldbuild_pb2
+from pd.internal.proto.keystone.generated.python import pd_recook_pb2
 from pd.internal.proto.keystone.generated.wrapper.utils import WRAPPER_REGISTRY, register_wrapper, get_wrapper, ProtoMessageClass, ProtoEnumClass, AtomicGeneratorMessage, ProtoListWrapper, ProtoDictWrapper
 from pd.internal.proto.keystone.generated.wrapper import pd_distributions_pb2 as _pd_distributions_pb2, pd_environments_pb2 as _pd_environments_pb2, pd_keystone_pb2 as _pd_keystone_pb2, pd_levelcook_pb2 as _pd_levelcook_pb2, pd_package_maps_from_p4_pb2 as _pd_package_maps_from_p4_pb2, pd_post_process_pb2 as _pd_post_process_pb2, pd_recook_pb2 as _pd_recook_pb2, pd_render_pb2 as _pd_render_pb2, pd_scenario_pb2 as _pd_scenario_pb2, pd_sensor_pb2 as _pd_sensor_pb2, pd_sim_state_pb2 as _pd_sim_state_pb2, pd_source_maps_pb2 as _pd_source_maps_pb2, pd_spawn_pb2 as _pd_spawn_pb2, pd_types_pb2 as _pd_types_pb2, pd_unified_generator_pb2 as _pd_unified_generator_pb2, pd_world_cook_from_p4_pb2 as _pd_world_cook_from_p4_pb2, pd_worldbuild_pb2 as _pd_worldbuild_pb2, pd_worldgen_pb2 as _pd_worldgen_pb2
 
-@register_wrapper(proto_type=pd_worldbuild_pb2.WorldBuildInfo)
-class WorldBuildInfo(ProtoMessageClass):
-    _proto_message = pd_worldbuild_pb2.WorldBuildInfo
+@register_wrapper(proto_type=pd_recook_pb2.Recook)
+class Recook(ProtoMessageClass):
+    _proto_message = pd_recook_pb2.Recook
 
-    def __init__(self, *, proto: Optional[pd_worldbuild_pb2.WorldBuildInfo]=None, artifact_key: Optional[str]=None, base_changelist: Optional[str]=None, code_build_artifact_uid: Optional[str]=None, do_houdini_only: Optional[bool]=None, image_generator_core_artifact_uid: Optional[str]=None, levelcook_batch_size: Optional[int]=None, location_list: Optional[List[WorldBuildInfo.Location]]=None, output_artifact_uid: Optional[str]=None, qa_render: Optional[bool]=None, unshelve_changelist: Optional[str]=None, world_preview_uid: Optional[str]=None):
+    def __init__(self, *, proto: Optional[pd_recook_pb2.Recook]=None, artifact_key: Optional[str]=None, base_changelist: Optional[str]=None, code_build_artifact_uid: Optional[str]=None, do_reimport: Optional[bool]=None, levelcook_batch_size: Optional[int]=None, location_list: Optional[List[Recook.Location]]=None, output_artifact_uid: Optional[str]=None, unshelve_changelist: Optional[str]=None):
         if proto is None:
-            proto = pd_worldbuild_pb2.WorldBuildInfo()
+            proto = pd_recook_pb2.Recook()
         self.proto = proto
         self._location_list = ProtoListWrapper(container=[get_wrapper(proto_type=v.__class__)(proto=v) for v in proto.location_list], attr_name='location_list', list_owner=self)
         if artifact_key is not None:
@@ -19,22 +19,16 @@ class WorldBuildInfo(ProtoMessageClass):
             self.base_changelist = base_changelist
         if code_build_artifact_uid is not None:
             self.code_build_artifact_uid = code_build_artifact_uid
-        if do_houdini_only is not None:
-            self.do_houdini_only = do_houdini_only
-        if image_generator_core_artifact_uid is not None:
-            self.image_generator_core_artifact_uid = image_generator_core_artifact_uid
+        if do_reimport is not None:
+            self.do_reimport = do_reimport
         if levelcook_batch_size is not None:
             self.levelcook_batch_size = levelcook_batch_size
         if location_list is not None:
             self.location_list = location_list
         if output_artifact_uid is not None:
             self.output_artifact_uid = output_artifact_uid
-        if qa_render is not None:
-            self.qa_render = qa_render
         if unshelve_changelist is not None:
             self.unshelve_changelist = unshelve_changelist
-        if world_preview_uid is not None:
-            self.world_preview_uid = world_preview_uid
 
     @property
     def artifact_key(self) -> str:
@@ -61,20 +55,12 @@ class WorldBuildInfo(ProtoMessageClass):
         self.proto.code_build_artifact_uid = value
 
     @property
-    def do_houdini_only(self) -> bool:
-        return self.proto.do_houdini_only
+    def do_reimport(self) -> bool:
+        return self.proto.do_reimport
 
-    @do_houdini_only.setter
-    def do_houdini_only(self, value: bool):
-        self.proto.do_houdini_only = value
-
-    @property
-    def image_generator_core_artifact_uid(self) -> str:
-        return self.proto.image_generator_core_artifact_uid
-
-    @image_generator_core_artifact_uid.setter
-    def image_generator_core_artifact_uid(self, value: str):
-        self.proto.image_generator_core_artifact_uid = value
+    @do_reimport.setter
+    def do_reimport(self, value: bool):
+        self.proto.do_reimport = value
 
     @property
     def levelcook_batch_size(self) -> int:
@@ -85,11 +71,11 @@ class WorldBuildInfo(ProtoMessageClass):
         self.proto.levelcook_batch_size = value
 
     @property
-    def location_list(self) -> List[WorldBuildInfo.Location]:
+    def location_list(self) -> List[Recook.Location]:
         return self._location_list
 
     @location_list.setter
-    def location_list(self, value: List[WorldBuildInfo.Location]):
+    def location_list(self, value: List[Recook.Location]):
         self._location_list.clear()
         for v in value:
             self._location_list.append(v)
@@ -103,14 +89,6 @@ class WorldBuildInfo(ProtoMessageClass):
         self.proto.output_artifact_uid = value
 
     @property
-    def qa_render(self) -> bool:
-        return self.proto.qa_render
-
-    @qa_render.setter
-    def qa_render(self, value: bool):
-        self.proto.qa_render = value
-
-    @property
     def unshelve_changelist(self) -> str:
         return self.proto.unshelve_changelist
 
@@ -118,15 +96,7 @@ class WorldBuildInfo(ProtoMessageClass):
     def unshelve_changelist(self, value: str):
         self.proto.unshelve_changelist = value
 
-    @property
-    def world_preview_uid(self) -> str:
-        return self.proto.world_preview_uid
-
-    @world_preview_uid.setter
-    def world_preview_uid(self, value: str):
-        self.proto.world_preview_uid = value
-
-    def _update_proto_references(self, proto: pd_worldbuild_pb2.WorldBuildInfo):
+    def _update_proto_references(self, proto: pd_recook_pb2.Recook):
         self.proto = proto
         for i, v in enumerate(self.location_list):
             v._update_proto_references(self.proto.location_list[i])

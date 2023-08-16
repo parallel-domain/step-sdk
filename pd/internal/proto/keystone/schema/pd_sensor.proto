@@ -286,6 +286,11 @@ message RadarDetectorParameters
     optional float detector_constant_gain = 2 [default = 30.0];
     optional float detector_radiometric_gain = 3 [default = 100.0];
     optional float detector_radiometric_decay = 4 [default = 4.0];
+	optional bool enable_cfar = 5 [default = false];
+	optional string cfar_type = 6 [default = "CACFAR"];
+	optional int32 cfar_guard_cell = 7 [default = 2];
+	optional int32 cfar_neighbor_cell = 8 [default = 5];
+	optional float cfar_threshold_scale = 9 [default=0.5];
 }
 
 message RadarIntrinsic

@@ -12,6 +12,8 @@ message WorldBuildInfo
     bool qa_render = 7;
     string image_generator_core_artifact_uid = 8;
     string world_preview_uid = 9;
+    int32 levelcook_batch_size = 10;
+    bool do_houdini_only = 11;
 
     message Location
     {
@@ -28,4 +30,4 @@ message WorldBuildInfo
     repeated Location location_list = 4;
 
 }
-// next idx 10
+// next idx 11

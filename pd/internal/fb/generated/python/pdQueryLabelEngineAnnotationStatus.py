@@ -32,7 +32,32 @@ class pdQueryLabelEngineAnnotationStatus(object):
             return self._tab.String(o + self._tab.Pos)
         return bytes()
 
-def pdQueryLabelEngineAnnotationStatusStart(builder): builder.StartObject(2)
+    # pdQueryLabelEngineAnnotationStatus
+    def Sensors(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
+        return ""
+
+    # pdQueryLabelEngineAnnotationStatus
+    def SensorsLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # pdQueryLabelEngineAnnotationStatus
+    def SceneName(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return bytes()
+
+def pdQueryLabelEngineAnnotationStatusStart(builder): builder.StartObject(4)
 def pdQueryLabelEngineAnnotationStatusAddTimestamp(builder, timestamp): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(timestamp), 0)
 def pdQueryLabelEngineAnnotationStatusAddLabel(builder, label): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(label), 0)
+def pdQueryLabelEngineAnnotationStatusAddSensors(builder, sensors): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(sensors), 0)
+def pdQueryLabelEngineAnnotationStatusStartSensorsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def pdQueryLabelEngineAnnotationStatusAddSceneName(builder, sceneName): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(sceneName), 0)
 def pdQueryLabelEngineAnnotationStatusEnd(builder): return builder.EndObject()

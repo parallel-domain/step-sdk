@@ -1,4 +1,5 @@
 from datetime import datetime, timezone, timedelta
+from uuid import uuid4
 
 import pytest
 import requests_mock
@@ -459,8 +460,38 @@ class TestIgVersion:
         assert ig_versions
         assert len(ig_versions) == 3
         assert ig_versions[0].name == 'v1.2.3'
+        assert ig_versions[0].internal_version is None
         assert ig_versions[1].name == 'another'
+        assert ig_versions[1].internal_version is None
         assert ig_versions[2].name == 'default'
+        assert ig_versions[2].internal_version is None
+
+    def test_list_with_internal_version(self, requests_mock):
+        """Correctly calls API to list IgVersion objects"""
+        uuid_1, uuid_2, uuid_3 = [str(uuid4()) for _ in range(3)]
+        requests_mock.get(f'{_BASE_URL}/test/ig_versions', json=[
+            {
+                'name': 'v1.2.3',
+                'internal_version': uuid_1,
+            },
+            {
+                'name': 'another',
+                'internal_version': uuid_2,
+            },
+            {
+                'name': 'default',
+                'internal_version': uuid_3,
+            }
+        ])
+        ig_versions = IgVersion.list()
+        assert ig_versions
+        assert len(ig_versions) == 3
+        assert ig_versions[0].name == 'v1.2.3'
+        assert str(ig_versions[0].internal_version) == uuid_1
+        assert ig_versions[1].name == 'another'
+        assert str(ig_versions[1].internal_version) == uuid_2
+        assert ig_versions[2].name == 'default'
+        assert str(ig_versions[2].internal_version) == uuid_3
 
 
 class TestLevelpak:
@@ -506,21 +537,22 @@ class TestLevelpak:
 class TestLevelpakVersions:
     def test_list(self, requests_mock):
         """Correctly calls API to list Levelpak objects"""
+        uuid_1, uuid_2, uuid_3 = [str(uuid4()) for _ in range(3)]
         requests_mock.get(f'{_BASE_URL}/test/levelpaks/versions', json=[
             {
                 'levelpak': 'SC_W8thAndOrchard',
                 'version': 'v1',
-                'internal_version': 'uuid_1'
+                'internal_version': uuid_1,
             },
             {
                 'levelpak': 'SJ_EssexAndBradford',
                 'version': 'v1',
-                'internal_version': 'uuid_2'
+                'internal_version': uuid_2,
             },
             {
                 'levelpak': 'SJ_EssexAndBradford',
                 'version': 'v2',
-                'internal_version': 'uuid_3'
+                'internal_version': uuid_3,
             }
         ])
         levelpak_versions = LevelpakVersion.list()
@@ -528,13 +560,13 @@ class TestLevelpakVersions:
         assert len(levelpak_versions) == 3
         assert levelpak_versions[0].levelpak == 'SC_W8thAndOrchard'
         assert levelpak_versions[0].version == 'v1'
-        assert levelpak_versions[0].internal_version == 'uuid_1'
+        assert str(levelpak_versions[0].internal_version) == uuid_1
         assert levelpak_versions[1].levelpak == 'SJ_EssexAndBradford'
         assert levelpak_versions[1].version == 'v1'
-        assert levelpak_versions[1].internal_version == 'uuid_2'
+        assert str(levelpak_versions[1].internal_version) == uuid_2
         assert levelpak_versions[2].levelpak == 'SJ_EssexAndBradford'
         assert levelpak_versions[2].version == 'v2'
-        assert levelpak_versions[2].internal_version == 'uuid_3'
+        assert str(levelpak_versions[2].internal_version) == uuid_3
 
 
 class TestSimVersion:
