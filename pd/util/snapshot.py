@@ -9,18 +9,19 @@ Utility function to help generate snapshot images of assets
 """
 
 import logging
-from typing import List, Tuple
+from typing import List, Tuple, Callable
 from pprint import PrettyPrinter
 import math
 
 import numpy as np
 
+from pd.sim import Raycast, RaycastHit
 from pd.state import (
     Pose6D, CameraSensor, WorldInfo, ModelAgent, VehicleAgent, SensorAgent,
     State, DistortionParams, PostProcessParams
 )
 from pd.assets import ObjAssets, get_vehicle_wheel_names, get_vehicle_wheel_poses, asset_coords_to_sim_coords
-
+from pd.session import SimSession
 
 logger = logging.getLogger(__name__)
 pp = PrettyPrinter()
@@ -33,7 +34,7 @@ _TIME_OF_DAY = 'LS_sky_noon_mostlySunny_1250_HDS025'
 _ASSET_OFFSETS_PER_CATEGORY = {
     "vehicle": (46.8, 39.4, 10.03251),
     "traffic_control": (46.8, 39.4, 10.03251),
-    "default": (78.0, 192.0, 10.40316),
+    "default": (292.6851, 47.7842, 7.2104),
 }
 
 
@@ -49,9 +50,25 @@ def get_asset_rotated_bbox(asset_obj: ObjAssets, pose: Pose6D) -> List[Tuple[flo
     Returns:
         Rotated bounded box as a list of 8 vertices
     """
-    (minx, miny, minz, maxx, maxy, maxz) = (asset_obj.bbox_min_x, asset_obj.bbox_min_y, asset_obj.bbox_min_z,
-                                            asset_obj.bbox_max_x, asset_obj.bbox_max_y, asset_obj.bbox_max_z)
-    if asset_obj.width == 0.0 or asset_obj.height == 0.0:
+    bbox_leaves = (asset_obj.bbox_min_leaves_x, asset_obj.bbox_min_leaves_y, asset_obj.bbox_min_leaves_z,
+                   asset_obj.bbox_max_leaves_x, asset_obj.bbox_max_leaves_y, asset_obj.bbox_max_leaves_z)
+    bbox_corners = (asset_obj.bbox_min_x, asset_obj.bbox_min_y, asset_obj.bbox_min_z,
+                    asset_obj.bbox_max_x, asset_obj.bbox_max_y, asset_obj.bbox_max_z)
+
+    # trees have separate boxes for their trunk and canopy, find the largest dimensions to get the full tree in frame
+    if None not in bbox_leaves and 0 not in bbox_leaves:
+        (minx, miny, minz, maxx, maxy, maxz) = (
+            min(asset_obj.bbox_min_x, asset_obj.bbox_min_leaves_x),
+            min(asset_obj.bbox_min_y, asset_obj.bbox_min_leaves_y),
+            min(asset_obj.bbox_min_z, asset_obj.bbox_min_leaves_z),
+            max(asset_obj.bbox_max_x, asset_obj.bbox_max_leaves_x),
+            max(asset_obj.bbox_max_y, asset_obj.bbox_max_leaves_y),
+            max(asset_obj.bbox_max_z, asset_obj.bbox_max_leaves_z))
+    else:
+        (minx, miny, minz, maxx, maxy, maxz) = bbox_corners
+
+    if all(corner == 0 or corner is None for corner in bbox_corners):
+        logger.warning(f"{asset_obj.name} is missing bounding box data - may not visualize")
         # Missing data in asset registry, choose defaults
         (minx, miny, minz, maxx, maxy, maxz) = (-0.6, 0.0, -0.5, 0.6, 1.0, 0.5)
 
@@ -146,25 +163,25 @@ def generate_camera_pose_for_rotated_bbox(
     #   (x1,y1) and (x2,y2) are two extreme vertices in world coordinates
     #   u1, u2 are pixel coordinate where extreme vertices should be projected after padding
     # Replace x1,x2->z1,z2 and fx,cx->fy,cy if scaling along the world z-axis
-    padding = 0.1
+    padding = 0.2
     if width > height:
         fa, ca = sensor.distortion_params.fx, sensor.distortion_params.cx
         a1, a2 = v_min[0], v_max[0]
         y1, y2 = v_min[1], v_max[1]
-        u1, u2 = padding*sensor.width, (1.0-padding)*sensor.width
+        u1, u2 = padding * sensor.width, (1.0 - padding) * sensor.width
     else:
         fa, ca = sensor.distortion_params.fy, sensor.distortion_params.cy
         a1, a2 = v_min[2], v_max[2]
         y1, y2 = v_min[1], v_max[1]
-        u1, u2 = padding*sensor.height, (1.0-padding)*sensor.height
+        u1, u2 = padding * sensor.height, (1.0 - padding) * sensor.height
     # Solve As = B for s, which will contain (ta, ty) where a=x-axis or z-axis
     A = np.array([
-        [fa, ca-u1],
-        [fa, ca-u2]
+        [fa, ca - u1],
+        [fa, ca - u2]
     ])
     B = np.array([
-        fa*a1 + (ca-u1)*y1,
-        fa*a2 + (ca-u2)*y2
+        fa * a1 + (ca - u1) * y1,
+        fa * a2 + (ca - u2) * y2
     ])
     s = np.linalg.solve(A, B)
     ty = s[1]
@@ -182,14 +199,15 @@ def generate_camera_pose_for_rotated_bbox(
 
     camera_x_offset, camera_y_offset, camera_z_offset = adjusted_origin
     sensor_pose = Pose6D.from_rpy_angles(
-        x_metres=tx+camera_x_offset, y_metres=ty+camera_y_offset, z_metres=tz+camera_z_offset,
+        x_metres=tx + camera_x_offset, y_metres=ty + camera_y_offset, z_metres=tz + camera_z_offset,
         roll_degrees=0.0, pitch_degrees=0.0, yaw_degrees=0.0
     )
     logger.debug(f"sensor translation {sensor_pose.translation}")
     return sensor_pose
 
 
-def generate_state_for_asset_snap(asset_obj: ObjAssets, resolution: Tuple[int, int]) -> State:
+def generate_state_for_asset_snap(asset_obj: ObjAssets, resolution: Tuple[int, int],
+                                  raycast: Callable[[List[Raycast]], List[List[RaycastHit]]]) -> State:
     """
     Generate the complete :class:`pd.state.State` for snapping a picture of an asset.
 
@@ -201,6 +219,7 @@ def generate_state_for_asset_snap(asset_obj: ObjAssets, resolution: Tuple[int, i
     Args:
         asset_obj: The asset of which to snap a picture
         resolution: Image resolution (width, height)
+        raycast: Active SimSession raycast method
 
     Returns:
         Complete State needed to generate the picture of the asset
@@ -210,7 +229,9 @@ def generate_state_for_asset_snap(asset_obj: ObjAssets, resolution: Tuple[int, i
         else 'none'
 
     # Placement of asset on the map
-    asset_x_offset, asset_y_offset, asset_z_offset = _ASSET_OFFSETS_PER_CATEGORY.get(category_name, _ASSET_OFFSETS_PER_CATEGORY["default"])
+    asset_x_offset, asset_y_offset, asset_z_offset = _ASSET_OFFSETS_PER_CATEGORY.get(category_name,
+                                                                                     _ASSET_OFFSETS_PER_CATEGORY[
+                                                                                         "default"])
 
     if category_name == 'vehicle':
         agent_pose = Pose6D.from_rpy_angles(
@@ -218,17 +239,17 @@ def generate_state_for_asset_snap(asset_obj: ObjAssets, resolution: Tuple[int, i
             roll_degrees=0.0, pitch_degrees=0.0, yaw_degrees=120.0
         )
     else:
-        if category_name in {'traffic_control', 'traffic_signal'}:
-            asset_z_offset += 3.0
+        if category_name in {'traffic_control', 'traffic_signal', 'wheel', 'vehicle_part'}:
+            asset_z_offset += (asset_obj.height / 2)
         agent_pose = Pose6D.from_rpy_angles(
             x_metres=asset_x_offset, y_metres=asset_y_offset, z_metres=asset_z_offset,
-            roll_degrees=0.0, pitch_degrees=0.0, yaw_degrees=180.0
+            roll_degrees=0.0, pitch_degrees=0.0, yaw_degrees=160
         )
 
     rotated_bbox = get_asset_rotated_bbox(asset_obj, agent_pose)
     target_fov_degrees = 35.0
-    fx = image_width / (2.0 * math.tan(math.radians(target_fov_degrees/2.0)))
-    fy = image_height / (2.0 * math.tan(math.radians(target_fov_degrees/2.0)))
+    fx = image_width / (2.0 * math.tan(math.radians(target_fov_degrees / 2.0)))
+    fy = image_height / (2.0 * math.tan(math.radians(target_fov_degrees / 2.0)))
     camera_sensor = CameraSensor(
         name="Front",
         pose=Pose6D.from_rpy_angles(
@@ -240,8 +261,8 @@ def generate_state_for_asset_snap(asset_obj: ObjAssets, resolution: Tuple[int, i
         distortion_params=DistortionParams(
             fx=fx,
             fy=fy,
-            cx=image_width*0.5,
-            cy=image_height*0.5,
+            cx=image_width * 0.5,
+            cy=image_height * 0.5,
         ),
         post_process_params=PostProcessParams(),
         capture_rgb=True,
@@ -251,6 +272,20 @@ def generate_state_for_asset_snap(asset_obj: ObjAssets, resolution: Tuple[int, i
         sensor=camera_sensor,
         adjusted_origin=(asset_x_offset, asset_y_offset, asset_z_offset)
     )
+
+    # check if camera is under terrain using raycast
+    camera_pose_raycast = Raycast(origin=(camera_pose.translation[0], camera_pose.translation[1], 1000),
+                                  direction=(0, 0, -1),
+                                  max_distance=5000)
+
+    raycast_response = raycast([camera_pose_raycast])
+    if len(raycast_response[0]) == 1:
+        if camera_pose.translation[2] < raycast_response[0][0].position[2] + 0.2:
+            # move camera slightly up and backwards
+            camera_pose.translation = (camera_pose.translation[0],
+                                       camera_pose.translation[1] - 0.2,
+                                       raycast_response[0][0].position[2] + 0.1)
+
     # Adjust dof focal distance based on camera position (is in cms)
     distance_to_agent = agent_pose.translation[1] - camera_pose.translation[1]
     camera_sensor.post_process_params.dof_focal_distance = 100.0 * distance_to_agent
@@ -285,12 +320,17 @@ def generate_state_for_asset_snap(asset_obj: ObjAssets, resolution: Tuple[int, i
         vehicle_agent.vehicle_type = vehicle_name
         vehicle_agent.wheel_type = wheel_name
         vehicle_agent.wheel_poses = wheel_poses
-        vehicle_agent.lock_to_ground = False
+        vehicle_agent.lock_to_ground = True
         agent_to_show.append(vehicle_agent)
-    else:
+    elif category_name in {'traffic_control', 'traffic_signal', 'wheel', 'vehicle_part'}:
         model_agent.pose = agent_pose
         model_agent.asset_name = asset_obj.name
         model_agent.lock_to_ground = False
+        agent_to_show.append(model_agent)
+    else:
+        model_agent.pose = agent_pose
+        model_agent.asset_name = asset_obj.name
+        model_agent.lock_to_ground = True
         agent_to_show.append(model_agent)
 
     world_info = WorldInfo(
