@@ -18,15 +18,15 @@ import "transform_map.proto";
 import "options.proto";
 import "python_engine.proto";
 import "telemetry.proto";
-
-
-
+import "semantic_segmentation_3d.proto";
+import "instance_segmentation_3d.proto";
+import "motion_vectors_3d.proto";
+import "projection.proto";
 
 message TransformPipelineNode
 {
     string name = 1;
     repeated string depends_on = 2;
-
     google.protobuf.Any config = 3;
 
     // If finalize_node is true, then this node will be run once at the end of

@@ -249,7 +249,14 @@ class LiDARConfigFB(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.00035
 
-def LiDARConfigFBStart(builder): builder.StartObject(30)
+    # LiDARConfigFB
+    def CaptureIntensity(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(64))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos)
+        return 0
+
+def LiDARConfigFBStart(builder): builder.StartObject(31)
 def LiDARConfigFBAddBeamData(builder, beamData): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(beamData), 0)
 def LiDARConfigFBStartBeamDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def LiDARConfigFBAddSampleRate(builder, sampleRate): builder.PrependFloat32Slot(1, sampleRate, 0.0)
@@ -281,4 +288,5 @@ def LiDARConfigFBAddMergeReturns(builder, mergeReturns): builder.PrependInt32Slo
 def LiDARConfigFBAddCaptureProperties(builder, captureProperties): builder.PrependBoolSlot(27, captureProperties, 0)
 def LiDARConfigFBAddCaptureBackwardmotionvectors(builder, captureBackwardmotionvectors): builder.PrependBoolSlot(28, captureBackwardmotionvectors, 0)
 def LiDARConfigFBAddMultiReturnsAngle(builder, multiReturnsAngle): builder.PrependFloat32Slot(29, multiReturnsAngle, 0.00035)
+def LiDARConfigFBAddCaptureIntensity(builder, captureIntensity): builder.PrependBoolSlot(30, captureIntensity, 0)
 def LiDARConfigFBEnd(builder): return builder.EndObject()

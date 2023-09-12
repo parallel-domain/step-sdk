@@ -23,32 +23,32 @@ class RadarNoiseParametersFB(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos)
-        return 0
+        return 1
 
     # RadarNoiseParametersFB
     def ThermalNoiseStd(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
-        return 0.0
+        return 3.0
 
     # RadarNoiseParametersFB
     def ThermalNoiseMean(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
-        return 0.0
+        return 15.0
 
     # RadarNoiseParametersFB
     def EnableDoaNoise(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos)
-        return 0
+        return 1
 
 def RadarNoiseParametersFBStart(builder): builder.StartObject(4)
-def RadarNoiseParametersFBAddEnableThermalNoise(builder, enableThermalNoise): builder.PrependBoolSlot(0, enableThermalNoise, 0)
-def RadarNoiseParametersFBAddThermalNoiseStd(builder, thermalNoiseStd): builder.PrependFloat32Slot(1, thermalNoiseStd, 0.0)
-def RadarNoiseParametersFBAddThermalNoiseMean(builder, thermalNoiseMean): builder.PrependFloat32Slot(2, thermalNoiseMean, 0.0)
-def RadarNoiseParametersFBAddEnableDoaNoise(builder, enableDoaNoise): builder.PrependBoolSlot(3, enableDoaNoise, 0)
+def RadarNoiseParametersFBAddEnableThermalNoise(builder, enableThermalNoise): builder.PrependBoolSlot(0, enableThermalNoise, 1)
+def RadarNoiseParametersFBAddThermalNoiseStd(builder, thermalNoiseStd): builder.PrependFloat32Slot(1, thermalNoiseStd, 3.0)
+def RadarNoiseParametersFBAddThermalNoiseMean(builder, thermalNoiseMean): builder.PrependFloat32Slot(2, thermalNoiseMean, 15.0)
+def RadarNoiseParametersFBAddEnableDoaNoise(builder, enableDoaNoise): builder.PrependBoolSlot(3, enableDoaNoise, 1)
 def RadarNoiseParametersFBEnd(builder): return builder.EndObject()

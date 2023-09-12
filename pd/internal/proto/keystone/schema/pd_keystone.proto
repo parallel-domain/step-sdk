@@ -12,6 +12,7 @@ import "pd_worldbuild.proto";
 import "pd_source_maps.proto";
 import "pd_package_maps_from_p4.proto";
 import "pd_recook.proto";
+import "pd_step_batch.proto";
 
 package keystone;
 
@@ -35,6 +36,7 @@ message KeystoneBuildMessage
             LEEncoder le_encoder = 12;
             ProcessSimState sim_state_process = 13;
             Recook recook = 14;
+            StepBatch step_batch = 15;
         }
     }
 

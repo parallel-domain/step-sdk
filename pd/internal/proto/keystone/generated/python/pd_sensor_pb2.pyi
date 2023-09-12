@@ -173,7 +173,7 @@ class LidarIntensityParams(_message.Message):
     def __init__(self, retro_range_noise_stddev: Optional[float] = ..., retroreflection_noise_mean: Optional[float] = ..., retroreflection_noise_stddev: Optional[float] = ..., max_attenuation_distance: Optional[float] = ..., retro_intensity_enhance: Optional[float] = ..., intensity_specular_scale: Optional[float] = ..., intensity_roughness_scale: Optional[float] = ..., beam_intensity: Optional[float] = ..., albedo_weights: Optional[Union[AlbedoWeights, Mapping]] = ..., max_albedo: Optional[float] = ..., strong_retro_intensity_enhance: Optional[float] = ..., intensity_metallic_scale: Optional[float] = ..., emissive_gate: Optional[float] = ..., max_emissive_rate: Optional[float] = ...) -> None: ...
 
 class LidarIntrinsic(_message.Message):
-    __slots__ = ["alice_lidar_model", "azimuth_max", "azimuth_min", "beam_data", "capture_backwardmotionvectors", "capture_depth", "capture_detections", "capture_instance", "capture_intensity", "capture_motionvectors", "capture_normals", "capture_properties", "capture_rgb", "capture_segmentation", "intensity_params", "maximum_cutoff_prob", "maximum_offset", "maximum_range_cutoff", "merge_returns", "minimum_cutoff_prob", "minimum_noise", "minimum_offset", "minimum_range_cutoff", "multi_returns", "pattern", "range_noise_mean", "range_noise_stddev", "rotation_rate", "sample_rate", "time_offset"]
+    __slots__ = ["alice_lidar_model", "azimuth_max", "azimuth_min", "beam_data", "capture_backwardmotionvectors", "capture_depth", "capture_detections", "capture_instance", "capture_intensity", "capture_motionvectors", "capture_normals", "capture_properties", "capture_rgb", "capture_segmentation", "elevation_delta", "intensity_params", "maximum_cutoff_prob", "maximum_offset", "maximum_range_cutoff", "merge_returns", "minimum_cutoff_prob", "minimum_noise", "minimum_offset", "minimum_range_cutoff", "multi_returns", "multi_returns_angle", "pattern", "range_noise_mean", "range_noise_stddev", "rotation_rate", "sample_rate", "time_offset"]
     ALICE_LIDAR_MODEL_FIELD_NUMBER: ClassVar[int]
     AZIMUTH_MAX_FIELD_NUMBER: ClassVar[int]
     AZIMUTH_MIN_FIELD_NUMBER: ClassVar[int]
@@ -188,6 +188,7 @@ class LidarIntrinsic(_message.Message):
     CAPTURE_PROPERTIES_FIELD_NUMBER: ClassVar[int]
     CAPTURE_RGB_FIELD_NUMBER: ClassVar[int]
     CAPTURE_SEGMENTATION_FIELD_NUMBER: ClassVar[int]
+    ELEVATION_DELTA_FIELD_NUMBER: ClassVar[int]
     INTENSITY_PARAMS_FIELD_NUMBER: ClassVar[int]
     MAXIMUM_CUTOFF_PROB_FIELD_NUMBER: ClassVar[int]
     MAXIMUM_OFFSET_FIELD_NUMBER: ClassVar[int]
@@ -197,6 +198,7 @@ class LidarIntrinsic(_message.Message):
     MINIMUM_NOISE_FIELD_NUMBER: ClassVar[int]
     MINIMUM_OFFSET_FIELD_NUMBER: ClassVar[int]
     MINIMUM_RANGE_CUTOFF_FIELD_NUMBER: ClassVar[int]
+    MULTI_RETURNS_ANGLE_FIELD_NUMBER: ClassVar[int]
     MULTI_RETURNS_FIELD_NUMBER: ClassVar[int]
     PATTERN_FIELD_NUMBER: ClassVar[int]
     RANGE_NOISE_MEAN_FIELD_NUMBER: ClassVar[int]
@@ -218,6 +220,7 @@ class LidarIntrinsic(_message.Message):
     capture_properties: bool
     capture_rgb: bool
     capture_segmentation: bool
+    elevation_delta: float
     intensity_params: LidarIntensityParams
     maximum_cutoff_prob: float
     maximum_offset: float
@@ -228,13 +231,14 @@ class LidarIntrinsic(_message.Message):
     minimum_offset: float
     minimum_range_cutoff: float
     multi_returns: int
+    multi_returns_angle: float
     pattern: str
     range_noise_mean: float
     range_noise_stddev: float
     rotation_rate: float
     sample_rate: float
     time_offset: float
-    def __init__(self, sample_rate: Optional[float] = ..., rotation_rate: Optional[float] = ..., azimuth_min: Optional[float] = ..., azimuth_max: Optional[float] = ..., beam_data: Optional[Iterable[Union[LidarBeam, Mapping]]] = ..., capture_rgb: bool = ..., capture_intensity: bool = ..., capture_depth: bool = ..., capture_normals: bool = ..., capture_segmentation: bool = ..., capture_instance: bool = ..., capture_detections: bool = ..., capture_motionvectors: bool = ..., minimum_range_cutoff: Optional[float] = ..., maximum_range_cutoff: Optional[float] = ..., minimum_cutoff_prob: Optional[float] = ..., maximum_cutoff_prob: Optional[float] = ..., minimum_offset: Optional[float] = ..., maximum_offset: Optional[float] = ..., minimum_noise: Optional[float] = ..., range_noise_mean: Optional[float] = ..., range_noise_stddev: Optional[float] = ..., intensity_params: Optional[Union[LidarIntensityParams, Mapping]] = ..., alice_lidar_model: Optional[Union[AliceLidarModel, Mapping]] = ..., pattern: Optional[str] = ..., time_offset: Optional[float] = ..., multi_returns: Optional[int] = ..., merge_returns: Optional[int] = ..., capture_properties: bool = ..., capture_backwardmotionvectors: bool = ...) -> None: ...
+    def __init__(self, sample_rate: Optional[float] = ..., rotation_rate: Optional[float] = ..., azimuth_min: Optional[float] = ..., azimuth_max: Optional[float] = ..., elevation_delta: Optional[float] = ..., beam_data: Optional[Iterable[Union[LidarBeam, Mapping]]] = ..., capture_rgb: bool = ..., capture_intensity: bool = ..., capture_depth: bool = ..., capture_normals: bool = ..., capture_segmentation: bool = ..., capture_instance: bool = ..., capture_detections: bool = ..., capture_motionvectors: bool = ..., minimum_range_cutoff: Optional[float] = ..., maximum_range_cutoff: Optional[float] = ..., minimum_cutoff_prob: Optional[float] = ..., maximum_cutoff_prob: Optional[float] = ..., minimum_offset: Optional[float] = ..., maximum_offset: Optional[float] = ..., minimum_noise: Optional[float] = ..., range_noise_mean: Optional[float] = ..., range_noise_stddev: Optional[float] = ..., intensity_params: Optional[Union[LidarIntensityParams, Mapping]] = ..., alice_lidar_model: Optional[Union[AliceLidarModel, Mapping]] = ..., pattern: Optional[str] = ..., time_offset: Optional[float] = ..., multi_returns: Optional[int] = ..., multi_returns_angle: Optional[float] = ..., merge_returns: Optional[int] = ..., capture_properties: bool = ..., capture_backwardmotionvectors: bool = ...) -> None: ...
 
 class LidarNoiseParams(_message.Message):
     __slots__ = ["max_dist", "max_offset", "max_prob", "min_dist", "min_noise", "min_offset", "min_prob"]
@@ -307,10 +311,11 @@ class PostProcessNode(_message.Message):
     def __init__(self, material: Optional[str] = ..., weight: Optional[float] = ...) -> None: ...
 
 class PostProcessParams(_message.Message):
-    __slots__ = ["dof_depth_blur_amount", "dof_depth_blur_radius", "dof_focal_distance", "exposure_compensation", "exposure_max_ev100", "exposure_metering_mask", "exposure_min_ev100", "exposure_speed_down", "exposure_speed_up", "motion_blur_amount", "motion_blur_max", "vignette_intensity"]
+    __slots__ = ["dof_depth_blur_amount", "dof_depth_blur_radius", "dof_focal_distance", "exposure_compensation", "exposure_compensation_curve", "exposure_max_ev100", "exposure_metering_mask", "exposure_min_ev100", "exposure_speed_down", "exposure_speed_up", "motion_blur_amount", "motion_blur_max", "tone_curve", "vignette_intensity"]
     DOF_DEPTH_BLUR_AMOUNT_FIELD_NUMBER: ClassVar[int]
     DOF_DEPTH_BLUR_RADIUS_FIELD_NUMBER: ClassVar[int]
     DOF_FOCAL_DISTANCE_FIELD_NUMBER: ClassVar[int]
+    EXPOSURE_COMPENSATION_CURVE_FIELD_NUMBER: ClassVar[int]
     EXPOSURE_COMPENSATION_FIELD_NUMBER: ClassVar[int]
     EXPOSURE_MAX_EV100_FIELD_NUMBER: ClassVar[int]
     EXPOSURE_METERING_MASK_FIELD_NUMBER: ClassVar[int]
@@ -319,11 +324,13 @@ class PostProcessParams(_message.Message):
     EXPOSURE_SPEED_UP_FIELD_NUMBER: ClassVar[int]
     MOTION_BLUR_AMOUNT_FIELD_NUMBER: ClassVar[int]
     MOTION_BLUR_MAX_FIELD_NUMBER: ClassVar[int]
+    TONE_CURVE_FIELD_NUMBER: ClassVar[int]
     VIGNETTE_INTENSITY_FIELD_NUMBER: ClassVar[int]
     dof_depth_blur_amount: float
     dof_depth_blur_radius: float
     dof_focal_distance: float
     exposure_compensation: float
+    exposure_compensation_curve: str
     exposure_max_ev100: float
     exposure_metering_mask: str
     exposure_min_ev100: float
@@ -331,8 +338,9 @@ class PostProcessParams(_message.Message):
     exposure_speed_up: float
     motion_blur_amount: float
     motion_blur_max: float
+    tone_curve: ToneCurveParams
     vignette_intensity: float
-    def __init__(self, exposure_compensation: Optional[float] = ..., exposure_speed_up: Optional[float] = ..., exposure_speed_down: Optional[float] = ..., exposure_min_ev100: Optional[float] = ..., exposure_max_ev100: Optional[float] = ..., exposure_metering_mask: Optional[str] = ..., motion_blur_amount: Optional[float] = ..., motion_blur_max: Optional[float] = ..., dof_focal_distance: Optional[float] = ..., dof_depth_blur_amount: Optional[float] = ..., dof_depth_blur_radius: Optional[float] = ..., vignette_intensity: Optional[float] = ...) -> None: ...
+    def __init__(self, exposure_compensation: Optional[float] = ..., exposure_speed_up: Optional[float] = ..., exposure_speed_down: Optional[float] = ..., exposure_min_ev100: Optional[float] = ..., exposure_max_ev100: Optional[float] = ..., exposure_metering_mask: Optional[str] = ..., motion_blur_amount: Optional[float] = ..., motion_blur_max: Optional[float] = ..., dof_focal_distance: Optional[float] = ..., dof_depth_blur_amount: Optional[float] = ..., dof_depth_blur_radius: Optional[float] = ..., vignette_intensity: Optional[float] = ..., tone_curve: Optional[Union[ToneCurveParams, Mapping]] = ..., exposure_compensation_curve: Optional[str] = ...) -> None: ...
 
 class RadarBasicParameters(_message.Message):
     __slots__ = ["azimuth_accuracy", "azimuth_fov", "azimuth_resolution", "doppler_resolution", "elevation_accuracy", "elevation_fov", "elevation_resolution", "max_doppler", "max_range", "number_rays_per_frame", "prf_profile_file", "radar_output_2d", "range_resolution", "use_random_raycast"]
@@ -389,18 +397,18 @@ class RadarDetectorParameters(_message.Message):
     def __init__(self, detector_type: Optional[str] = ..., detector_constant_gain: Optional[float] = ..., detector_radiometric_gain: Optional[float] = ..., detector_radiometric_decay: Optional[float] = ..., enable_cfar: bool = ..., cfar_type: Optional[str] = ..., cfar_guard_cell: Optional[int] = ..., cfar_neighbor_cell: Optional[int] = ..., cfar_threshold_scale: Optional[float] = ...) -> None: ...
 
 class RadarEnergyParameters(_message.Message):
-    __slots__ = ["beam_pattern_file", "enable_beam_pattern", "gain_jitter_std", "nominal_gain", "radiometric_coefficient"]
-    BEAM_PATTERN_FILE_FIELD_NUMBER: ClassVar[int]
+    __slots__ = ["beam_pattern_file_path", "enable_beam_pattern", "gain_jitter_std", "nominal_gain", "radiometric_coefficient"]
+    BEAM_PATTERN_FILE_PATH_FIELD_NUMBER: ClassVar[int]
     ENABLE_BEAM_PATTERN_FIELD_NUMBER: ClassVar[int]
     GAIN_JITTER_STD_FIELD_NUMBER: ClassVar[int]
     NOMINAL_GAIN_FIELD_NUMBER: ClassVar[int]
     RADIOMETRIC_COEFFICIENT_FIELD_NUMBER: ClassVar[int]
-    beam_pattern_file: str
+    beam_pattern_file_path: str
     enable_beam_pattern: bool
     gain_jitter_std: float
     nominal_gain: float
     radiometric_coefficient: float
-    def __init__(self, nominal_gain: Optional[float] = ..., gain_jitter_std: Optional[float] = ..., radiometric_coefficient: Optional[float] = ..., beam_pattern_file: Optional[str] = ..., enable_beam_pattern: bool = ...) -> None: ...
+    def __init__(self, nominal_gain: Optional[float] = ..., gain_jitter_std: Optional[float] = ..., radiometric_coefficient: Optional[float] = ..., beam_pattern_file_path: Optional[str] = ..., enable_beam_pattern: bool = ...) -> None: ...
 
 class RadarIntrinsic(_message.Message):
     __slots__ = ["basic_parameters", "detector_parameters", "energy_parameters", "noise_parameters"]
@@ -477,6 +485,20 @@ class SensorRigConfig(_message.Message):
     sensor_configs: _containers.RepeatedCompositeFieldContainer[SensorConfig]
     sensor_rig_artifact_uid: str
     def __init__(self, sensor_configs: Optional[Iterable[Union[SensorConfig, Mapping]]] = ..., sensor_rig_artifact_uid: Optional[str] = ..., default_sensor_splits_list: Optional[Iterable[Union[SensorList, Mapping]]] = ...) -> None: ...
+
+class ToneCurveParams(_message.Message):
+    __slots__ = ["black_clip", "shoulder", "slope", "toe", "white_clip"]
+    BLACK_CLIP_FIELD_NUMBER: ClassVar[int]
+    SHOULDER_FIELD_NUMBER: ClassVar[int]
+    SLOPE_FIELD_NUMBER: ClassVar[int]
+    TOE_FIELD_NUMBER: ClassVar[int]
+    WHITE_CLIP_FIELD_NUMBER: ClassVar[int]
+    black_clip: float
+    shoulder: float
+    slope: float
+    toe: float
+    white_clip: float
+    def __init__(self, slope: Optional[float] = ..., toe: Optional[float] = ..., shoulder: Optional[float] = ..., black_clip: Optional[float] = ..., white_clip: Optional[float] = ...) -> None: ...
 
 class DenoiseFilter(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = []

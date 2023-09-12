@@ -27,14 +27,14 @@ logger = logging.getLogger(__name__)
 pp = PrettyPrinter()
 
 
-_LOCATION = 'Test_SF_6thAndMission_small'
+_LOCATION = 'FICT_Racetrack_1000_1'
 _TIME_OF_DAY = 'LS_sky_noon_mostlySunny_1250_HDS025'
 
 # These coordinates are hand-picked for the chosen _LOCATION
 _ASSET_OFFSETS_PER_CATEGORY = {
-    "vehicle": (46.8, 39.4, 10.03251),
-    "traffic_control": (46.8, 39.4, 10.03251),
-    "default": (292.6851, 47.7842, 7.2104),
+    "vehicle": (471.7, 1.81, 0),
+    "traffic_control": (471.7, 1.81, 0),
+    "default": (503.2, 199.33, -0.22),
 }
 
 

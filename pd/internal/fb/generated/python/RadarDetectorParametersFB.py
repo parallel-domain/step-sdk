@@ -30,25 +30,65 @@ class RadarDetectorParametersFB(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
-        return 0.0
+        return 30.0
 
     # RadarDetectorParametersFB
     def DetectorRadiometricGain(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
-        return 0.0
+        return 100.0
 
     # RadarDetectorParametersFB
     def DetectorRadiometricDecay(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
-        return 0.0
+        return 4.0
 
-def RadarDetectorParametersFBStart(builder): builder.StartObject(4)
+    # RadarDetectorParametersFB
+    def EnableCfar(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos)
+        return 0
+
+    # RadarDetectorParametersFB
+    def CfarType(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return bytes()
+
+    # RadarDetectorParametersFB
+    def CfarGuardCell(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
+        return 2
+
+    # RadarDetectorParametersFB
+    def CfarNeighborCell(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
+        return 5
+
+    # RadarDetectorParametersFB
+    def CfarThresholdScale(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return 0.5
+
+def RadarDetectorParametersFBStart(builder): builder.StartObject(9)
 def RadarDetectorParametersFBAddDetectorType(builder, detectorType): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(detectorType), 0)
-def RadarDetectorParametersFBAddDetectorConstantGain(builder, detectorConstantGain): builder.PrependFloat32Slot(1, detectorConstantGain, 0.0)
-def RadarDetectorParametersFBAddDetectorRadiometricGain(builder, detectorRadiometricGain): builder.PrependFloat32Slot(2, detectorRadiometricGain, 0.0)
-def RadarDetectorParametersFBAddDetectorRadiometricDecay(builder, detectorRadiometricDecay): builder.PrependFloat32Slot(3, detectorRadiometricDecay, 0.0)
+def RadarDetectorParametersFBAddDetectorConstantGain(builder, detectorConstantGain): builder.PrependFloat32Slot(1, detectorConstantGain, 30.0)
+def RadarDetectorParametersFBAddDetectorRadiometricGain(builder, detectorRadiometricGain): builder.PrependFloat32Slot(2, detectorRadiometricGain, 100.0)
+def RadarDetectorParametersFBAddDetectorRadiometricDecay(builder, detectorRadiometricDecay): builder.PrependFloat32Slot(3, detectorRadiometricDecay, 4.0)
+def RadarDetectorParametersFBAddEnableCfar(builder, enableCfar): builder.PrependBoolSlot(4, enableCfar, 0)
+def RadarDetectorParametersFBAddCfarType(builder, cfarType): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(cfarType), 0)
+def RadarDetectorParametersFBAddCfarGuardCell(builder, cfarGuardCell): builder.PrependInt32Slot(6, cfarGuardCell, 2)
+def RadarDetectorParametersFBAddCfarNeighborCell(builder, cfarNeighborCell): builder.PrependInt32Slot(7, cfarNeighborCell, 5)
+def RadarDetectorParametersFBAddCfarThresholdScale(builder, cfarThresholdScale): builder.PrependFloat32Slot(8, cfarThresholdScale, 0.5)
 def RadarDetectorParametersFBEnd(builder): return builder.EndObject()

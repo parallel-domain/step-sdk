@@ -1,5 +1,15 @@
 include "types.fbs";
 
+// Checklist for adding/modifying sensor parameters
+//   1. Update pd_sensor.proto
+//   2. Update sensor_module.fbs
+//   3. Update sensor_helpers.h
+//   4. Update sim_load_sensor_rig() and sim_load_sensor_rig_le() in sensor_helpers.cpp
+//   5. Update both fb_to_sensor() in sensor_helpers.cpp
+//   6. Update both sensor_to_proto() in sensor_data.cpp
+//   7. Update sim_build_sensor_rig_config() in sim_helpers.cpp
+
+
 union SensorIntrinsicConfigFB
 {
     CameraConfigFB,
@@ -269,7 +279,7 @@ table LiDARBeamFB
 table LiDARConfigFB
 {
     beam_data : [LiDARBeamFB];
-    
+
     sample_rate   : float;        // Sample rate of the beams in hz
     rotation_rate : float;        // Rotation rate of beams in hz
 
@@ -312,46 +322,55 @@ table LiDARConfigFB
     capture_backwardmotionvectors: bool;
     multi_returns_angle: float = 0.00035;
 
+    capture_intensity    : bool;
 }
 
 table RadarBasicParametersFB
 {
-    max_range : float;              // Maximum radar range
-    range_resolution : float;         // Range resolution
-    max_doppler : float;               // Maximum radar doppler output
-    doppler_resolution : float;       // Doppler resolution
-    azimuth_fov : float;              // Azimuth field of view
-    azimuth_resolution : float;         // Azimuth resolution
-    elevation_fov : float;             // Elevation field of view
-    elevation_resolution : float;       // Elevation resolution
-    radar_output_2d : bool;         // Does the radar output elevation data 
-    use_random_raycast : bool;      // Use random ray cast for radar inputs
-    number_rays_per_frame : int;    // Number of random rays per frame
+    max_range : float = 204.8;              // Maximum radar range
+    range_resolution : float = 0.8;         // Range resolution
+    max_doppler : float = 30.0;               // Maximum radar doppler output
+    doppler_resolution : float = 0.2;       // Doppler resolution
+    azimuth_fov : float = 110.0;              // Azimuth field of view
+    azimuth_resolution : float = 1.0;         // Azimuth resolution
+    elevation_fov : float = 32.0;             // Elevation field of view
+    elevation_resolution : float = 2.0;       // Elevation resolution
+    radar_output_2d : bool = false;         // Does the radar output elevation data
+    use_random_raycast : bool = true;      // Use random ray cast for radar inputs
+    number_rays_per_frame : int = 30000;    // Number of random rays per frame
+    azimuth_accuracy: float = 0.5;
+    elevation_accuracy: float = 1.0;
+    prf_profile_file: string;
 }
 
 table RadarEnergyParametersFB
 {
-    nominal_gain : float;             // Energy estimator gain in range of 1m
-    gain_jitter_std : float;            // Energy estimator energy noise jitter standard deviation
-    radiometric_coefficient : float;    // The energy attenuation coefficient 
+    nominal_gain : float = 120.0;             // Energy estimator gain in range of 1m
+    gain_jitter_std : float = 5.0;            // Energy estimator energy noise jitter standard deviation
+    radiometric_coefficient : float = 4.0;    // The energy attenuation coefficient
     beam_pattern_file_path : string;        // The path to the energy estimator beam pattern file
-    enable_beam_pattern : bool;     // Does the energy model use beam pattern
+    enable_beam_pattern : bool = true;     // Does the energy model use beam pattern
 }
 
 table RadarNoiseParametersFB
 {
-    enable_thermal_noise : bool;     // Enable/disable the ‘thermal noise’ block
-    thermal_noise_std : float;          // Thermal noise standard-deviation (normal distribution) 
-    thermal_noise_mean : float;        // Thermal noise mean value (normal distribution) 
-    enable_doa_noise : bool;         // Enable/disable the ‘DOA noise’ block
+    enable_thermal_noise : bool = true;     // Enable/disable the ‘thermal noise’ block
+    thermal_noise_std : float = 3.0;          // Thermal noise standard-deviation (normal distribution)
+    thermal_noise_mean : float = 15.0;        // Thermal noise mean value (normal distribution)
+    enable_doa_noise : bool = true;         // Enable/disable the ‘DOA noise’ block
 }
 
 table RadarDetectorParametersFB
 {
     detector_type : string;                            // What kind of RD map detector to use
-    detector_constant_gain : float;          // Threshold for ‘constant threshold detector’
-    detector_radiometric_gain : float;      // Threshold in 1m for ‘Radiometric detector’
-    detector_radiometric_decay : float;         // Radiometric detector decay exponent 
+    detector_constant_gain : float = 30.0;          // Threshold for ‘constant threshold detector’
+    detector_radiometric_gain : float = 100.0;      // Threshold in 1m for ‘Radiometric detector’
+    detector_radiometric_decay : float = 4.0;         // Radiometric detector decay exponent
+    enable_cfar : bool = false;
+    cfar_type : string;
+    cfar_guard_cell : int = 2;
+    cfar_neighbor_cell : int = 5;
+    cfar_threshold_scale : float = 0.5;
 }
 
 table RadarConfigFB

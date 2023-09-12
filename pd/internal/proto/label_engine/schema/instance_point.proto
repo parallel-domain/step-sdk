@@ -8,159 +8,52 @@ import "options.proto";
 message InstancePoint3DAnnotatorConfig
 {
   string input_instance_map = 1  [(type)=eMeshIDMap, (stream)=eInput];
-  string output_path = 2         [(type)=eAnnotation, (stream)=eOutput];
+  string instance_point_map = 2;
+  string output_path = 3         [(type)=eAnnotation, (stream)=eOutput];
 }
 
 message InstancePoint3DMetadata
 {
     uint32 instance_id = 1;
-
-    oneof data {
-        TrailerPointData trailer_point_data = 2;
-        VehiclePointData vehicle_point_data = 3;
-        ParkingPointData parking_point_data = 4;
-        PedestrianPointData pedestrian_point_data = 5;
-        WheelPointData wheel_point_data = 6;
-        DroneAutoLoaderPointData drone_autoloader_point_data = 7;
-		WheelStopperPointData wheel_stopper_point_data = 8;
-    }
-}
-
-// Config message for Instance Point 2D annotation data
-message InstancePoint2DAnnotatorConfig
-{
-  string input_instance_map = 1  [(type)=eMeshIDMap, (stream)=eInput];
-  string output_path = 2         [(type)=eAnnotation, (stream)=eOutput];
+    InstancePointType instance_point_type = 2; 
+    string instance_point_name = 3;
 }
 
 message InstancePoint2DMetadata
 {
     uint32 instance_id = 1;
-
-    oneof data {
-        TrailerPointData trailer_point_data = 2;
-        VehiclePointData vehicle_point_data = 3;
-        ParkingPointData parking_point_data = 4;
-        PedestrianPointData pedestrian_point_data = 5;
-        WheelPointData wheel_point_data = 6;
-        DroneAutoLoaderPointData drone_autoloader_point_data = 7;
-		WheelStopperPointData wheel_stopper_point_data = 8;
-    }
-
-    bool visibility = 9;
-    float distance_from_ego = 10;
+	InstancePointType instance_point_type = 2; 
+    string instance_point_name = 3;
+    bool visibility = 4;
+    float distance_from_ego = 5;
 }
 
-message TrailerPointData
-{
-    enum TrailerPointType
-    {
-        HITCH_BALL = 0;
-        BOTTOM_LEFT = 1;
-        BOTTOM_CENTER = 2;
-        BOTTOM_RIGHT = 3;
-        TOP_LEFT = 4;
-        TOP_RIGHT = 5;
-        DRAWBAR_TRIANGLE_LEFT = 6;
-        DRAWBAR_TRIANGLE_RIGHT = 7;
-        DRAWBAR_NECK = 8;
-        TONGUE_JACK = 9;
-        ACCESSORY = 10;
-    }
-    TrailerPointType type = 1;
-    string other_name = 2;
+enum InstancePointType {
+	TrailerPoint = 0;
+	VehiclePoint = 1;
+	PedestrianPoint = 2;
+	ParkingSpotPoint = 3;
+	WheelStopperPoint = 4;
+	WheelPoint = 5;
+	DroneAutoLoaderPoint = 6;
+	OtherTypePoint = 7;
 }
 
-message ParkingPointData
+message InstancePointConfiguration
 {
-    enum ParkingPointType
-    {
-        CORNER_1 = 0;
-        CORNER_2 = 1;
-        CORNER_3 = 2;
-        CORNER_4 = 3;
-    }
-    ParkingPointType type = 1;
+	// instance point name as defined at the source (IG). Regex allowed. Exact matches
+	// will be searched for first, then a regex pattern prioritized by longest match.
+	// If an entry's regex is invalid, a warning will be raised and only exact matches
+	// will be used for it.
+	string instance_point_key = 1;
+	
+	InstancePointType instance_point_type = 2;
+	
+	// instance point name to remap to. If blank, instance_point_key is used
+	string instance_point_output_name = 3;
 }
 
-message VehiclePointData
+message InstancePointMap
 {
-    enum VehiclePointType
-    {
-        FRONT_LEFT = 0;
-        FRONT_RIGHT = 1;
-        REAR_LEFT = 2;
-        REAR_RIGHT = 3;
-        EGO_CENTER = 4;
-        EGO_LEFT = 5;
-        EGO_RIGHT = 6;
-    }
-    VehiclePointType type = 1;
-}
-
-message DroneAutoLoaderPointData
-{
-  enum DroneAutoLoaderPointType
-  {
-    ARM_A_TIP = 0;
-    ARM_A_SUPPORT_JUNCTION = 1;
-    ARM_A_REAR_MOUNT = 2;
-    ARM_A_BASE = 3;
-    ARM_B_TIP = 4;
-    ARM_B_SUPPORT_JUNCTION = 5;
-    ARM_B_REAR_MOUNT = 6;
-    ARM_B_BASE = 7;
-  }
-  DroneAutoLoaderPointType type = 1;
-}
-
-message WheelPointData
-{
-    enum WheelPointType
-    {
-        FRONT_LEFT = 0;
-        FRONT_RIGHT = 1;
-        REAR_LEFT = 2;
-        REAR_RIGHT = 3;
-        FRONT = 4;
-        BACK = 5;
-    }
-    WheelPointType type = 1;
-}
-
-message PedestrianPointData
-{
-    enum PedestrianPointType
-    {
-        ROOT = 0;
-		NECK = 1;
-		NOSE = 2;
-		LEFT_EYE = 3;
-		RIGHT_EYE = 4;
-		LEFT_EAR = 5;
-		RIGHT_EAR = 6;
-		LEFT_SHOULDER = 7;
-		RIGHT_SHOULDER = 8;
-		LEFT_ELBOW = 9;
-		RIGHT_ELBOW = 10;
-		LEFT_WRIST = 11;
-		RIGHT_WRIST = 12;
-		LEFT_HIP = 13;
-		RIGHT_HIP = 14;
-		LEFT_KNEE = 15;
-		RIGHT_KNEE = 16;
-		LEFT_ANKLE = 17;
-		RIGHT_ANKLE = 18;
-    }
-    PedestrianPointType type = 1;
-}
-
-message WheelStopperPointData
-{
-	enum WheelStopperPointType
-	{
-		LEFT_POINT = 0;
-		RIGHT_POINT = 1;
-	}
-	WheelStopperPointType type = 1;
+	repeated InstancePointConfiguration instance_point_mappings = 1;
 }

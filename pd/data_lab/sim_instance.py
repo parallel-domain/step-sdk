@@ -103,9 +103,7 @@ class FromDiskSimulation(SimulationStateProvider):
         # This auxiliary state is to retrieve ego_agent and location
         first_state = next(self.state_generator(folder=scenario.folder))
         ego_agent = next(
-            iter(
-                [a for a in first_state.agents if isinstance(a, (ModelAgent, VehicleAgent)) and len(a.sensors) > 0]
-            )
+            iter([a for a in first_state.agents if isinstance(a, (ModelAgent, VehicleAgent)) and len(a.sensors) > 0])
         )
         sim_state.set_ego_agent_id(ego_id=ego_agent.id)
         sim_state.set_location(location=Location(name=first_state.world_info.location))
@@ -168,9 +166,10 @@ class AbstractSimulationInstance(SimulationStateProvider):
 
         self._simulated_frames = 0
         self._max_frames = (
-                (discrete_scenario.sim_state.scenario_gen.num_frames - 1)
-                * discrete_scenario.sim_state.scenario_gen.sim_capture_rate
-                + discrete_scenario.sim_state.scenario_gen.start_skip_frames + 1
+            (discrete_scenario.sim_state.scenario_gen.num_frames - 1)
+            * discrete_scenario.sim_state.scenario_gen.sim_capture_rate
+            + discrete_scenario.sim_state.scenario_gen.start_skip_frames
+            + 1
         )
         self._init_sim_state(scenario=discrete_scenario, sim_state=sim_state)
 
@@ -281,8 +280,8 @@ class SimulationInstance(AbstractSimulationInstance):
             address: Instance address. Used in local mode
         """
         super().__init__()
-        self._name = name
-        self._address = address
+        self.name = name
+        self.address = address
         context = get_datalab_context()
         self._client_cert_file = context.client_cert_file
         self._temporal_session_reference = None
@@ -296,7 +295,7 @@ class SimulationInstance(AbstractSimulationInstance):
 
         if context.is_mode_local:
             # Local mode, use local address if none is provided
-            self._address = self._address or "tcp://localhost:9002"
+            self.address = self.address or "tcp://localhost:9002"
         else:
             # Cloud mode, resolve the address
             try:
@@ -313,8 +312,8 @@ class SimulationInstance(AbstractSimulationInstance):
                         f"and the version of the sim instance ({ig.ig_version}). "
                         "To disable this check, pass fail_on_version_mismatch=False to setup_datalab()."
                     )
-            self._address = ig.sim_url
-            if self._address is None:
+            self.address = ig.sim_url
+            if self.address is None:
                 raise PdError("Render Instance doesn't have a simulation server.")
 
     @property
@@ -323,7 +322,7 @@ class SimulationInstance(AbstractSimulationInstance):
 
     def create_session(self):
         if self._session is None:
-            self._session = SimSession(request_addr=self._address, client_cert_file=self._client_cert_file)
+            self._session = SimSession(request_addr=self.address, client_cert_file=self._client_cert_file)
             self._session.transport.timeout_recv_ms = 600_000
             self._session.__enter__()
             logger.info("Started Sim Session.")

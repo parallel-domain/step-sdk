@@ -53,7 +53,7 @@ class ScenarioSource(abc.ABC):
     @abc.abstractmethod
     def get_discrete_scenario(
         self,
-        scenario_index: int,
+        scene_index: int,
         dataset_name: Optional[str] = None,
         end_skip_frames: Optional[int] = None,
         num_frames: int = -1,
@@ -87,9 +87,13 @@ class SimulatedScenarioCollection(ScenarioSource):
     def number_of_stored_scenes(self) -> int:
         return len(self._scene_folders)
 
+    @property
+    def scene_indices(self) -> List[int]:
+        return [scene_name_to_index(scene_name=sf.name) for sf in self._storage_folder.iterdir() if sf.is_dir()]
+
     def get_discrete_scenario(
         self,
-        scenario_index: int,
+        scene_index: int,
         dataset_name: Optional[str] = None,
         end_skip_frames: Optional[int] = None,
         num_frames: int = -1,
@@ -98,7 +102,10 @@ class SimulatedScenarioCollection(ScenarioSource):
         start_skip_frames: Optional[int] = 5,
         merge_batches: Optional[bool] = None,
     ) -> "DiscreteScenario":
-        scene_folder = self._scene_folders[scenario_index]
+        scene_folders = {
+            scene_name_to_index(scene_name=sf.name): sf for sf in self._storage_folder.iterdir() if sf.is_dir()
+        }
+        scene_folder = scene_folders[scene_index]
         return SimulatedScenario(
             folder=scene_folder,
             state_callbacks=[c.clone() for c in self.state_callbacks],
@@ -330,7 +337,7 @@ class Scenario(ScenarioSource):
 
     def get_discrete_scenario(
         self,
-        scenario_index: int,
+        scene_index: int,
         dataset_name: Optional[str] = None,
         end_skip_frames: Optional[int] = None,
         num_frames: int = -1,
@@ -339,13 +346,13 @@ class Scenario(ScenarioSource):
         start_skip_frames: Optional[int] = None,
         merge_batches: Optional[bool] = None,
     ) -> "DiscreteScenario":
-        random_seed = self.random_seed + scenario_index
+        random_seed = self.random_seed + scene_index
 
-        name = f"scene_{str(scenario_index).zfill(6)}"
+        name = f"scene_{scene_index:06}"
 
         cloned = self.clone()
         cloned.random_seed = random_seed
-        cloned.scenario_index = scenario_index
+        cloned.scene_index = scene_index
 
         if len(self.environment.time_of_day.buckets) == 0:
             cloned.environment.time_of_day.set_category_weight(category=TimeOfDays.Day, weight=1.0)
@@ -451,3 +458,11 @@ class SimulatedScenario(DiscreteScenario):
             state_callbacks=state_callbacks,
         )
         self.folder = folder
+
+    @property
+    def scene_index(self) -> int:
+        return scene_name_to_index(self.name)
+
+
+def scene_name_to_index(scene_name: str) -> int:
+    return int(scene_name.split("_")[-1])

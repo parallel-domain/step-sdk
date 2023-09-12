@@ -228,7 +228,8 @@ def common_step_options(require_sim=False, require_label_engine=False):
                 ig_version = ig_instance.ig_version
                 ig = ig_instance.ig_url
                 sim = ig_instance.sim_url
-                label_engine = ig_instance.le_url
+                if label_engine:
+                    label_engine = ig_instance.le_url
             except HTTPError:
                 raise ValueError(
                     f"Couldn't find an Ig by the name '{ig}'. Please check the value passed in '--ig'"

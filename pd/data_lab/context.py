@@ -63,6 +63,13 @@ def get_datalab_context() -> DataLabContext:
         raise PdError("Data Lab context is not set. Did you remember to call pd.data_lab.context.setup_datalab()?")
 
 
+def datalab_context_exists() -> bool:
+    if _GLOBAL_CONTEXT is not None:
+        return True
+    else:
+        return False
+
+
 def setup_datalab(version: str,
                   environment: Literal['prod', 'stage', 'dev'] = 'prod',
                   fail_on_version_mismatch: bool = True):

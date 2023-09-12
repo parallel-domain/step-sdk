@@ -23,17 +23,18 @@ from . import pd_worldbuild_pb2 as pd__worldbuild__pb2
 from . import pd_source_maps_pb2 as pd__source__maps__pb2
 from . import pd_package_maps_from_p4_pb2 as pd__package__maps__from__p4__pb2
 from . import pd_recook_pb2 as pd__recook__pb2
+from . import pd_step_batch_pb2 as pd__step__batch__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11pd_keystone.proto\x12\x08keystone\x1a\x0fpd_sensor.proto\x1a\x0fpd_render.proto\x1a\x11pd_scenario.proto\x1a\x15pd_post_process.proto\x1a\x12pd_sim_state.proto\x1a\x12pd_levelcook.proto\x1a\x1bpd_world_cook_from_p4.proto\x1a\x11pd_worldgen.proto\x1a\x13pd_worldbuild.proto\x1a\x14pd_source_maps.proto\x1a\x1dpd_package_maps_from_p4.proto\x1a\x0fpd_recook.proto\"\x95\x06\n\x14KeystoneBuildMessage\x12<\n\x06stages\x18\x01 \x03(\x0b\x32,.keystone.KeystoneBuildMessage.PipelineStage\x1a\xbe\x05\n\rPipelineStage\x12\x32\n\x0f\x62uild_sim_state\x18\x01 \x01(\x0b\x32\x17.keystone.BuildSimStateH\x00\x12&\n\x06render\x18\x02 \x01(\x0b\x32\x14.keystone.RenderInfoH\x00\x12-\n\x0cqa_processor\x18\x03 \x01(\x0b\x32\x15.keystone.QAProcessorH\x00\x12/\n\rfield_encoder\x18\x04 \x01(\x0b\x32\x16.keystone.FieldEncoderH\x00\x12\x30\n\x0esim_state_cull\x18\x05 \x01(\x0b\x32\x16.keystone.SimStateCullH\x00\x12,\n\tlevelcook\x18\x06 \x01(\x0b\x32\x17.keystone.LevelCookInfoH\x00\x12*\n\x08worldgen\x18\x07 \x01(\x0b\x32\x16.keystone.WorldGenInfoH\x00\x12.\n\nworldbuild\x18\x08 \x01(\x0b\x32\x18.keystone.WorldBuildInfoH\x00\x12;\n\x12world_cook_from_p4\x18\t \x01(\x0b\x32\x1d.keystone.WorldCookFromP4InfoH\x00\x12+\n\x0bsource_maps\x18\n \x01(\x0b\x32\x14.keystone.SourceMapsH\x00\x12;\n\x14package_maps_from_p4\x18\x0b \x01(\x0b\x32\x1b.keystone.PackageMapsFromP4H\x00\x12)\n\nle_encoder\x18\x0c \x01(\x0b\x32\x13.keystone.LEEncoderH\x00\x12\x36\n\x11sim_state_process\x18\r \x01(\x0b\x32\x19.keystone.ProcessSimStateH\x00\x12\"\n\x06recook\x18\x0e \x01(\x0b\x32\x10.keystone.RecookH\x00\x42\x07\n\x05stageb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11pd_keystone.proto\x12\x08keystone\x1a\x0fpd_sensor.proto\x1a\x0fpd_render.proto\x1a\x11pd_scenario.proto\x1a\x15pd_post_process.proto\x1a\x12pd_sim_state.proto\x1a\x12pd_levelcook.proto\x1a\x1bpd_world_cook_from_p4.proto\x1a\x11pd_worldgen.proto\x1a\x13pd_worldbuild.proto\x1a\x14pd_source_maps.proto\x1a\x1dpd_package_maps_from_p4.proto\x1a\x0fpd_recook.proto\x1a\x13pd_step_batch.proto\"\xc0\x06\n\x14KeystoneBuildMessage\x12<\n\x06stages\x18\x01 \x03(\x0b\x32,.keystone.KeystoneBuildMessage.PipelineStage\x1a\xe9\x05\n\rPipelineStage\x12\x32\n\x0f\x62uild_sim_state\x18\x01 \x01(\x0b\x32\x17.keystone.BuildSimStateH\x00\x12&\n\x06render\x18\x02 \x01(\x0b\x32\x14.keystone.RenderInfoH\x00\x12-\n\x0cqa_processor\x18\x03 \x01(\x0b\x32\x15.keystone.QAProcessorH\x00\x12/\n\rfield_encoder\x18\x04 \x01(\x0b\x32\x16.keystone.FieldEncoderH\x00\x12\x30\n\x0esim_state_cull\x18\x05 \x01(\x0b\x32\x16.keystone.SimStateCullH\x00\x12,\n\tlevelcook\x18\x06 \x01(\x0b\x32\x17.keystone.LevelCookInfoH\x00\x12*\n\x08worldgen\x18\x07 \x01(\x0b\x32\x16.keystone.WorldGenInfoH\x00\x12.\n\nworldbuild\x18\x08 \x01(\x0b\x32\x18.keystone.WorldBuildInfoH\x00\x12;\n\x12world_cook_from_p4\x18\t \x01(\x0b\x32\x1d.keystone.WorldCookFromP4InfoH\x00\x12+\n\x0bsource_maps\x18\n \x01(\x0b\x32\x14.keystone.SourceMapsH\x00\x12;\n\x14package_maps_from_p4\x18\x0b \x01(\x0b\x32\x1b.keystone.PackageMapsFromP4H\x00\x12)\n\nle_encoder\x18\x0c \x01(\x0b\x32\x13.keystone.LEEncoderH\x00\x12\x36\n\x11sim_state_process\x18\r \x01(\x0b\x32\x19.keystone.ProcessSimStateH\x00\x12\"\n\x06recook\x18\x0e \x01(\x0b\x32\x10.keystone.RecookH\x00\x12)\n\nstep_batch\x18\x0f \x01(\x0b\x32\x13.keystone.StepBatchH\x00\x42\x07\n\x05stageb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'pd_keystone_pb2', globals())
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  _KEYSTONEBUILDMESSAGE._serialized_start=287
-  _KEYSTONEBUILDMESSAGE._serialized_end=1076
-  _KEYSTONEBUILDMESSAGE_PIPELINESTAGE._serialized_start=374
-  _KEYSTONEBUILDMESSAGE_PIPELINESTAGE._serialized_end=1076
+  _KEYSTONEBUILDMESSAGE._serialized_start=308
+  _KEYSTONEBUILDMESSAGE._serialized_end=1140
+  _KEYSTONEBUILDMESSAGE_PIPELINESTAGE._serialized_start=395
+  _KEYSTONEBUILDMESSAGE_PIPELINESTAGE._serialized_end=1140
 # @@protoc_insertion_point(module_scope)

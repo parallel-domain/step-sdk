@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package keystone;
+
+message LocationOverride
+{
+    string location = 1;
+    string location_uuid = 2;
+}
+
+message StepBatch
+{
+    // Human readable name for this job
+    string name = 1;
+
+    // Output artifact for build results
+    string output_artifact_uid = 2;
+
+    // Container image
+    string scenario_container = 3;
+    string module_name = 4;
+    string generate_name = 5;
+
+    string org = 6;
+
+    int32 num_scenarios = 7;
+    int32 scenario_seed = 8;
+
+    // Batches
+    int32 batch_size = 9;
+    int32 output_offset = 10;
+    bool merge_batches = 11;
+
+    // Scenario configuration parameters
+    int32 num_frames = 12;
+    int32 sim_settle_frames = 13;
+    int32 start_skip_frames = 14;
+    int32 end_skip_frames = 15;
+    int32 sim_capture_rate = 16;
+    float sim_update_time = 17;
+
+    // Checks
+    int32 num_retries = 18;
+    float sim_terminate_on_collision_within_radius_m = 19;
+    float sim_terminate_on_pedestrian_collision_within_radius_m = 20;
+    bool check_offroad_vehicles = 21;
+    bool sim_terminate_on_drone_flight_path_end = 22;
+
+    // Location overrides
+    repeated LocationOverride location_overrides = 23;
+}

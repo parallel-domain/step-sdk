@@ -19,21 +19,23 @@
             }
         },
         {
-            "name": "gen_instance_points_2d",
-            "depends_on": ["gen_instance_map"],
-            "config": {
-                "@type": "type.googleapis.com/pd.data.InstancePoint2DAnnotatorConfig",
-                "input_instance_map": "instance_map_xyz",
-                "output_path": "instance_points_2d_xyz"
-            }
-        },
-        {
             "name": "gen_instance_points_3d",
             "depends_on": ["gen_instance_map"],
             "config": {
                 "@type": "type.googleapis.com/pd.data.InstancePoint3DAnnotatorConfig",
                 "input_instance_map": "instance_map_xyz",
                 "output_path": "instance_points_3d_xyz"
+            }
+        },
+        {
+            "name": "gen_instance_points_2d",
+            "depends_on": ["gen_instance_map", "gen_instance_points_3d"],
+            "config": {
+                "@type": "type.googleapis.com/pd.data.GenerateProjectionConfig",
+                "input_annotation_3d": "instance_points_3d_xyz",
+                "input_instance_map": "instance_map_xyz",
+                "output_path": "instance_points_2d_xyz",
+                "sensor_types": ["eCamera"]
             }
         },
         {

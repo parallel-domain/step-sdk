@@ -9,7 +9,7 @@ enum LotParkingDelineationType : int
     DOUBLE_ROUND,
     T_SHAPE,
     NO_LINE,
-    RANDOM,
+    RANDOM, // deprecated
     BOX_CLOSED,
     BOX_OPEN_CURB,
     BOX_DOUBLE,
@@ -31,7 +31,7 @@ enum StreetParkingDelineationType : int
     DOUBLE_ROUND,
     T_SHAPE,
     NO_LINE,
-    RANDOM,
+    RANDOM, // deprecated
     BOX_CLOSED,
     BOX_OPEN_CURB,
     BOX_DOUBLE,
@@ -58,7 +58,7 @@ enum StreetParkingAngleZeroOverride : int
     DOUBLE_ROUND,
     T_SHAPE,
     NO_LINE,
-    RANDOM,
+    RANDOM, // deprecated
     UNMETERED,
     BOX_CLOSED,
     BOX_OPEN_CURB,

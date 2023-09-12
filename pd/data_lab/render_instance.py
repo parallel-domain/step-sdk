@@ -260,7 +260,8 @@ class RenderInstance(AbstractRenderInstance):
             address: Instance address. Used in local mode
         """
         super().__init__()
-        self._address = address
+        self.address = address
+        self.name = name
         context = get_datalab_context()
         self._client_cert_file = context.client_cert_file
 
@@ -271,7 +272,7 @@ class RenderInstance(AbstractRenderInstance):
 
         if context.is_mode_local:
             # Local mode, use local address if none is provided
-            self._address = self._address or "tcp://localhost:9000"
+            self.address = self.address or "tcp://localhost:9000"
         else:
             # Cloud mode, resolve the address
             try:
@@ -288,13 +289,13 @@ class RenderInstance(AbstractRenderInstance):
                         f"and the version of the render instance ({ig.ig_version}). "
                         "To disable this check, pass fail_on_version_mismatch=False to setup_datalab()."
                     )
-            self._address = ig.ig_url
-            if self._address is None:
+            self.address = ig.ig_url
+            if self.address is None:
                 raise PdError("Render Instance doesn't have a image generator server.")
 
     def create_session(self):
         if self.session is None:
-            self.session = StepSession(request_addr=self._address, client_cert_file=self._client_cert_file)
+            self.session = StepSession(request_addr=self.address, client_cert_file=self._client_cert_file)
             self.session.transport.timeout_recv_ms = 600_000
             self.session.__enter__()
             version = self.session.system_info.version

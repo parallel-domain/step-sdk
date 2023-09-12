@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "options.proto";
+
+message GenerateProjectionConfig
+{
+    string input_annotation_3d = 1  [(type)=eAnnotation, (stream)=eInput];
+	string input_instance_map = 2   [(type)=eMeshIDMap, (stream)=eInput];
+    string output_path = 3          [(type)=eAnnotation, (stream)=eOutput];
+	repeated SensorType sensor_types = 4;
+}

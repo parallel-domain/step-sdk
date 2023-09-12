@@ -200,7 +200,7 @@ message ParkingSpaceData
     /*
     Description:
         Specifies delineation type for parking lot spaces. Each scenario samples a delineation type from this distribution.
-        Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`
+        Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `BOX_CLOSED`, 
         `BOX_OPEN_CURB`, `BOX_DOUBLE`, `SINGLE_SQUARED_OPEN_CURB`, `DOUBLE_ROUND_50CM_GAP`, `DOUBLE_ROUND_50CM_GAP_OPEN_CURB`, 
         `DOUBLE_SQUARED_50CM_GAP_OPEN_CURB`, `T_FULL`, `T_SHORT`
         Default: `SINGLE`
@@ -210,7 +210,7 @@ message ParkingSpaceData
     /*
     Description:
         Specifies delineation type for non parallel street parking spaces. Each scenario samples a delineation type from this distribution.
-        Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`
+        Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `BOX_CLOSED`, 
         `BOX_OPEN_CURB`, `BOX_DOUBLE`, `SINGLE_SQUARED_OPEN_CURB`, `DOUBLE_ROUND_50CM_GAP`, `DOUBLE_ROUND_50CM_GAP_OPEN_CURB`, 
         `DOUBLE_SQUARED_50CM_GAP_OPEN_CURB`, `T_FULL`, `T_SHORT`
         Default: `SINGLE`
@@ -220,7 +220,7 @@ message ParkingSpaceData
     /*
     Description:
         Specifies delineation type for parallel street parking spaces. Each scenario samples a delineation type from this distribution.
-        Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `UNMETERED`
+        Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `UNMETERED`, `BOX_CLOSED`, 
         `BOX_OPEN_CURB`, `BOX_DOUBLE`, `SINGLE_SQUARED_OPEN_CURB`, `DOUBLE_ROUND_50CM_GAP`, `DOUBLE_ROUND_50CM_GAP_OPEN_CURB`, 
         `DOUBLE_SQUARED_50CM_GAP_OPEN_CURB`, `T_FULL`, `T_SHORT`
         Default: Will use what was selected for `street_parking_delineation_type` if empty.
@@ -502,10 +502,11 @@ message EgoAgentGeneratorParameters
 
       Possible values: 
         Red
+        Yellow
         Green 
 
   Required:
-      No, will use default enum values
+      If `use_traffic_light_color_probability` is set to true, it is required.
   */
   optional EnumDistribution traffic_light_color_probability = 5; 
 
@@ -1100,7 +1101,7 @@ message JunctionSpawnPolicy
         Signed
 
   Required:
-      No, will use default values
+      If `use_intersection_type_probability` is true, it is required.
   */
   optional EnumDistribution intersection_type_probability = 3;
 }

@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 from . import options_pb2 as options__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\tdgp.proto\x12\x07pd.data\x1a\roptions.proto\"\xdc\x05\n\x15WriteDGPDatasetConfig\x12%\n\x17semantic_label_filepath\x18\x01 \x01(\tB\x04\x80\xb5\x18\r\x12\x1d\n\x0f\x64gp_output_path\x18\x02 \x01(\tB\x04\x88\xb5\x18\x01\x12$\n\x12input_semantic_map\x18\x03 \x01(\tB\x08\x80\xb5\x18\x07\x88\xb5\x18\x00\x12%\n\x13input_semantic_mask\x18\x04 \x01(\tB\x08\x80\xb5\x18\x01\x88\xb5\x18\x00\x12\'\n\x15input_bounding_box_2d\x18\x05 \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x00\x12\'\n\x15input_bounding_box_3d\x18\x06 \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x00\x12%\n\x13input_instance_mask\x18\x07 \x01(\tB\x08\x80\xb5\x18\x01\x88\xb5\x18\x00\x12&\n\x14input_instance_state\x18\x08 \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x00\x12)\n\x17input_instance_point_2d\x18\t \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x00\x12)\n\x17input_instance_point_3d\x18\n \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x00\x12$\n\x12input_instance_map\x18\x0b \x01(\tB\x08\x80\xb5\x18\x07\x88\xb5\x18\x00\x12(\n\x16input_motion_vector_2d\x18\x0c \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x00\x12#\n\x11input_world_lines\x18\r \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x00\x12\x1b\n\tinput_rgb\x18\x0e \x01(\tB\x08\x80\xb5\x18\x00\x88\xb5\x18\x00\x12\x1d\n\x0binput_depth\x18\x0f \x01(\tB\x08\x80\xb5\x18\x00\x88\xb5\x18\x00\x12#\n\x11input_point_cloud\x18\x10 \x01(\tB\x08\x80\xb5\x18\x00\x88\xb5\x18\x00\x12!\n\x0finput_telemetry\x18\x11 \x01(\tB\x08\x80\xb5\x18\x0f\x88\xb5\x18\x00\x12@\n\x13\x63onfiguration_flags\x18\x12 \x01(\x0b\x32#.pd.data.WriteDGPDatasetExtraConfig\"\xb5\x02\n\x1aWriteDGPDatasetExtraConfig\x12%\n\x1doutput_only_visible_2d_bounds\x18\x01 \x01(\x08\x12%\n\x1doutput_only_visible_3d_bounds\x18\x02 \x01(\x08\x12s\n)filter_out_keypoints_by_name_and_ontology\x18\x03 \x03(\x0b\x32@.pd.data.DGPDatasetFilterByKeypointNameAndInstanceOntologyConfig\x12\"\n\x1a\x64istance_cull_2d_keypoints\x18\x04 \x01(\x02\x12\x30\n(enable_motion_vector_child_mesh_rotation\x18\x05 \x01(\x08\"k\n7DGPDatasetFilterByKeypointNameAndInstanceOntologyConfig\x12\x15\n\rkeypoint_name\x18\x01 \x01(\t\x12\x19\n\x11instance_ontology\x18\x02 \x01(\x05\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\tdgp.proto\x12\x07pd.data\x1a\roptions.proto\"\xff\x07\n\x15WriteDGPDatasetConfig\x12%\n\x17semantic_label_filepath\x18\x01 \x01(\tB\x04\x80\xb5\x18\r\x12\x1d\n\x0f\x64gp_output_path\x18\x02 \x01(\tB\x04\x88\xb5\x18\x01\x12$\n\x12input_semantic_map\x18\x03 \x01(\tB\x08\x80\xb5\x18\x07\x88\xb5\x18\x00\x12%\n\x13input_semantic_mask\x18\x04 \x01(\tB\x08\x80\xb5\x18\x01\x88\xb5\x18\x00\x12\'\n\x15input_bounding_box_2d\x18\x05 \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x00\x12\'\n\x15input_bounding_box_3d\x18\x06 \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x00\x12%\n\x13input_instance_mask\x18\x07 \x01(\tB\x08\x80\xb5\x18\x01\x88\xb5\x18\x00\x12&\n\x14input_instance_state\x18\x08 \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x00\x12)\n\x17input_instance_point_2d\x18\t \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x00\x12)\n\x17input_instance_point_3d\x18\n \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x00\x12$\n\x12input_instance_map\x18\x0b \x01(\tB\x08\x80\xb5\x18\x07\x88\xb5\x18\x00\x12(\n\x16input_motion_vector_2d\x18\x0c \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x00\x12#\n\x11input_world_lines\x18\r \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x00\x12\x1b\n\tinput_rgb\x18\x0e \x01(\tB\x08\x80\xb5\x18\x01\x88\xb5\x18\x00\x12\x1d\n\x0binput_depth\x18\x0f \x01(\tB\x08\x80\xb5\x18\x01\x88\xb5\x18\x00\x12-\n\x1binput_point_cloud_positions\x18\x10 \x01(\tB\x08\x80\xb5\x18\x08\x88\xb5\x18\x00\x12,\n\x1ainput_point_cloud_metadata\x18\x11 \x01(\tB\x08\x80\xb5\x18\x08\x88\xb5\x18\x00\x12\x30\n\x1einput_semantic_segmentation_3d\x18\x12 \x01(\tB\x08\x80\xb5\x18\x08\x88\xb5\x18\x00\x12\x30\n\x1einput_instance_segmentation_3d\x18\x13 \x01(\tB\x08\x80\xb5\x18\x08\x88\xb5\x18\x00\x12.\n\x1cinput_material_properties_3d\x18\x14 \x01(\tB\x08\x80\xb5\x18\x08\x88\xb5\x18\x00\x12*\n\x18input_surface_normals_3d\x18\x15 \x01(\tB\x08\x80\xb5\x18\x08\x88\xb5\x18\x00\x12)\n\x17input_motion_vectors_3d\x18\x16 \x01(\tB\x08\x80\xb5\x18\x08\x88\xb5\x18\x00\x12!\n\x0finput_telemetry\x18\x17 \x01(\tB\x08\x80\xb5\x18\x0f\x88\xb5\x18\x00\x12@\n\x13\x63onfiguration_flags\x18\x18 \x01(\x0b\x32#.pd.data.WriteDGPDatasetExtraConfig\"\x83\x02\n\x1aWriteDGPDatasetExtraConfig\x12%\n\x1doutput_only_visible_2d_bounds\x18\x01 \x01(\x08\x12%\n\x1doutput_only_visible_3d_bounds\x18\x02 \x01(\x08\x12s\n)filter_out_keypoints_by_name_and_ontology\x18\x03 \x03(\x0b\x32@.pd.data.DGPDatasetFilterByKeypointNameAndInstanceOntologyConfig\x12\"\n\x1a\x64istance_cull_2d_keypoints\x18\x04 \x01(\x02\"k\n7DGPDatasetFilterByKeypointNameAndInstanceOntologyConfig\x12\x15\n\rkeypoint_name\x18\x01 \x01(\t\x12\x19\n\x11instance_ontology\x18\x02 \x01(\x05\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'dgp_pb2', globals())
@@ -48,17 +48,29 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _WRITEDGPDATASETCONFIG.fields_by_name['input_world_lines']._options = None
   _WRITEDGPDATASETCONFIG.fields_by_name['input_world_lines']._serialized_options = b'\200\265\030\t\210\265\030\000'
   _WRITEDGPDATASETCONFIG.fields_by_name['input_rgb']._options = None
-  _WRITEDGPDATASETCONFIG.fields_by_name['input_rgb']._serialized_options = b'\200\265\030\000\210\265\030\000'
+  _WRITEDGPDATASETCONFIG.fields_by_name['input_rgb']._serialized_options = b'\200\265\030\001\210\265\030\000'
   _WRITEDGPDATASETCONFIG.fields_by_name['input_depth']._options = None
-  _WRITEDGPDATASETCONFIG.fields_by_name['input_depth']._serialized_options = b'\200\265\030\000\210\265\030\000'
-  _WRITEDGPDATASETCONFIG.fields_by_name['input_point_cloud']._options = None
-  _WRITEDGPDATASETCONFIG.fields_by_name['input_point_cloud']._serialized_options = b'\200\265\030\000\210\265\030\000'
+  _WRITEDGPDATASETCONFIG.fields_by_name['input_depth']._serialized_options = b'\200\265\030\001\210\265\030\000'
+  _WRITEDGPDATASETCONFIG.fields_by_name['input_point_cloud_positions']._options = None
+  _WRITEDGPDATASETCONFIG.fields_by_name['input_point_cloud_positions']._serialized_options = b'\200\265\030\010\210\265\030\000'
+  _WRITEDGPDATASETCONFIG.fields_by_name['input_point_cloud_metadata']._options = None
+  _WRITEDGPDATASETCONFIG.fields_by_name['input_point_cloud_metadata']._serialized_options = b'\200\265\030\010\210\265\030\000'
+  _WRITEDGPDATASETCONFIG.fields_by_name['input_semantic_segmentation_3d']._options = None
+  _WRITEDGPDATASETCONFIG.fields_by_name['input_semantic_segmentation_3d']._serialized_options = b'\200\265\030\010\210\265\030\000'
+  _WRITEDGPDATASETCONFIG.fields_by_name['input_instance_segmentation_3d']._options = None
+  _WRITEDGPDATASETCONFIG.fields_by_name['input_instance_segmentation_3d']._serialized_options = b'\200\265\030\010\210\265\030\000'
+  _WRITEDGPDATASETCONFIG.fields_by_name['input_material_properties_3d']._options = None
+  _WRITEDGPDATASETCONFIG.fields_by_name['input_material_properties_3d']._serialized_options = b'\200\265\030\010\210\265\030\000'
+  _WRITEDGPDATASETCONFIG.fields_by_name['input_surface_normals_3d']._options = None
+  _WRITEDGPDATASETCONFIG.fields_by_name['input_surface_normals_3d']._serialized_options = b'\200\265\030\010\210\265\030\000'
+  _WRITEDGPDATASETCONFIG.fields_by_name['input_motion_vectors_3d']._options = None
+  _WRITEDGPDATASETCONFIG.fields_by_name['input_motion_vectors_3d']._serialized_options = b'\200\265\030\010\210\265\030\000'
   _WRITEDGPDATASETCONFIG.fields_by_name['input_telemetry']._options = None
   _WRITEDGPDATASETCONFIG.fields_by_name['input_telemetry']._serialized_options = b'\200\265\030\017\210\265\030\000'
   _WRITEDGPDATASETCONFIG._serialized_start=38
-  _WRITEDGPDATASETCONFIG._serialized_end=770
-  _WRITEDGPDATASETEXTRACONFIG._serialized_start=773
-  _WRITEDGPDATASETEXTRACONFIG._serialized_end=1082
-  _DGPDATASETFILTERBYKEYPOINTNAMEANDINSTANCEONTOLOGYCONFIG._serialized_start=1084
-  _DGPDATASETFILTERBYKEYPOINTNAMEANDINSTANCEONTOLOGYCONFIG._serialized_end=1191
+  _WRITEDGPDATASETCONFIG._serialized_end=1061
+  _WRITEDGPDATASETEXTRACONFIG._serialized_start=1064
+  _WRITEDGPDATASETEXTRACONFIG._serialized_end=1323
+  _DGPDATASETFILTERBYKEYPOINTNAMEANDINSTANCEONTOLOGYCONFIG._serialized_start=1325
+  _DGPDATASETFILTERBYKEYPOINTNAMEANDINSTANCEONTOLOGYCONFIG._serialized_end=1432
 # @@protoc_insertion_point(module_scope)

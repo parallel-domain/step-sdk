@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import List, Dict, Optional, Union
 from pd.internal.proto.keystone.generated.python import pd_unified_generator_pb2
 from pd.internal.proto.keystone.generated.wrapper.utils import WRAPPER_REGISTRY, register_wrapper, get_wrapper, ProtoMessageClass, ProtoEnumClass, AtomicGeneratorMessage, ProtoListWrapper, ProtoDictWrapper
-from pd.internal.proto.keystone.generated.wrapper import pd_distributions_pb2 as _pd_distributions_pb2, pd_environments_pb2 as _pd_environments_pb2, pd_keystone_pb2 as _pd_keystone_pb2, pd_levelcook_pb2 as _pd_levelcook_pb2, pd_package_maps_from_p4_pb2 as _pd_package_maps_from_p4_pb2, pd_post_process_pb2 as _pd_post_process_pb2, pd_recook_pb2 as _pd_recook_pb2, pd_render_pb2 as _pd_render_pb2, pd_scenario_pb2 as _pd_scenario_pb2, pd_sensor_pb2 as _pd_sensor_pb2, pd_sim_state_pb2 as _pd_sim_state_pb2, pd_source_maps_pb2 as _pd_source_maps_pb2, pd_spawn_pb2 as _pd_spawn_pb2, pd_types_pb2 as _pd_types_pb2, pd_unified_generator_pb2 as _pd_unified_generator_pb2, pd_world_cook_from_p4_pb2 as _pd_world_cook_from_p4_pb2, pd_worldbuild_pb2 as _pd_worldbuild_pb2, pd_worldgen_pb2 as _pd_worldgen_pb2
+from pd.internal.proto.keystone.generated.wrapper import pd_distributions_pb2 as _pd_distributions_pb2, pd_environments_pb2 as _pd_environments_pb2, pd_keystone_pb2 as _pd_keystone_pb2, pd_levelcook_pb2 as _pd_levelcook_pb2, pd_package_maps_from_p4_pb2 as _pd_package_maps_from_p4_pb2, pd_post_process_pb2 as _pd_post_process_pb2, pd_recook_pb2 as _pd_recook_pb2, pd_render_pb2 as _pd_render_pb2, pd_scenario_pb2 as _pd_scenario_pb2, pd_sensor_pb2 as _pd_sensor_pb2, pd_sim_state_pb2 as _pd_sim_state_pb2, pd_source_maps_pb2 as _pd_source_maps_pb2, pd_spawn_pb2 as _pd_spawn_pb2, pd_step_batch_pb2 as _pd_step_batch_pb2, pd_types_pb2 as _pd_types_pb2, pd_unified_generator_pb2 as _pd_unified_generator_pb2, pd_world_cook_from_p4_pb2 as _pd_world_cook_from_p4_pb2, pd_worldbuild_pb2 as _pd_worldbuild_pb2, pd_worldgen_pb2 as _pd_worldgen_pb2
 
 @register_wrapper(proto_type=pd_unified_generator_pb2.AbsolutePositionRequest)
 class AbsolutePositionRequest(ProtoMessageClass):
@@ -880,9 +880,10 @@ class EgoAgentGeneratorParameters(AtomicGeneratorMessage):
                   Specifies desired traffic light distribution to use if `use_traffic_light_color_probability` is true
                   Possible values:
                     Red
+                    Yellow
                     Green
               Required:
-                  No, will use default enum values
+                  If `use_traffic_light_color_probability` is set to true, it is required.
         vehicle_spawn_data:
               Description:
                   Used if `agent_type` is `AgentType.VEHICLE`
@@ -1222,7 +1223,7 @@ class JunctionSpawnPolicy(ProtoMessageClass):
                     Signaled
                     Signed
               Required:
-                  No, will use default values
+                  If `use_intersection_type_probability` is true, it is required.
 """
     _proto_message = pd_unified_generator_pb2.JunctionSpawnPolicy
 
@@ -2052,7 +2053,7 @@ class ParkingSpaceData(ProtoMessageClass):
         lot_parking_delineation_type:
                 Description:
                     Specifies delineation type for parking lot spaces. Each scenario samples a delineation type from this distribution.
-                    Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`
+                    Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `BOX_CLOSED`,
                     `BOX_OPEN_CURB`, `BOX_DOUBLE`, `SINGLE_SQUARED_OPEN_CURB`, `DOUBLE_ROUND_50CM_GAP`, `DOUBLE_ROUND_50CM_GAP_OPEN_CURB`,
                     `DOUBLE_SQUARED_50CM_GAP_OPEN_CURB`, `T_FULL`, `T_SHORT`
                     Default: `SINGLE`
@@ -2060,7 +2061,7 @@ class ParkingSpaceData(ProtoMessageClass):
         street_parking_delineation_type:
                 Description:
                     Specifies delineation type for non parallel street parking spaces. Each scenario samples a delineation type from this distribution.
-                    Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`
+                    Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `BOX_CLOSED`,
                     `BOX_OPEN_CURB`, `BOX_DOUBLE`, `SINGLE_SQUARED_OPEN_CURB`, `DOUBLE_ROUND_50CM_GAP`, `DOUBLE_ROUND_50CM_GAP_OPEN_CURB`,
                     `DOUBLE_SQUARED_50CM_GAP_OPEN_CURB`, `T_FULL`, `T_SHORT`
                     Default: `SINGLE`
@@ -2068,7 +2069,7 @@ class ParkingSpaceData(ProtoMessageClass):
         street_parking_angle_zero_override:
                 Description:
                     Specifies delineation type for parallel street parking spaces. Each scenario samples a delineation type from this distribution.
-                    Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `UNMETERED`
+                    Possible values: `SINGLE`, `DASHED`, `DOUBLE_OPEN`, `DOUBLE_SQUARED`, `DOUBLE_ROUND`, `T_SHAPE`, `NO_LINE`, `UNMETERED`, `BOX_CLOSED`,
                     `BOX_OPEN_CURB`, `BOX_DOUBLE`, `SINGLE_SQUARED_OPEN_CURB`, `DOUBLE_ROUND_50CM_GAP`, `DOUBLE_ROUND_50CM_GAP_OPEN_CURB`,
                     `DOUBLE_SQUARED_50CM_GAP_OPEN_CURB`, `T_FULL`, `T_SHORT`
                     Default: Will use what was selected for `street_parking_delineation_type` if empty.

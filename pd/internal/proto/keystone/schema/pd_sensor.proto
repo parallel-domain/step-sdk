@@ -2,6 +2,16 @@ syntax = "proto2";
 
 package keystone;
 
+// Checklist for adding/modifying sensor parameters
+//   1. Update pd_sensor.proto
+//   2. Update sensor_module.fbs
+//   3. Update sensor_helpers.h
+//   4. Update sim_load_sensor_rig() and sim_load_sensor_rig_le() in sensor_helpers.cpp
+//   5. Update both fb_to_sensor() in sensor_helpers.cpp
+//   6. Update both sensor_to_proto() in sensor_data.cpp
+//   7. Update sim_build_sensor_rig_config() in sim_helpers.cpp
+
+
 message LidarBeam
 {
     required int32 id = 1;
@@ -90,6 +100,7 @@ message LidarIntrinsic
     required float rotation_rate = 2;
     optional float azimuth_min = 3;
     optional float azimuth_max = 4;
+    optional float elevation_delta = 31;
     repeated LidarBeam beam_data = 5;
 
     optional bool capture_rgb = 6;
@@ -119,6 +130,7 @@ message LidarIntrinsic
     optional float time_offset = 26;
 
     optional int32 multi_returns = 27; // How many returns will be added
+    optional float multi_returns_angle = 32 [default = 0.00035];
     optional int32 merge_returns = 28; // Merge returns into one return or dual returns
 
     optional bool capture_properties = 29;
@@ -165,6 +177,17 @@ message PostProcessParams
     optional float dof_depth_blur_amount = 10;
     optional float dof_depth_blur_radius = 11 [default = -1.0];
     optional float vignette_intensity = 12;
+    optional ToneCurveParams tone_curve = 13;
+    optional string exposure_compensation_curve = 14;
+}
+
+message ToneCurveParams
+{
+    optional float slope = 1 [default = 0.66];
+    optional float toe = 2 [default = 0.52];
+    optional float shoulder = 3 [default = 0.49];
+    optional float black_clip = 4 [default = 0.0];
+    optional float white_clip = 5 [default = 0.08];
 }
 
 enum DenoiseFilter {
@@ -268,7 +291,7 @@ message RadarEnergyParameters
     optional float nominal_gain = 1 [default = 120.0];
     optional float gain_jitter_std = 2 [default = 5.0];
     optional float radiometric_coefficient = 3 [default = 4.0];
-    optional string beam_pattern_file = 4 [default = "beam_pattern_77ghz_radians.csv"];
+    optional string beam_pattern_file_path = 4 [default = "../tools/beam_pattern_77ghz_radians.csv"];
     optional bool enable_beam_pattern = 5 [default = true];
 }
 

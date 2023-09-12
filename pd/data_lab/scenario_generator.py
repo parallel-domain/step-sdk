@@ -190,10 +190,7 @@ class ScenarioGenerator(Generic[TSimState]):
 
     def update_render_instance(self, item: Union[StateReference]) -> Iterator[StateReference]:
         if self._render_instance is not None:
-            if self._label_engine_instance is None:
-                assert isinstance(item, TemporalSessionReference)
-            else:
-                assert isinstance(item, LabeledStateReference)
+            if self._label_engine_instance is not None:
                 self._render_instance.update_state(sim_state=item.state)
 
         # We need to yield every sim state in step batch, to avoid aliasing effects from only outputting capture frames.

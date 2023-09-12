@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "options.proto";
+
+message GenerateInstanceSegmentation3DConfig
+{
+    string input_mesh_mask_3d = 1  [(type)=ePointCloud, (stream)=eInput];
+    string input_instance_map = 2  [(type)=eMeshIDMap, (stream)=eInput];
+    string output_path = 3         [(type)=ePointCloud, (stream)=eOutput];
+}

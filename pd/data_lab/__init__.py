@@ -3,9 +3,9 @@
 #
 # Use of this file is only permitted if you have entered into a
 # separate written license agreement with Parallel Domain, Inc.
-
+import logging
 from pathlib import Path
-from typing import Generator, Optional, Tuple, TypeVar, Type
+from typing import Generator, Optional, Tuple, TypeVar, Type, List
 
 from pd.data_lab.labeled_state_reference import LabeledStateReference, StateReference
 from pd.data_lab.scenario import Scenario, ScenarioSource, DiscreteScenario
@@ -13,6 +13,8 @@ from pd.data_lab.scenario_generator import ScenarioGenerator
 from pd.data_lab.session_reference import TemporalSessionReference
 from pd.data_lab.sim_state import SimState
 from pd.state import state_to_bytes
+
+logger = logging.getLogger(__name__)
 
 TSimState = TypeVar("TSimState", bound=SimState)
 
@@ -32,7 +34,7 @@ def sim_stream_from_discrete_scenario(
 
 def create_sensor_sim_stream(
     scenario: ScenarioSource,
-    scenario_index: int,
+    scene_index: int,
     dataset_name: str = "Default Dataset Name",
     end_skip_frames: Optional[int] = None,
     frames_per_scene: Optional[int] = None,
@@ -47,7 +49,7 @@ def create_sensor_sim_stream(
         dataset_name=dataset_name,
         end_skip_frames=end_skip_frames,
         num_frames=frames_per_scene,
-        scenario_index=scenario_index,
+        scene_index=scene_index,
         sim_capture_rate=sim_capture_rate,
         sim_settle_frames=sim_settle_frames,
         start_skip_frames=start_skip_frames,
@@ -70,16 +72,25 @@ def _store_sim_state(state_reference: StateReference, output_folder: Path, scene
 def encode_sim_states(
     scenario: ScenarioSource,
     output_folder: Path,
-    number_of_scenes: int = 1,
+    scene_indices: List[int] = None,
     start_skip_frames: Optional[int] = 0,
     frames_per_scene: Optional[int] = None,
     yield_every_sim_state: bool = True,
     **kwargs,
 ):
-    for scenario_index in range(number_of_scenes):
+    if scene_indices is None:
+        scene_indices = [0]
+    if "number_of_scenes" in kwargs:
+        logger.warning("Deprecated parameter number_of_scenes. Use scene_indices instead.")
+        number_of_scenes = kwargs.pop("number_of_scenes")
+        if number_of_scenes < 1:
+            raise ValueError("A number of scenes > 0 has to be passed!")
+        scene_indices = list(range(number_of_scenes))
+
+    for scene_index in scene_indices:
         discrete_scenario, gen = create_sensor_sim_stream(
             scenario=scenario,
-            scenario_index=scenario_index,
+            scene_index=scene_index,
             start_skip_frames=start_skip_frames,
             frames_per_scene=frames_per_scene,
             yield_every_sim_state=yield_every_sim_state,

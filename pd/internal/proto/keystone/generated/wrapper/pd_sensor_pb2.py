@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import List, Dict, Optional, Union
 from pd.internal.proto.keystone.generated.python import pd_sensor_pb2
 from pd.internal.proto.keystone.generated.wrapper.utils import WRAPPER_REGISTRY, register_wrapper, get_wrapper, ProtoMessageClass, ProtoEnumClass, AtomicGeneratorMessage, ProtoListWrapper, ProtoDictWrapper
-from pd.internal.proto.keystone.generated.wrapper import pd_distributions_pb2 as _pd_distributions_pb2, pd_environments_pb2 as _pd_environments_pb2, pd_keystone_pb2 as _pd_keystone_pb2, pd_levelcook_pb2 as _pd_levelcook_pb2, pd_package_maps_from_p4_pb2 as _pd_package_maps_from_p4_pb2, pd_post_process_pb2 as _pd_post_process_pb2, pd_recook_pb2 as _pd_recook_pb2, pd_render_pb2 as _pd_render_pb2, pd_scenario_pb2 as _pd_scenario_pb2, pd_sensor_pb2 as _pd_sensor_pb2, pd_sim_state_pb2 as _pd_sim_state_pb2, pd_source_maps_pb2 as _pd_source_maps_pb2, pd_spawn_pb2 as _pd_spawn_pb2, pd_types_pb2 as _pd_types_pb2, pd_unified_generator_pb2 as _pd_unified_generator_pb2, pd_world_cook_from_p4_pb2 as _pd_world_cook_from_p4_pb2, pd_worldbuild_pb2 as _pd_worldbuild_pb2, pd_worldgen_pb2 as _pd_worldgen_pb2
+from pd.internal.proto.keystone.generated.wrapper import pd_distributions_pb2 as _pd_distributions_pb2, pd_environments_pb2 as _pd_environments_pb2, pd_keystone_pb2 as _pd_keystone_pb2, pd_levelcook_pb2 as _pd_levelcook_pb2, pd_package_maps_from_p4_pb2 as _pd_package_maps_from_p4_pb2, pd_post_process_pb2 as _pd_post_process_pb2, pd_recook_pb2 as _pd_recook_pb2, pd_render_pb2 as _pd_render_pb2, pd_scenario_pb2 as _pd_scenario_pb2, pd_sensor_pb2 as _pd_sensor_pb2, pd_sim_state_pb2 as _pd_sim_state_pb2, pd_source_maps_pb2 as _pd_source_maps_pb2, pd_spawn_pb2 as _pd_spawn_pb2, pd_step_batch_pb2 as _pd_step_batch_pb2, pd_types_pb2 as _pd_types_pb2, pd_unified_generator_pb2 as _pd_unified_generator_pb2, pd_world_cook_from_p4_pb2 as _pd_world_cook_from_p4_pb2, pd_worldbuild_pb2 as _pd_worldbuild_pb2, pd_worldgen_pb2 as _pd_worldgen_pb2
 
 @register_wrapper(proto_type=pd_sensor_pb2.AlbedoWeights)
 class AlbedoWeights(ProtoMessageClass):
@@ -795,7 +795,7 @@ class LidarIntensityParams(ProtoMessageClass):
 class LidarIntrinsic(ProtoMessageClass):
     _proto_message = pd_sensor_pb2.LidarIntrinsic
 
-    def __init__(self, *, proto: Optional[pd_sensor_pb2.LidarIntrinsic]=None, alice_lidar_model: Optional[AliceLidarModel]=None, azimuth_max: Optional[float]=None, azimuth_min: Optional[float]=None, beam_data: Optional[List[LidarBeam]]=None, capture_backwardmotionvectors: Optional[bool]=None, capture_depth: Optional[bool]=None, capture_detections: Optional[bool]=None, capture_instance: Optional[bool]=None, capture_intensity: Optional[bool]=None, capture_motionvectors: Optional[bool]=None, capture_normals: Optional[bool]=None, capture_properties: Optional[bool]=None, capture_rgb: Optional[bool]=None, capture_segmentation: Optional[bool]=None, intensity_params: Optional[LidarIntensityParams]=None, maximum_cutoff_prob: Optional[float]=None, maximum_offset: Optional[float]=None, maximum_range_cutoff: Optional[float]=None, merge_returns: Optional[int]=None, minimum_cutoff_prob: Optional[float]=None, minimum_noise: Optional[float]=None, minimum_offset: Optional[float]=None, minimum_range_cutoff: Optional[float]=None, multi_returns: Optional[int]=None, pattern: Optional[str]=None, range_noise_mean: Optional[float]=None, range_noise_stddev: Optional[float]=None, rotation_rate: Optional[float]=None, sample_rate: Optional[float]=None, time_offset: Optional[float]=None):
+    def __init__(self, *, proto: Optional[pd_sensor_pb2.LidarIntrinsic]=None, alice_lidar_model: Optional[AliceLidarModel]=None, azimuth_max: Optional[float]=None, azimuth_min: Optional[float]=None, beam_data: Optional[List[LidarBeam]]=None, capture_backwardmotionvectors: Optional[bool]=None, capture_depth: Optional[bool]=None, capture_detections: Optional[bool]=None, capture_instance: Optional[bool]=None, capture_intensity: Optional[bool]=None, capture_motionvectors: Optional[bool]=None, capture_normals: Optional[bool]=None, capture_properties: Optional[bool]=None, capture_rgb: Optional[bool]=None, capture_segmentation: Optional[bool]=None, elevation_delta: Optional[float]=None, intensity_params: Optional[LidarIntensityParams]=None, maximum_cutoff_prob: Optional[float]=None, maximum_offset: Optional[float]=None, maximum_range_cutoff: Optional[float]=None, merge_returns: Optional[int]=None, minimum_cutoff_prob: Optional[float]=None, minimum_noise: Optional[float]=None, minimum_offset: Optional[float]=None, minimum_range_cutoff: Optional[float]=None, multi_returns: Optional[int]=None, multi_returns_angle: Optional[float]=None, pattern: Optional[str]=None, range_noise_mean: Optional[float]=None, range_noise_stddev: Optional[float]=None, rotation_rate: Optional[float]=None, sample_rate: Optional[float]=None, time_offset: Optional[float]=None):
         if proto is None:
             proto = pd_sensor_pb2.LidarIntrinsic()
         self.proto = proto
@@ -830,6 +830,8 @@ class LidarIntrinsic(ProtoMessageClass):
             self.capture_rgb = capture_rgb
         if capture_segmentation is not None:
             self.capture_segmentation = capture_segmentation
+        if elevation_delta is not None:
+            self.elevation_delta = elevation_delta
         if intensity_params is not None:
             self.intensity_params = intensity_params
         if maximum_cutoff_prob is not None:
@@ -850,6 +852,8 @@ class LidarIntrinsic(ProtoMessageClass):
             self.minimum_range_cutoff = minimum_range_cutoff
         if multi_returns is not None:
             self.multi_returns = multi_returns
+        if multi_returns_angle is not None:
+            self.multi_returns_angle = multi_returns_angle
         if pattern is not None:
             self.pattern = pattern
         if range_noise_mean is not None:
@@ -981,6 +985,14 @@ class LidarIntrinsic(ProtoMessageClass):
         self.proto.capture_segmentation = value
 
     @property
+    def elevation_delta(self) -> float:
+        return self.proto.elevation_delta
+
+    @elevation_delta.setter
+    def elevation_delta(self, value: float):
+        self.proto.elevation_delta = value
+
+    @property
     def intensity_params(self) -> LidarIntensityParams:
         return self._intensity_params
 
@@ -1062,6 +1074,14 @@ class LidarIntrinsic(ProtoMessageClass):
     @multi_returns.setter
     def multi_returns(self, value: int):
         self.proto.multi_returns = value
+
+    @property
+    def multi_returns_angle(self) -> float:
+        return self.proto.multi_returns_angle
+
+    @multi_returns_angle.setter
+    def multi_returns_angle(self, value: float):
+        self.proto.multi_returns_angle = value
 
     @property
     def pattern(self) -> str:
@@ -1448,10 +1468,11 @@ class PostProcessNode(ProtoMessageClass):
 class PostProcessParams(ProtoMessageClass):
     _proto_message = pd_sensor_pb2.PostProcessParams
 
-    def __init__(self, *, proto: Optional[pd_sensor_pb2.PostProcessParams]=None, dof_depth_blur_amount: Optional[float]=None, dof_depth_blur_radius: Optional[float]=None, dof_focal_distance: Optional[float]=None, exposure_compensation: Optional[float]=None, exposure_max_ev100: Optional[float]=None, exposure_metering_mask: Optional[str]=None, exposure_min_ev100: Optional[float]=None, exposure_speed_down: Optional[float]=None, exposure_speed_up: Optional[float]=None, motion_blur_amount: Optional[float]=None, motion_blur_max: Optional[float]=None, vignette_intensity: Optional[float]=None):
+    def __init__(self, *, proto: Optional[pd_sensor_pb2.PostProcessParams]=None, dof_depth_blur_amount: Optional[float]=None, dof_depth_blur_radius: Optional[float]=None, dof_focal_distance: Optional[float]=None, exposure_compensation: Optional[float]=None, exposure_compensation_curve: Optional[str]=None, exposure_max_ev100: Optional[float]=None, exposure_metering_mask: Optional[str]=None, exposure_min_ev100: Optional[float]=None, exposure_speed_down: Optional[float]=None, exposure_speed_up: Optional[float]=None, motion_blur_amount: Optional[float]=None, motion_blur_max: Optional[float]=None, tone_curve: Optional[ToneCurveParams]=None, vignette_intensity: Optional[float]=None):
         if proto is None:
             proto = pd_sensor_pb2.PostProcessParams()
         self.proto = proto
+        self._tone_curve = get_wrapper(proto_type=proto.tone_curve.__class__)(proto=proto.tone_curve)
         if dof_depth_blur_amount is not None:
             self.dof_depth_blur_amount = dof_depth_blur_amount
         if dof_depth_blur_radius is not None:
@@ -1460,6 +1481,8 @@ class PostProcessParams(ProtoMessageClass):
             self.dof_focal_distance = dof_focal_distance
         if exposure_compensation is not None:
             self.exposure_compensation = exposure_compensation
+        if exposure_compensation_curve is not None:
+            self.exposure_compensation_curve = exposure_compensation_curve
         if exposure_max_ev100 is not None:
             self.exposure_max_ev100 = exposure_max_ev100
         if exposure_metering_mask is not None:
@@ -1474,6 +1497,8 @@ class PostProcessParams(ProtoMessageClass):
             self.motion_blur_amount = motion_blur_amount
         if motion_blur_max is not None:
             self.motion_blur_max = motion_blur_max
+        if tone_curve is not None:
+            self.tone_curve = tone_curve
         if vignette_intensity is not None:
             self.vignette_intensity = vignette_intensity
 
@@ -1508,6 +1533,14 @@ class PostProcessParams(ProtoMessageClass):
     @exposure_compensation.setter
     def exposure_compensation(self, value: float):
         self.proto.exposure_compensation = value
+
+    @property
+    def exposure_compensation_curve(self) -> str:
+        return self.proto.exposure_compensation_curve
+
+    @exposure_compensation_curve.setter
+    def exposure_compensation_curve(self, value: str):
+        self.proto.exposure_compensation_curve = value
 
     @property
     def exposure_max_ev100(self) -> float:
@@ -1566,6 +1599,17 @@ class PostProcessParams(ProtoMessageClass):
         self.proto.motion_blur_max = value
 
     @property
+    def tone_curve(self) -> ToneCurveParams:
+        return self._tone_curve
+
+    @tone_curve.setter
+    def tone_curve(self, value: ToneCurveParams):
+        self.proto.tone_curve.CopyFrom(value.proto)
+        
+        self._tone_curve = value
+        self._tone_curve._update_proto_references(self.proto.tone_curve)
+
+    @property
     def vignette_intensity(self) -> float:
         return self.proto.vignette_intensity
 
@@ -1575,6 +1619,7 @@ class PostProcessParams(ProtoMessageClass):
 
     def _update_proto_references(self, proto: pd_sensor_pb2.PostProcessParams):
         self.proto = proto
+        self._tone_curve._update_proto_references(proto.tone_curve)
 
 @register_wrapper(proto_type=pd_sensor_pb2.RadarBasicParameters)
 class RadarBasicParameters(ProtoMessageClass):
@@ -1834,12 +1879,12 @@ class RadarDetectorParameters(ProtoMessageClass):
 class RadarEnergyParameters(ProtoMessageClass):
     _proto_message = pd_sensor_pb2.RadarEnergyParameters
 
-    def __init__(self, *, proto: Optional[pd_sensor_pb2.RadarEnergyParameters]=None, beam_pattern_file: Optional[str]=None, enable_beam_pattern: Optional[bool]=None, gain_jitter_std: Optional[float]=None, nominal_gain: Optional[float]=None, radiometric_coefficient: Optional[float]=None):
+    def __init__(self, *, proto: Optional[pd_sensor_pb2.RadarEnergyParameters]=None, beam_pattern_file_path: Optional[str]=None, enable_beam_pattern: Optional[bool]=None, gain_jitter_std: Optional[float]=None, nominal_gain: Optional[float]=None, radiometric_coefficient: Optional[float]=None):
         if proto is None:
             proto = pd_sensor_pb2.RadarEnergyParameters()
         self.proto = proto
-        if beam_pattern_file is not None:
-            self.beam_pattern_file = beam_pattern_file
+        if beam_pattern_file_path is not None:
+            self.beam_pattern_file_path = beam_pattern_file_path
         if enable_beam_pattern is not None:
             self.enable_beam_pattern = enable_beam_pattern
         if gain_jitter_std is not None:
@@ -1850,12 +1895,12 @@ class RadarEnergyParameters(ProtoMessageClass):
             self.radiometric_coefficient = radiometric_coefficient
 
     @property
-    def beam_pattern_file(self) -> str:
-        return self.proto.beam_pattern_file
+    def beam_pattern_file_path(self) -> str:
+        return self.proto.beam_pattern_file_path
 
-    @beam_pattern_file.setter
-    def beam_pattern_file(self, value: str):
-        self.proto.beam_pattern_file = value
+    @beam_pattern_file_path.setter
+    def beam_pattern_file_path(self, value: str):
+        self.proto.beam_pattern_file_path = value
 
     @property
     def enable_beam_pattern(self) -> bool:
@@ -2276,6 +2321,68 @@ class SensorRigConfig(ProtoMessageClass):
             v._update_proto_references(self.proto.default_sensor_splits_list[i])
         for i, v in enumerate(self.sensor_configs):
             v._update_proto_references(self.proto.sensor_configs[i])
+
+@register_wrapper(proto_type=pd_sensor_pb2.ToneCurveParams)
+class ToneCurveParams(ProtoMessageClass):
+    _proto_message = pd_sensor_pb2.ToneCurveParams
+
+    def __init__(self, *, proto: Optional[pd_sensor_pb2.ToneCurveParams]=None, black_clip: Optional[float]=None, shoulder: Optional[float]=None, slope: Optional[float]=None, toe: Optional[float]=None, white_clip: Optional[float]=None):
+        if proto is None:
+            proto = pd_sensor_pb2.ToneCurveParams()
+        self.proto = proto
+        if black_clip is not None:
+            self.black_clip = black_clip
+        if shoulder is not None:
+            self.shoulder = shoulder
+        if slope is not None:
+            self.slope = slope
+        if toe is not None:
+            self.toe = toe
+        if white_clip is not None:
+            self.white_clip = white_clip
+
+    @property
+    def black_clip(self) -> float:
+        return self.proto.black_clip
+
+    @black_clip.setter
+    def black_clip(self, value: float):
+        self.proto.black_clip = value
+
+    @property
+    def shoulder(self) -> float:
+        return self.proto.shoulder
+
+    @shoulder.setter
+    def shoulder(self, value: float):
+        self.proto.shoulder = value
+
+    @property
+    def slope(self) -> float:
+        return self.proto.slope
+
+    @slope.setter
+    def slope(self, value: float):
+        self.proto.slope = value
+
+    @property
+    def toe(self) -> float:
+        return self.proto.toe
+
+    @toe.setter
+    def toe(self, value: float):
+        self.proto.toe = value
+
+    @property
+    def white_clip(self) -> float:
+        return self.proto.white_clip
+
+    @white_clip.setter
+    def white_clip(self, value: float):
+        self.proto.white_clip = value
+
+    def _update_proto_references(self, proto: pd_sensor_pb2.ToneCurveParams):
+        self.proto = proto
 
 @register_wrapper(proto_type=pd_sensor_pb2.DenoiseFilter)
 class DenoiseFilter(ProtoEnumClass):
