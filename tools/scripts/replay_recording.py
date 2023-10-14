@@ -1,41 +1,36 @@
-import time
-import logging.config
-import click
 import contextlib
+import logging.config
+import time
 from typing import List, Tuple
 
+import click
 import flatbuffers
 
-from pd.internal.fb.generated.python import pdMessage, pdEnableStateStream, pdLoadLocation
+from pd.internal.fb.generated.python import pdEnableStateStream, pdLoadLocation, pdMessage
 from pd.internal.fb.generated.python.pdMessageType import pdMessageType
+from pd.session.recording import ZmqRecordingReader, ZmqSocketType
 from pd.session.session import ZmqTransport
-from pd.session.recording import ZmqSocketType, ZmqRecordingReader
 
 
 @click.command()
-@click.argument('filepaths', nargs=-1, type=click.Path(exists=True, dir_okay=False))
+@click.argument("filepaths", nargs=-1, type=click.Path(exists=True, dir_okay=False))
 @click.option(
-    '-s', '--server',
-    default='tcp://127.0.0.1:9000',
+    "-s",
+    "--server",
+    default="tcp://127.0.0.1:9000",
     help="Address of pdImageGen server (eg. tcp://127.0.0.1:9000)",
-    show_default=True
+    show_default=True,
 )
 @click.option(
-    '-c', '--client',
-    default='tcp://127.0.0.1:9001',
+    "-c",
+    "--client",
+    default="tcp://127.0.0.1:9001",
     help="Address of local machine (eg. tcp://127.0.0.1:9001)",
-    show_default=True
+    show_default=True,
 )
+@click.option("--dry-run/--live-run", default=False, help="Parse recording but don't wait or send any messages")
 @click.option(
-    '--dry-run/--live-run',
-    default=False,
-    help="Parse recording but don't wait or send any messages"
-)
-@click.option(
-    '--replace-level',
-    type=click.Tuple([str, str]),
-    multiple=True,
-    help="Replace names of levels that are loaded"
+    "--replace-level", type=click.Tuple([str, str]), multiple=True, help="Replace names of levels that are loaded"
 )
 def cli(filepaths, server: str, client: str, dry_run: bool, replace_level: List[Tuple[str, str]]):
     """
@@ -47,8 +42,7 @@ def cli(filepaths, server: str, client: str, dry_run: bool, replace_level: List[
     # This map is used to replace names of levels that are loaded
     replace_level_lookup = {orig: new for orig, new in replace_level}
 
-    transport = ZmqTransport(request_addr=server, state_addr=client) \
-        if not dry_run else contextlib.suppress()
+    transport = ZmqTransport(request_addr=server, state_addr=client) if not dry_run else contextlib.suppress()
     with transport:
         for filepath in filepaths:
             local_start_time = time.time()
@@ -119,9 +113,11 @@ def cli(filepaths, server: str, client: str, dry_run: bool, replace_level: List[
                             logger.info(f"LoadLocation {old_location}")
 
                     if pd_message:
-                        message_type_name = next(k for k, v in pdMessageType.__dict__.items() if v == pd_message.MessageType())
+                        message_type_name = next(
+                            k for k, v in pdMessageType.__dict__.items() if v == pd_message.MessageType()
+                        )
                     else:
-                        message_type_name = 'none'
+                        message_type_name = "none"
                     logger.info(
                         f"Time: {record.timestamp-record_start_time:.6f}s, "
                         f"Type: {ZmqSocketType(record.socket_type).name}, "
@@ -137,28 +133,26 @@ def cli(filepaths, server: str, client: str, dry_run: bool, replace_level: List[
 
 
 LOGGING_CONFIG = {
-    'version': 1,
-    'formatters': {
-        'brief': {
-            'format': '[%(levelname)s] %(message)s'
-        },
+    "version": 1,
+    "formatters": {
+        "brief": {"format": "[%(levelname)s] %(message)s"},
     },
-    'handlers': {
-        'console': {
-            'level': 'INFO',
-            'formatter': 'brief',
-            'class': 'logging.StreamHandler',
-            'stream': 'ext://sys.stdout',
+    "handlers": {
+        "console": {
+            "level": "INFO",
+            "formatter": "brief",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout",
         }
     },
-    'loggers': {
-        '': {
-            'handlers': ['console'],
-            'level': 'INFO',
+    "loggers": {
+        "": {
+            "handlers": ["console"],
+            "level": "INFO",
         },
-    }
+    },
 }
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()

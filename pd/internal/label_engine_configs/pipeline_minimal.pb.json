@@ -1,81 +1,126 @@
 {
-    "nodes": [
-        {
-            "name": "gen_semantic_map",
-            "config": {
-                "@type": "type.googleapis.com/pd.data.GenerateMeshSemanticMapConfig",
-                "asset_semantic_map_filepath": "%PD_ROOT%/install/customer/Internal/pd_data/default_pd_config/asset_semantic_map.pb.json",
-                "output_path": "semantic_map_xyz"
-            }
-        },
-        {
-            "name": "gen_instance_map",
-            "depends_on": ["gen_semantic_map"],
-            "config": {
-                "@type": "type.googleapis.com/pd.data.GenerateInstanceMapConfig",
-                "merge_instance_map_filepath": "%PD_ROOT%/install/customer/Internal/pd_data/default_pd_config/merge_instance_map.pb.json",
-                "input_semantic_map": "semantic_map_xyz",
-                "output_path": "instance_map_xyz"
-            }
-        },
-        {
-            "name": "gen_instance_points_3d",
-            "depends_on": ["gen_instance_map"],
-            "config": {
-                "@type": "type.googleapis.com/pd.data.InstancePoint3DAnnotatorConfig",
-                "input_instance_map": "instance_map_xyz",
-                "output_path": "instance_points_3d_xyz"
-            }
-        },
-        {
-            "name": "gen_instance_points_2d",
-            "depends_on": ["gen_instance_map", "gen_instance_points_3d"],
-            "config": {
-                "@type": "type.googleapis.com/pd.data.GenerateProjectionConfig",
-                "input_annotation_3d": "instance_points_3d_xyz",
-                "input_instance_map": "instance_map_xyz",
-                "output_path": "instance_points_2d_xyz",
-                "sensor_types": ["eCamera"]
-            }
-        },
-        {
-            "name": "gen_semantic_mask",
-            "depends_on": ["gen_semantic_map"],
-            "config": {
-                "@type": "type.googleapis.com/pd.data.GenerateSemanticMaskConfig",
-                "input_semantic_map": "semantic_map_xyz",
-                "output_path": "semantic_mask_xyz"
-            }
-        },
-        {
-            "name": "gen_instance_mask",
-            "depends_on": ["gen_instance_map"],
-            "config": {
-                "@type": "type.googleapis.com/pd.data.GenerateInstanceMaskConfig",
-                "input_instance_map": "instance_map_xyz",
-                "output_path": "instance_mask_xyz"
-            }
-        },
-        {
-            "name": "gen_2d_bbox",
-            "depends_on": ["gen_instance_mask", "gen_instance_map"],
-            "config": {
-                "@type": "type.googleapis.com/pd.data.BoundingBox2DConfig",
-                "input_instance_map": "instance_map_xyz",
-                "input_instance_mask": "instance_mask_xyz",
-                "input_semantic_map": "semantic_map_xyz",
-                "output_path": "bounding_box_2d_xyz"
-            }
-        },
-        {
-            "name": "gen_3d_bbox",
-            "depends_on": ["gen_instance_map"],
-            "config": {
-                "@type": "type.googleapis.com/pd.data.GenerateBoundingBox3DConfig",
-                "input_instance_map": "instance_map_xyz",
-                "input_semantic_map": "semantic_map_xyz",
-                "output_path": "bounding_box_3d_xyz"
-            }
+  "nodes": [
+    {
+      "name": "gen_unmerged_semantic_map",
+      "config": {
+        "@type": "type.googleapis.com/pd.data.GenerateMeshSemanticMapConfig",
+        "asset_semantic_map_filepath": "%PD_ROOT%/install/customer/Internal/pd_data/asset_semantic_map.pb.json",
+        "semantic_label_filepath": "%PD_ROOT%/install/customer/Internal/pd_data/dgp_ontology/semantic_label_map.pb.json",
+        "output_path": "unmerged_semantic_map_xyz",
+        "output_ontology_path": "unmerged_ontology"
+      }
+    },
+    {
+      "name": "gen_instance_map",
+      "depends_on": [
+        "gen_unmerged_semantic_map"
+      ],
+      "config": {
+        "@type": "type.googleapis.com/pd.data.GenerateInstanceMapConfig",
+        "merge_instance_map_filepath": "%PD_ROOT%/install/customer/Internal/pd_data/pd_default_config/merge_instance_map.pb.json",
+        "input_semantic_map": "unmerged_semantic_map_xyz",
+        "output_path": "instance_map_xyz"
+      }
+    },
+    {
+      "name": "gen_semantic_map",
+      "depends_on": [
+        "gen_unmerged_semantic_map",
+        "gen_instance_map"
+      ],
+      "config": {
+        "@type": "type.googleapis.com/pd.data.GenerateCustomMeshSemanticMapConfig",
+        "input_ontology_path": "unmerged_ontology",
+        "base_semantic_map": "unmerged_semantic_map_xyz",
+        "input_instance_map": "instance_map_xyz",
+        "output_path": "semantic_map_xyz",
+        "output_ontology_path": "ontology"
+      }
+    },
+    {
+      "name": "gen_instance_points_3d",
+      "depends_on": [
+        "gen_instance_map"
+      ],
+      "config": {
+        "@type": "type.googleapis.com/pd.data.InstancePoint3DAnnotatorConfig",
+        "input_instance_map": "instance_map_xyz",
+        "instance_point_map": "%PD_ROOT%/install/customer/Internal/pd_data/keypoint_map.pb.json",
+        "semantic_label_filepath": "%PD_ROOT%/install/customer/Internal/pd_data/keypoint_semantic_label_map.pb.json",
+        "output_path": "instance_points_3d_xyz",
+        "output_ontology_path": "keypoint_ontology",
+        "wheel_semantic_id": 6
+      }
+    },
+    {
+      "name": "gen_instance_points_2d",
+      "depends_on": [
+        "gen_instance_map",
+        "gen_instance_points_3d"
+      ],
+      "config": {
+        "@type": "type.googleapis.com/pd.data.GenerateProjectionConfig",
+        "input_annotation_3d": "instance_points_3d_xyz",
+        "input_instance_map": "instance_map_xyz",
+        "output_path": "instance_points_2d_xyz",
+        "sensor_types": [
+          "eCamera"
+        ],
+        "instance_point_projection_settings": {
+          "output_offscreen_points": false,
+          "pedestrian_semantic_id": 3,
+          "wheel_semantic_id": 6,
+          "wheel_stopper_semantic_id": 5
         }
-    ]
+      }
+    },
+    {
+      "name": "gen_semantic_mask",
+      "depends_on": [
+        "gen_semantic_map"
+      ],
+      "config": {
+        "@type": "type.googleapis.com/pd.data.GenerateSemanticMaskConfig",
+        "input_semantic_map": "semantic_map_xyz",
+        "output_path": "semantic_mask_xyz"
+      }
+    },
+    {
+      "name": "gen_instance_mask",
+      "depends_on": [
+        "gen_instance_map"
+      ],
+      "config": {
+        "@type": "type.googleapis.com/pd.data.GenerateInstanceMaskConfig",
+        "input_instance_map": "instance_map_xyz",
+        "output_path": "instance_mask_xyz"
+      }
+    },
+    {
+      "name": "gen_2d_bbox",
+      "depends_on": [
+        "gen_instance_mask",
+        "gen_instance_map"
+      ],
+      "config": {
+        "@type": "type.googleapis.com/pd.data.BoundingBox2DConfig",
+        "input_instance_map": "instance_map_xyz",
+        "input_instance_mask": "instance_mask_xyz",
+        "input_semantic_map": "semantic_map_xyz",
+        "output_path": "bounding_box_2d_xyz"
+      }
+    },
+    {
+      "name": "gen_3d_bbox",
+      "depends_on": [
+        "gen_instance_map"
+      ],
+      "config": {
+        "@type": "type.googleapis.com/pd.data.GenerateBoundingBox3DConfig",
+        "input_instance_map": "instance_map_xyz",
+        "input_semantic_map": "semantic_map_xyz",
+        "output_path": "bounding_box_3d_xyz"
+      }
+    }
+  ]
 }

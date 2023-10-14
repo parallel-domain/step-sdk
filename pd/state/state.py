@@ -34,12 +34,12 @@ For example::
     session.update_state(state, world_time)
 """
 
-from dataclasses import dataclass, field
-from abc import ABC
-from typing import List, Tuple, Optional, Union, Dict
-from enum import Enum, auto, IntEnum
 import uuid
 import warnings
+from abc import ABC
+from dataclasses import dataclass, field
+from enum import Enum, IntEnum, auto
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -58,10 +58,7 @@ def rand_agent_id() -> int:
 
 
 def get_render_and_capture_flag_from_frame_index(
-        frame_index: int,
-        render_interval: int = 1,
-        capture_interval: int = 10,
-        start_skip_frames: int = 5
+    frame_index: int, render_interval: int = 1, capture_interval: int = 10, start_skip_frames: int = 5
 ) -> Tuple[bool, bool]:
     """
     Given a frame index, returns whether the frame should be rendered and/or captured.
@@ -77,16 +74,17 @@ def get_render_and_capture_flag_from_frame_index(
 
     Args:
         frame_index: Index of the frame for which to derive the flags. First frame corresponds to `frame_index=0`.
-        render_interval: Render interval controls render frame rate. Lower render interval yields higher fidelity camera data.
-                         Simulation rate is typically 100fps. `render_interval=1` will yield a render frame rate of 100fps.
-                         `render_interval=10` will yield a render frame rate of 10fps.
-                         Smallest allowed value is 1.
+        render_interval: Render interval controls render frame rate. Lower render interval yields higher
+            fidelity camera data.
+            Simulation rate is typically 100fps. `render_interval=1` will yield a render frame rate of 100fps.
+            `render_interval=10` will yield a render frame rate of 10fps.
+            Smallest allowed value is 1.
         capture_interval: Capture interval controls the frame rate of output annotation data.
-                          Lower capture interval yields higher output annotation frame rate.
-                          Given a render frame rate of 100fps, `capture_interval=10` will yield an output annotation frame rate of 10fps.
-                          Smallest allowed value is 1.
+            Lower capture interval yields higher output annotation frame rate.
+            Given a render frame rate of 100fps, `capture_interval=10` will yield an output annotation
+            frame rate of 10fps. Smallest allowed value is 1.
         start_skip_frames: Number of renders frames to skip before capturing the first annotation frame.
-                           Smallest allowed value is 1.
+            Smallest allowed value is 1.
 
     Returns:
         Tuple containing (render, capture) flags
@@ -127,7 +125,7 @@ class PosedAgent(ABC):
     velocity: Tuple[float, float, float]
     """Agent's velocity"""
 
-    angular_velocity: Tuple[float, float, float] = field(default=(0., 0., 0.), init=False)
+    angular_velocity: Tuple[float, float, float] = field(default=(0.0, 0.0, 0.0), init=False)
     """Agent's angular velocity"""
 
 
@@ -241,6 +239,13 @@ class VehicleAgent(Agent, PosedAgent):
     headlight_on: bool = False
     """Whether vehicle has its headlight on"""
 
+    connections: List[Tuple[int, np.ndarray]] = field(default_factory=list)
+    """
+    Connections to other agents (e.g. trailers)
+
+    Each connection is a pair containing the other agent's id and the 4x4 joint transform
+    """
+
     def __post_init__(self):
         if self.vehicle_actor is not None:
             warnings.warn("'vehicle_actor' property has been removed, use 'occupants' instead", stacklevel=2)
@@ -254,7 +259,7 @@ class SignalAgent(Agent):
 
     elapsed_time: float = 0.0
 
-    phase_bulb_values: List['PhaseBulbValue'] = field(default_factory=list)
+    phase_bulb_values: List["PhaseBulbValue"] = field(default_factory=list)
 
 
 class PhaseBulbLogicalState(IntEnum):
@@ -292,8 +297,8 @@ class WorldAgent(Agent):
     Represents global information about the World
     """
 
-    parking_config: Optional['ParkingConfig'] = None
-    object_decorations: Dict[int, 'ObjectDecorations'] = field(default_factory=dict)
+    parking_config: Optional["ParkingConfig"] = None
+    object_decorations: Dict[int, "ObjectDecorations"] = field(default_factory=dict)
 
 
 @dataclass
@@ -332,7 +337,7 @@ class LotParkingDelineationType(IntEnum):
     DoubleRound = 4
     TShape = 5
     NoLine = 6
-    Random = 7 # Deprecated, will display no lines if chosen.
+    Random = 7  # Deprecated, will display no lines if chosen.
     BoxClosed = 8
     BoxOpenCurb = 9
     BoxDouble = 10
@@ -343,6 +348,7 @@ class LotParkingDelineationType(IntEnum):
     TFull = 15
     TShort = 16
 
+
 class StreetParkingDelineationType(IntEnum):
     Single = 0
     Dashed = 1
@@ -352,7 +358,7 @@ class StreetParkingDelineationType(IntEnum):
     DoubleRound = 5
     TShape = 6
     NoLine = 7
-    Random = 8 # Deprecated, will display no lines if chosen.
+    Random = 8  # Deprecated, will display no lines if chosen.
     BoxClosed = 9
     BoxOpenCurb = 10
     BoxDouble = 11
@@ -373,7 +379,7 @@ class StreetParkingAngleZeroOverride(IntEnum):
     DoubleRound = 5
     TShape = 6
     NoLine = 7
-    Random = 8 # Deprecated, will display no lines if chosen.
+    Random = 8  # Deprecated, will display no lines if chosen.
     Unmetered = 9
     BoxClosed = 10
     BoxOpenCurb = 11
@@ -403,7 +409,6 @@ class ParkingSpaceMaterial(IntEnum):
 
 @dataclass
 class ParkingConfig:
-
     angle: int
     """Angle of the parking spaces in degrees"""
 
@@ -425,7 +430,9 @@ class ParkingConfig:
     street_parking_delineation_type: Union[StreetParkingDelineationType, int] = StreetParkingDelineationType.Single
     """Street parking line type"""
 
-    street_parking_angle_zero_override: Union[StreetParkingAngleZeroOverride, int] = StreetParkingAngleZeroOverride.Single
+    street_parking_angle_zero_override: Union[StreetParkingAngleZeroOverride, int] = (
+        StreetParkingAngleZeroOverride.Single
+    )
     """Parallel street parking line type"""
 
     parking_space_material: Union[ParkingSpaceMaterial, int] = ParkingSpaceMaterial.MI_pavement_01
@@ -498,7 +505,7 @@ class State:
     Simulation time in seconds
 
     Successive states received by server must contain strictly increasing timestamps.
-    Successive states with equal or decreasing timestamps will result in undefined behaviour.
+    Successive states with equal or decreasing timestamps will result in undefined behavior.
     This restriction does not apply across level reloads.
     """
 

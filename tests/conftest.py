@@ -1,9 +1,8 @@
 from pathlib import Path
-import helpers as helpers_package
 
-import pytest
 import _pytest.skipping
-
+import helpers as helpers_package
+import pytest
 
 ################################
 # Allow disabling of test skipping
@@ -11,11 +10,7 @@ import _pytest.skipping
 
 
 def pytest_addoption(parser):
-    parser.addoption(
-        "--no-skips",
-        action="store_true",
-        default=False, help="disable skip marks"
-    )
+    parser.addoption("--no-skips", action="store_true", default=False, help="disable skip marks")
 
 
 @pytest.hookimpl(tryfirst=True)
@@ -28,12 +23,13 @@ def pytest_cmdline_preparse(config, args):
 
     _pytest.skipping.evaluate_skip_marks = no_skip
 
+
 ################################
 
 
 @pytest.fixture
 def resources():
-    return Path(__file__).parent / 'resources'
+    return Path(__file__).parent / "resources"
 
 
 @pytest.fixture

@@ -5,31 +5,18 @@ package pd.data;
 import "geometry.proto";
 import "options.proto";
 
-
 message GenerateTelemetryConfig
 {
 	Vector3 input_transformation = 1;
 	string output_path = 2				[(type)=eAnnotation, (stream)=eOutput];
 };
 
-message Telemetry
+message TelemetryMetadata
 {
-	TransformationPose fixed_frame = 1;
-	repeated TelemetryValue localization = 2;
-};
-
-message TelemetryValue
-{
-	uint64 timestamp = 1;
-	TransformationPose transformation_pose = 2;
-	Vector3 linear_velocity = 3;
-	Vector3 linear_acceleration = 4;
-	Quaternion angular_velocity = 5;
-	Quaternion angular_acceleration = 6;
-};
-
-message TransformationPose
-{
-	Vector3 position = 1;
-    Quaternion orientation = 2;
+	Vector3 linear_velocity = 1;
+	Vector3 linear_acceleration = 2;
+	Quaternion angular_velocity = 3;
+	Quaternion angular_acceleration = 4;
+	uint32 agent_id = 5;
+	double sim_timestep = 6;
 };

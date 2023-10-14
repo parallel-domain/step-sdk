@@ -15,9 +15,9 @@ Same applies for :class:`StreamIgSession` and :func:`create_stream_ig_session`.
 import logging
 import re
 from dataclasses import dataclass
-from enum import Enum, auto
-from typing import Optional, Union, List, Tuple
 from datetime import datetime
+from enum import Enum, auto
+from typing import List, Optional, Tuple, Union
 
 import flatbuffers
 import numpy as np
@@ -26,15 +26,25 @@ import pd.core.errors
 from pd.core.errors import PdError
 from pd.internal.fb.generated.python import (
     pdAck,
+    pdConfigLabelEngine,
     pdEnableStateStream,
+    pdFloat3,
     pdIgState,
     pdIgStateType,
     pdLoadLocation,
     pdMessage,
+    pdQueryLabelEngineAnnotationStatus,
     pdQueryRuntimeInfo,
     pdQuerySensorData,
     pdQueryStateData,
     pdQuerySystemInfo,
+    pdRaycastHits,
+    pdRaycastQuery,
+    pdRequestLabelEngineAnnotationData,
+    pdRequestLabelEngineTimestamp,
+    pdResponseCode,
+    pdReturnLabelEngineAnnotationData,
+    pdReturnLabelEngineAnnotationStatus,
     pdReturnLidarSensorData,
     pdReturnRuntimeInfo,
     pdReturnScenarioData,
@@ -47,22 +57,30 @@ from pd.internal.fb.generated.python import (
     pdSetGlobalParams,
     pdSubmitScenarioConfig,
     pdSubmitScenarioGenConfig,
+    pdUpdateLabelEngineAnnotationData,
     pdUpdateState,
     pdResponseCode,
     pdRaycastQuery,
     pdRaycastHits,
-    pdFloat3, pdConfigLabelEngine, pdQueryLabelEngineAnnotationStatus, pdReturnLabelEngineAnnotationStatus,
-    pdRequestLabelEngineAnnotationData, pdReturnLabelEngineAnnotationData, pdUpdateLabelEngineAnnotationData,
-    pdRequestLabelEngineTimestamp
+    pdFloat3,
+    pdConfigLabelEngine,
+    pdQueryLabelEngineAnnotationStatus,
+    pdReturnLabelEngineAnnotationStatus,
+    pdRequestLabelEngineAnnotationData,
+    pdReturnLabelEngineAnnotationData,
+    pdUpdateLabelEngineAnnotationData,
+    pdRequestLabelEngineTimestamp,
+    pdReturnLoadLocationStatus,
+    pdQueryLoadLocationStatus,
 )
 from pd.internal.fb.generated.python.pdMessageType import pdMessageType
 from pd.internal.fb.generated.python.pdPerformanceFeature import pdPerformanceFeature
-from pd.label_engine import LabelData, DataType
+from pd.label_engine import DataType, LabelData
 from pd.session.transport import TlsProxyForZmqTransport, ZmqTransport
-from pd.state.sensor import LidarSensorData, SensorBuffer, SensorData
-from pd.state.serialize import state_to_bytes, bytes_to_state
-from pd.state.state import State
 from pd.sim.sim import Raycast, RaycastHit
+from pd.state.sensor import LidarSensorData, SensorBuffer, SensorData
+from pd.state.serialize import bytes_to_state, state_to_bytes
+from pd.state.state import State
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +105,7 @@ def generate_scene_name() -> str:
     """
     Generates a scene name that can be used with :class:`StepIgSession` or :class:`LabelEngineSession`
     """
-    return f"scene_{datetime.now().strftime('%y%d%m_%H%M%S')}"
+    return f"scene_{datetime.now().strftime('%y%m%d_%H%M%S')}"
 
 
 @dataclass(frozen=True)
@@ -176,33 +194,18 @@ class PdMessageMixin:
             code = ack.Code()
             logger.debug(f"Ack response: {response}")
             if code == pdResponseCode.pdResponseCode.CONFIG_ERROR:
-                raise PdError(
-                    f"Given configuration is invalid. "
-                    f"Reason: {response}"
-                )
+                raise PdError(f"Given configuration is invalid. Reason: {response}")
             elif code == pdResponseCode.pdResponseCode.SERVER_ERROR:
-                raise PdError(
-                    f"Server experienced an error. "
-                    f"Reason: {response}"
-                )
+                raise PdError(f"Server experienced an error. Reason: {response}")
             elif code == pdResponseCode.pdResponseCode.UNHANDLED_MESSAGE_TYPE:
-                raise PdError(
-                    f"Server couldn't handle this request. "
-                    f"Reason: {response}"
-                )
+                raise PdError(f"Server couldn't handle this request. Reason: {response}")
             elif code != pdResponseCode.pdResponseCode.OK:
-                raise PdError(
-                    f"Error occurred while processing the request. "
-                    f"Reason: {response}"
-                )
+                raise PdError(f"Error occurred while processing the request. Reason: {response}")
         else:
-            raise PdError(
-                "Server sent an unexpected response. "
-                "Please contact support@paralleldomain.com for support."
-            )
+            raise PdError("Server sent an unexpected response. Please contact support@paralleldomain.com for support.")
 
     @staticmethod
-    def _build_ack_message(builder, message_type:int , response: str, code: int = 0):
+    def _build_ack_message(builder, message_type: int, response: str, code: int = 0):
         ack_response_fb = builder.CreateString(response)
         pdAck.pdAckStart(builder)
         pdAck.pdAckAddMessageType(builder, message_type)
@@ -250,7 +253,7 @@ class BaseSession(PdMessageMixin):
             state_addr_match = addr_re.match(state_addr)
             if not state_addr_match or state_addr_match.group("protocol") != "tcp":
                 raise pd.core.errors.PdError(
-                    f"Invalid state address provided: {state_addr}. " "Must be of the form tcp://hostname:port"
+                    f"Invalid state address provided: {state_addr}. Must be of the form tcp://hostname:port"
                 )
 
         if request_addr_match.group("protocol") == "ssl":
@@ -710,6 +713,36 @@ class SimSession(BaseSession):
         else:
             self._consume_ack_or_unknown(resp_msg, pdMessageType.pdQueryStateData)
 
+    def query_load_location(self, location_name: str) -> bool:
+        builder = flatbuffers.Builder(1024)
+        msg = self._build_pd_query_load_location_status(builder, location_name)
+
+        builder.Finish(msg)
+        resp_bytes = self.transport.send_request_msg(builder.Output())
+
+        resp_msg = self._parse_resp_msg(resp_bytes)
+        msg_type = resp_msg.MessageType()
+
+        if msg_type == pdMessageType.pdReturnLoadLocationStatus:
+            return_msg = pdReturnLoadLocationStatus.pdReturnLoadLocationStatus()
+            return_msg.Init(resp_msg.Message().Bytes, resp_msg.Message().Pos)
+            return return_msg.Status()
+        else:
+            self._consume_ack_or_unknown(resp_msg, pdMessageType.pdReturnLoadLocationStatus)
+
+    def load_location(self, location_name: str, scene_name: str):
+        """ """
+
+        builder = flatbuffers.Builder(1024)
+        msg = self._build_pd_load_location(builder, location_name, scene_name)
+
+        builder.Finish(msg)
+        resp_bytes = self.transport.send_request_msg(builder.Output())
+
+        resp_msg = self._parse_resp_msg(resp_bytes)
+
+        self._consume_ack_or_unknown(resp_msg, pdMessageType.pdLoadLocation)
+
     def raycast(self, requests: List[Raycast]) -> List[List[RaycastHit]]:
         """
         Cast a number of rays in the world and return their points of collisions against surfaces
@@ -748,11 +781,13 @@ class SimSession(BaseSession):
                     location_fb = hits_for_request_fb.Locations(j)
                     normal_fb = hits_for_request_fb.Normals(j)
                     flag = hits_for_request_fb.Flags(j)
-                    hits_for_request.append(RaycastHit(
-                        position=(location_fb.X(), location_fb.Y(), location_fb.Z()),
-                        normal=(normal_fb.X(), normal_fb.Y(), normal_fb.Z()),
-                        surface_flag=flag
-                    ))
+                    hits_for_request.append(
+                        RaycastHit(
+                            position=(location_fb.X(), location_fb.Y(), location_fb.Z()),
+                            normal=(normal_fb.X(), normal_fb.Y(), normal_fb.Z()),
+                            surface_flag=flag,
+                        )
+                    )
                 hits_for_all_requests.append(hits_for_request)
             return hits_for_all_requests
         else:
@@ -772,6 +807,25 @@ class SimSession(BaseSession):
         pdQueryStateData.pdQueryStateDataStart(builder)
         query_msg = pdQueryStateData.pdQueryStateDataEnd(builder)
         return SimSession._build_pd_message(builder, query_msg, pdMessageType.pdQueryStateData)
+
+    @staticmethod
+    def _build_pd_query_load_location_status(builder, location: str):
+        location_fb = builder.CreateString(location)
+        pdQueryLoadLocationStatus.pdQueryLoadLocationStatusStart(builder)
+        pdQueryLoadLocationStatus.pdQueryLoadLocationStatusAddLocation(builder, location_fb)
+        query_msg = pdQueryLoadLocationStatus.pdQueryLoadLocationStatusEnd(builder)
+        return SimSession._build_pd_message(builder, query_msg, pdMessageType.pdQueryLoadLocationStatus)
+
+    @staticmethod
+    def _build_pd_load_location(builder, location_name: str, scene_name: Optional[str]):
+        name = builder.CreateString(location_name)
+        scene_name_fb = builder.CreateString(scene_name) if scene_name else None
+        pdLoadLocation.pdLoadLocationStart(builder)
+        pdLoadLocation.pdLoadLocationAddLocationName(builder, name)
+        if scene_name_fb:
+            pdLoadLocation.pdLoadLocationAddSceneName(builder, scene_name_fb)
+        load_msg = pdLoadLocation.pdLoadLocationEnd(builder)
+        return IgSession._build_pd_message(builder, load_msg, pdMessageType.pdLoadLocation)
 
     @staticmethod
     def _build_pd_raycast(builder, requests: List[Raycast]):
@@ -824,8 +878,13 @@ class LabelEngineSession(BaseSession):
         resp_msg = self._parse_resp_msg(resp_bytes)
         self._consume_ack_or_unknown(resp_msg, pdMessageType.pdConfigLabelEngine)
 
-    def query_annotation_status(self, scene_name: str, label: str, timestamp: Optional[str] = None,
-                                sensor_id_and_name: Optional[Tuple[int, str]] = None) -> bool:
+    def query_annotation_status(
+        self,
+        scene_name: str,
+        label: str,
+        timestamp: Optional[str] = None,
+        sensor_id_and_name: Optional[Tuple[int, str]] = None,
+    ) -> bool:
         """
         Query the status of an annotation data object
 
@@ -857,8 +916,13 @@ class LabelEngineSession(BaseSession):
         else:
             self._consume_ack_or_unknown(resp_msg, pdMessageType.pdQueryLabelEngineAnnotationStatus)
 
-    def request_annotation_data(self, scene_name: str, label: str, timestamp: Optional[str] = None,
-                                sensor_id_and_name: Optional[Tuple[int, str]] = None) -> LabelData:
+    def request_annotation_data(
+        self,
+        scene_name: str,
+        label: str,
+        timestamp: Optional[str] = None,
+        sensor_id_and_name: Optional[Tuple[int, str]] = None,
+    ) -> LabelData:
         """
         Request annotation data for an annotation data object
 
@@ -887,37 +951,48 @@ class LabelEngineSession(BaseSession):
             return_annotation_data_msg = pdReturnLabelEngineAnnotationData.pdReturnLabelEngineAnnotationData()
             return_annotation_data_msg.Init(resp_msg.Message().Bytes, resp_msg.Message().Pos)
             if return_annotation_data_msg.LabelDataLength() < 1:
-                raise PdError(f"Failed to retrieve annotation data for label '{label}' ({sensor},{timestamp}). "
-                              f"Please contact support@paralleldomain.com for support.")
+                raise PdError(
+                    f"Failed to retrieve annotation data for label '{label}' ({sensor},{timestamp}). "
+                    "Please contact support@paralleldomain.com for support."
+                )
             elif return_annotation_data_msg.LabelDataLength() > 1:
-                logger.warning(f"Expecting one, but received multiple label data objects "
-                               f"for label '{label}' ({sensor},{timestamp}). "
-                               f"Please contact support@paralleldomain.com for support.")
+                logger.warning(
+                    "Expecting one, but received multiple label data objects "
+                    f"for label '{label}' ({sensor},{timestamp}). "
+                    "Please contact support@paralleldomain.com for support."
+                )
             label_data_fb = return_annotation_data_msg.LabelData(0)
             timestamp_resp = label_data_fb.Timestamp().decode() if label_data_fb.Timestamp() else None
             sensor_resp = label_data_fb.Sensor().decode() if label_data_fb.Sensor() else None
             if timestamp_resp != timestamp:
-                raise PdError(f"Failed to retrieve annotation data for label '{label}' ({sensor},{timestamp}). "
-                              f"Expecting timestamp '{timestamp}' but received '{timestamp_resp}'. "
-                              f"Please contact support@paralleldomain.com for support.")
+                raise PdError(
+                    f"Failed to retrieve annotation data for label '{label}' ({sensor},{timestamp}). "
+                    f"Expecting timestamp '{timestamp}' but received '{timestamp_resp}'. "
+                    "Please contact support@paralleldomain.com for support."
+                )
             if sensor_resp != sensor:
-                raise PdError(f"Failed to retrieve annotation data for label '{label}' ({sensor},{timestamp}). "
-                              f"Expecting sensor '{sensor}' but received '{sensor_resp}'. "
-                              f"Please contact support@paralleldomain.com for support.")
+                raise PdError(
+                    f"Failed to retrieve annotation data for label '{label}' ({sensor},{timestamp}). "
+                    f"Expecting sensor '{sensor}' but received '{sensor_resp}'. "
+                    "Please contact support@paralleldomain.com for support."
+                )
             label_data_bytes = label_data_fb.LabelDataAsNumpy().tobytes()
             label_data = LabelData(
-                    timestamp=timestamp,
-                    label=label,
-                    sensor_id_and_name=sensor_id_and_name,
-                    data=label_data_bytes
-                )
+                timestamp=timestamp, label=label, sensor_id_and_name=sensor_id_and_name, data=label_data_bytes
+            )
             return label_data
         else:
             self._consume_ack_or_unknown(resp_msg, pdMessageType.pdRequestLabelEngineAnnotationData)
 
-    def update_annotation_data(self, scene_name: str, label: str, timestamp: Optional[str],
-                               sensor_id_and_name: Optional[Tuple[int, str]],
-                               data_type: Union[int, DataType], data: bytes):
+    def update_annotation_data(
+        self,
+        scene_name: str,
+        label: str,
+        timestamp: Optional[str],
+        sensor_id_and_name: Optional[Tuple[int, str]],
+        data_type: Union[int, DataType],
+        data: bytes,
+    ):
         """
         Send an annotation data object to the label engine server
 
@@ -957,7 +1032,6 @@ class LabelEngineSession(BaseSession):
         resp_msg = self._parse_resp_msg(resp_bytes)
         self._consume_ack_or_unknown(resp_msg, pdMessageType.pdRequestLabelEngineTimestamp)
 
-
     @staticmethod
     def _build_pd_config_label_engine(builder, scene_name: str, config: str):
         config_fb = builder.CreateString(config)
@@ -969,13 +1043,19 @@ class LabelEngineSession(BaseSession):
         return LabelEngineSession._build_pd_message(builder, config_label_engine_msg, pdMessageType.pdConfigLabelEngine)
 
     @staticmethod
-    def _build_pd_query_annotation_status(builder, scene_name: str, timestamp: Optional[str], sensor: Optional[str], label: str):
+    def _build_pd_query_annotation_status(
+        builder, scene_name: str, timestamp: Optional[str], sensor: Optional[str], label: str
+    ):
         scene_name_fb = builder.CreateString(scene_name)
         timestamp_fb = builder.CreateString(timestamp) if timestamp else None
         sensor_vec_fb = None
         if sensor:
-            sensor_fb_list = [builder.CreateString(sensor)]  # server supports multiple sensors, but we only expose single-sensor for now
-            pdQueryLabelEngineAnnotationStatus.pdQueryLabelEngineAnnotationStatusStartSensorsVector(builder, len(sensor_fb_list))
+            sensor_fb_list = [
+                builder.CreateString(sensor)
+            ]  # server supports multiple sensors, but we only expose single-sensor for now
+            pdQueryLabelEngineAnnotationStatus.pdQueryLabelEngineAnnotationStatusStartSensorsVector(
+                builder, len(sensor_fb_list)
+            )
             for sensor_fb in reversed(sensor_fb_list):
                 builder.PrependUOffsetTRelative(sensor_fb)
             sensor_vec_fb = builder.EndVector(len(sensor_fb_list))
@@ -988,16 +1068,24 @@ class LabelEngineSession(BaseSession):
         pdQueryLabelEngineAnnotationStatus.pdQueryLabelEngineAnnotationStatusAddLabel(builder, label_fb)
         pdQueryLabelEngineAnnotationStatus.pdQueryLabelEngineAnnotationStatusAddSceneName(builder, scene_name_fb)
         query_annotation_status_msg = pdQueryLabelEngineAnnotationStatus.pdQueryLabelEngineAnnotationStatusEnd(builder)
-        return LabelEngineSession._build_pd_message(builder, query_annotation_status_msg, pdMessageType.pdQueryLabelEngineAnnotationStatus)
+        return LabelEngineSession._build_pd_message(
+            builder, query_annotation_status_msg, pdMessageType.pdQueryLabelEngineAnnotationStatus
+        )
 
     @staticmethod
-    def _build_pd_request_annotation_data(builder, scene_name: str, timestamp: Optional[str], sensor: Optional[str], label: str):
+    def _build_pd_request_annotation_data(
+        builder, scene_name: str, timestamp: Optional[str], sensor: Optional[str], label: str
+    ):
         scene_name_fb = builder.CreateString(scene_name)
         timestamp_fb = builder.CreateString(timestamp) if timestamp else None
         sensor_vec_fb = None
         if sensor:
-            sensor_fb_list = [builder.CreateString(sensor)]  # server supports multiple sensors, but we only expose single-sensor for now
-            pdRequestLabelEngineAnnotationData.pdRequestLabelEngineAnnotationDataStartSensorsVector(builder, len(sensor_fb_list))
+            sensor_fb_list = [
+                builder.CreateString(sensor)
+            ]  # server supports multiple sensors, but we only expose single-sensor for now
+            pdRequestLabelEngineAnnotationData.pdRequestLabelEngineAnnotationDataStartSensorsVector(
+                builder, len(sensor_fb_list)
+            )
             for sensor_fb in reversed(sensor_fb_list):
                 builder.PrependUOffsetTRelative(sensor_fb)
             sensor_vec_fb = builder.EndVector(len(sensor_fb_list))
@@ -1010,11 +1098,20 @@ class LabelEngineSession(BaseSession):
         pdRequestLabelEngineAnnotationData.pdRequestLabelEngineAnnotationDataAddLabel(builder, label_fb)
         pdRequestLabelEngineAnnotationData.pdRequestLabelEngineAnnotationDataAddSceneName(builder, scene_name_fb)
         request_annotation_data_msg = pdRequestLabelEngineAnnotationData.pdRequestLabelEngineAnnotationDataEnd(builder)
-        return LabelEngineSession._build_pd_message(builder, request_annotation_data_msg, pdMessageType.pdRequestLabelEngineAnnotationData)
+        return LabelEngineSession._build_pd_message(
+            builder, request_annotation_data_msg, pdMessageType.pdRequestLabelEngineAnnotationData
+        )
 
     @staticmethod
-    def _build_pd_update_annotation_data(builder, scene_name: str, label: str, timestamp: Optional[str], sensor: Optional[str],
-                                         data_type: int, data: bytes):
+    def _build_pd_update_annotation_data(
+        builder,
+        scene_name: str,
+        label: str,
+        timestamp: Optional[str],
+        sensor: Optional[str],
+        data_type: int,
+        data: bytes,
+    ):
         scene_name_fb = builder.CreateString(scene_name)
         label_fb = builder.CreateString(label)
         timestamp_fb = builder.CreateString(timestamp) if timestamp else None
@@ -1022,7 +1119,7 @@ class LabelEngineSession(BaseSession):
 
         pdUpdateLabelEngineAnnotationData.pdUpdateLabelEngineAnnotationDataStartLabelDataVector(builder, len(data))
         builder.head = builder.head - len(data)
-        builder.Bytes[builder.head: (builder.head + len(data))] = data
+        builder.Bytes[builder.head : (builder.head + len(data))] = data
         label_data_bytes_fb = builder.EndVector(len(data))
 
         pdUpdateLabelEngineAnnotationData.pdUpdateLabelEngineAnnotationDataStart(builder)
@@ -1035,14 +1132,18 @@ class LabelEngineSession(BaseSession):
         pdUpdateLabelEngineAnnotationData.pdUpdateLabelEngineAnnotationDataAddLabelData(builder, label_data_bytes_fb)
         pdUpdateLabelEngineAnnotationData.pdUpdateLabelEngineAnnotationDataAddSceneName(builder, scene_name_fb)
         update_annotation_data_msg = pdUpdateLabelEngineAnnotationData.pdUpdateLabelEngineAnnotationDataEnd(builder)
-        return LabelEngineSession._build_pd_message(builder, update_annotation_data_msg, pdMessageType.pdUpdateLabelEngineAnnotationData)
+        return LabelEngineSession._build_pd_message(
+            builder, update_annotation_data_msg, pdMessageType.pdUpdateLabelEngineAnnotationData
+        )
 
     @staticmethod
     def _build_pd_request_timestamp(builder, scene_name: str, timestamp: str, sensors: List[str]):
         scene_name_fb = builder.CreateString(scene_name)
         timestamp_fb = builder.CreateString(timestamp)
         sensor_fb_list = [builder.CreateString(sensor) for sensor in sensors]
-        pdQueryLabelEngineAnnotationStatus.pdQueryLabelEngineAnnotationStatusStartSensorsVector(builder, len(sensor_fb_list))
+        pdQueryLabelEngineAnnotationStatus.pdQueryLabelEngineAnnotationStatusStartSensorsVector(
+            builder, len(sensor_fb_list)
+        )
         for sensor_fb in reversed(sensor_fb_list):
             builder.PrependUOffsetTRelative(sensor_fb)
         sensor_vec_fb = builder.EndVector(len(sensor_fb_list))
@@ -1051,7 +1152,9 @@ class LabelEngineSession(BaseSession):
         pdRequestLabelEngineTimestamp.pdRequestLabelEngineTimestampAddSensors(builder, sensor_vec_fb)
         pdRequestLabelEngineTimestamp.pdRequestLabelEngineTimestampAddSceneName(builder, scene_name_fb)
         request_timestamp_msg = pdRequestLabelEngineTimestamp.pdRequestLabelEngineTimestampEnd(builder)
-        return LabelEngineSession._build_pd_message(builder, request_timestamp_msg, pdMessageType.pdRequestLabelEngineTimestamp)
+        return LabelEngineSession._build_pd_message(
+            builder, request_timestamp_msg, pdMessageType.pdRequestLabelEngineTimestamp
+        )
 
 
 def create_step_ig_session(*args, **kwargs) -> StepIgSession:

@@ -8,6 +8,9 @@ syntax = "proto2";
 
 package umd;
 
+/*
+Point defined by a latitude, longitude and altitude
+*/
 message Point_LLA
 {
     required double lat = 1;
@@ -15,6 +18,9 @@ message Point_LLA
     required double alt = 3;
 }
 
+/*
+Point defined in Earth-Centered, Earth-Fixed coordinate system.
+*/
 message Point_ECEF
 {
     required double x = 1;
@@ -22,6 +28,9 @@ message Point_ECEF
     required double z = 3;
 }
 
+/*
+3D Point in East, North Up coordinate system
+*/
 message Point_ENU
 {
     required float x = 1;
@@ -29,6 +38,9 @@ message Point_ENU
     required float z = 3;
 }
 
+/*
+Message to store the coefficients of a quaternion
+*/
 message Quaternion
 {
     required float w = 1;
@@ -37,31 +49,74 @@ message Quaternion
     required float z = 4;
 }
 
+/*
+Axis aligned bounding box
+*/
 message AABB
 {
+    /*
+    Point that defines the minimum corner of the axis aligned bounding box
+    */
     required Point_ENU min = 1;
+
+    /*
+    Point that defines the maximum corner of the axis aligned bounding box
+    */
     required Point_ENU max = 2;
 }
 
+/*
+Message to store information about lines or edges in a UMD map.
+*/
 message Edge
 {
+    /*
+    The integer ID of the edge.
+    */
     required uint64     id          = 1;
+
+    /*
+    Boolean value to store whether an edge is closed (first point equals last) or not.
+    */
     required bool       open        = 2;
 
+    /*
+    List of points that define the edge.
+    */
     repeated Point_ENU  points      = 3;
 
+    /*
+    String to store optional data about the :obj:`Edge`.
+    */
     optional string     user_data   = 4;
 }
 
+/*
+Message to store map level information and metadata.
+*/
 message Info
 {
+    /*
+    The name of the map
+    */
     required string name = 1;
+
+    /*
+    The latitude, longitude and altitude of the UMD map.
+    */
     required Point_LLA origin = 2;
+
     optional string audit = 3;
 }
 
+/*
+A lane object within the UMD world
+*/
 message LaneSegment
 {
+    /*
+    All possible lane types
+    */
     enum LaneType
     {
         UNDEFINED_LANE = 0;
@@ -77,6 +132,9 @@ message LaneSegment
         SIDEWALK       = 10;
     }
 
+    /*
+    All possible directions of a lane
+    */
     enum Direction
     {
         UNDEFINED_DIR  = 0;
@@ -85,41 +143,107 @@ message LaneSegment
         BIDIRECTIONAL  = 3;
     }
 
+    /*
+    All possible turn types
+    */
     enum TurnType
     {
-        STRAIGHT        = 0;
-        LEFT            = 1;
-        RIGHT           = 2;
-        SLIGHT_LEFT     = 3;
-        SLIGHT_RIGHT    = 4;
-        U_TURN          = 5;
+        STRAIGHT       = 0;
+        LEFT           = 1;
+        RIGHT          = 2;
+        SLIGHT_LEFT    = 3;
+        SLIGHT_RIGHT   = 4;
+        U_TURN         = 5;
     }
 
+    /*
+    The integer ID of the :obj:`LaneSegment`
+    */
     required uint64     id              = 1;
+
+    /*
+    The type of lane
+    */
     required LaneType   type            = 2;
+
+    /*
+    The direction of the lane when traversed in the same order as the points in :attr:`left_edge`, :attr:`right_edge`
+    and :attr:`reference_line`.
+    */
     required Direction  direction       = 3;
 
-    // All UMD object references are stored by ID
-    required uint64     road            = 4;    // RoadSegment - This id should link to the RoadSegment that contains this lane, except in the case of CROSSWALK, in which case the id will be 0.
-    required uint64     left_edge       = 5;    // Edge
-    required uint64     right_edge      = 6;    // Edge
+    /*
+    The integer ID of the :obj:`RoadSegment` that a :obj:`LaneSegment` corresponds to
+    */
+    required uint64     road            = 4;
 
-    required uint64     reference_line  = 7;    // Edge
+    /*
+    The integer ID of the :obj:`Edge` that defines the left edge of the :obj:`LaneSegment`
+    */
+    required uint64     left_edge       = 5;
 
-    repeated uint64     predecessors    = 8;    // LaneSegment
-    repeated uint64     successors      = 9;    // LaneSegment
+    /*
+    The integer ID of the :obj:`Edge` that defines the right edge of the :obj:`LaneSegment`
+    */
+    required uint64     right_edge      = 6;
 
-    optional uint64     left_neighbor   = 10;   // LaneSegment
-    optional uint64     right_neighbor  = 11;   // LaneSegment
+    /*
+    The integer ID of the :obj:`Edge` that defines the center reference line of the :obj:`LaneSegment`
+    */
+    required uint64     reference_line  = 7;
 
-    optional double     compass_angle   = 12;   // Angle between outgoing direction and North
-    optional double     turn_angle      = 13;   // Angle between incoming and outgoing directions
-    optional TurnType   turn_type       = 15;   // An option tag that tells us what type of turn lane this is
+    /*
+    The :obj:`LaneSegment` that connects to the beginning of the current :obj:`LaneSegment`
+    */
+    repeated uint64     predecessors    = 8;
+
+    /*
+    The :obj:`LaneSegment` that connects to the end of the current :obj:`LaneSegment`
+    */
+    repeated uint64     successors      = 9;
+
+    /*
+    The :obj:`LaneSegment` that is the left neighbor of the current :obj:`LaneSegment`. Left is defined relative
+    to the forward direction of travel in the :obj:`LaneSegment`.
+    */
+    optional uint64     left_neighbor   = 10;
+
+    /*
+    The :obj:`LaneSegment` that is the right neighbor of the current :obj:`LaneSegment`. Right is defined relative
+    to the forward direction of travel in the :obj:`LaneSegment`.
+    */
+    optional uint64     right_neighbor  = 11;
+
+    /*
+    The angle between the direction of the :obj:`LaneSegment` and North
+    */
+    optional double     compass_angle   = 12;
+
+    /*
+    Angle between the incoming and outgoing directions of the :obj:`LaneSegment` if the :obj:`LaneSegment` is a turn
+    lane
+     */
+    optional double     turn_angle      = 13;
+
+    /*
+    The type of turn that the :obj:`LaneSegment` corresponds to if :obj:`LaneSegment` is a turn lane.
+    */
+    optional TurnType   turn_type       = 15;
+
+    /*
+    Optional information about the :obj:`LaneSegment`
+    */
     optional string     user_data       = 14;
 }
 
+/*
+A road object within the UMD world
+*/
 message RoadSegment
 {
+    /*
+    All possible road types
+    */
     enum RoadType
     {
         MOTORWAY        = 0;
@@ -140,49 +264,105 @@ message RoadSegment
         DRIVEWAY_PARKING_ENTRY = 15;
     }
 
+    /*
+    All possible ground types that an :obj:`RoadSegment` can exist on
+    */
     enum GroundType
     {
         GROUND          = 0;
         BRIDGE          = 1;
         TUNNEL          = 2;
     }
-    
+
+    /*
+    The integer ID of the :obj:`RoadSegment`
+    */
     required uint64 id     = 1;
+
+    /*
+    The name of the :obj:`RoadSegment`
+    */
     required string name   = 2;
 
-    // All UMD object references are stored by ID
-    repeated uint64     predecessors    = 3; // RoadSegment
-    repeated uint64     successors      = 4; // RoadSegment
+    /*
+    The integer ID of the :obj:`RoadSegment` that connects to the beginning of the current :obj:`RoadSegment`
+    */
+    repeated uint64     predecessors    = 3;
 
-    repeated uint64     lane_segments   = 5; // LaneSegment. Reminder that lane_segments should be ordered from left to right within the RoadSegment. See documentation for more.
+    /*
+    The integer ID of the :obj:`RoadSegment` that connects to the edn of the current :obj:`RoadSegment`
+    */
+    repeated uint64     successors      = 4;
 
+    /*
+    The integer ID of the :obj:`LaneSegment` that make up this :obj:`RoadSegment`
+    */
+    repeated uint64     lane_segments   = 5;
+
+    /*
+    The integer ID of the :obj:`Edge` that defines the center reference line of the :obj:`RoadSegment`
+    */
     optional uint64     reference_line  = 6; // Edge
 
+    /*
+    The type of the current :obj:`RoadSegment`
+    */
     optional RoadType   type            = 8;
 
+    /*
+    The ground type on which the :obj:`RoadSegment` exists
+    */
     optional GroundType ground_type     = 11;
 
+    /*
+    The speed limit of the :obj:`RoadSegment`
+    */
     optional SpeedLimit speed_limit     = 10;
 
-    optional uint64     junction_id     = 9; // If this is set, this means that the RoadSegment is a junction route within the junction.
+    /*
+    The integer ID of the junction that exists on the road if the :obj:`RoadSegment` contains a :obj:`Junction`
+    */
+    optional uint64     junction_id     = 9;
 
+    /*
+    Optional information about the :obj:`RoadSegment`
+    */
     optional string     user_data       = 7;
 }
 
+/*
+Defines the speed limit of a :obj:`RoadSegment`
+*/
 message SpeedLimit
 {
+    /*
+    All possible types for units of the speed limit
+    */
     enum SpeedUnits
     {
         MILES_PER_HOUR      = 0;
         KILOMETERS_PER_HOUR = 1;
     }
 
+    /*
+    The speed limit in units defined by :attr:`SpeedUnits`
+    */
     required uint32 speed       = 1;
+
+    /*
+    The units that the :attr:`speed` is in
+    */
     required SpeedUnits units   = 2;
 }
 
+/*
+An area of the UMD map
+*/
 message Area
 {
+    /*
+    All possible types that an :obj:`Area` can be
+    */
     enum AreaType
     {
         BUILDING_COMMERCIAL     = 0;
@@ -219,23 +399,45 @@ message Area
         YARD					= 31;
     }
 
+    /*
+    The id of the :obj:`Area`
+    */
     required uint64     id          = 1;
+
+    /*
+    The type of the :obj:`Area`
+    */
     required AreaType   type        = 2;
 
-    // Area boundaries can be defined by multiple edges
-    repeated uint64     edges       = 3; // Edge
+    /*
+    The :obj:`Edge` that defines the boundary of the :obj:`Area`. Can be more than one.
+    */
+    repeated uint64     edges       = 3;
 
-    // Optional height value for buildings and other structures
+    /*
+    The height of the area in meters. Used for areas that define buildings.
+    */
     optional float      height      = 4;
 
-    // Optional number of floors for a building
+    /*
+    The number of floors in an area when the :obj:`Area` defines a building.
+    */
     optional uint32     floors      = 6;
 
+    /*
+    Optional information about an :obj:`Area`
+    */
     optional string     user_data   = 5;
 }
 
+/*
+A grid that exists across the entire UMD map. Used to map what exists in each part of the grid on the map
+*/
 message ZoneGrid
 {
+    /*
+    All possible zone types that can exist in each cell of the :obj:`ZoneGrid`
+    */
     enum ZoneType
     {
         COMMERCIAL      = 0;
@@ -249,15 +451,40 @@ message ZoneGrid
         UNCLASSIFIED    = 8;
     }
 
-    required Point_ENU bound_NE     = 1; // point that represents the upper right corner
-    required Point_ENU bound_SW     = 2; // point that represents the lower left corner
-    required uint32    lat_samples  = 3; // The number of samples in the latitudinal (north/south) direction
-    required uint32    lon_samples  = 4; // The number of samples in the longitudinal (east/west) direction
-    repeated ZoneType  points       = 5; // List of zone type sample points
+    /*
+    Point that represents the upper right corner of the :obj:`ZoneGrid`
+    */
+    required Point_ENU bound_NE     = 1;
+
+    /*
+    Point that represents the lower left corner of the :obj:`ZoneGrid`
+    */
+    required Point_ENU bound_SW     = 2;
+
+    /*
+    The number of examples that exist in the latitudinal direction of the :obj:`ZoneGrid`
+    */
+    required uint32    lat_samples  = 3;
+
+    /*
+    The number of examples that exist in the longitudinal direction of the :obj:`ZoneGrid`
+    */
+    required uint32    lon_samples  = 4;
+
+    /*
+    List of all the points in the :obj:`ZoneGrid`, the value of which is the :attr:`ZoneType` at each point.
+    */
+    repeated ZoneType  points       = 5;
 }
 
+/*
+Information about traffic signs in a UMD map.
+*/
 message TrafficSignData
 {
+    /*
+    All possible types of signs that can exist
+    */
     enum SignType
     {
         REGULATORY_STOP_YIELD_PEDESTRIAN_CROSSING                   = 0;
@@ -335,33 +562,67 @@ message TrafficSignData
         EMERGENCY_MANAGEMENT_CIVIL_DEFENSE                          = 72;
     }
 
+    /*
+    Data about the traffic sign.
+    */
     oneof data
     {
+        /*
+        The type of the sign
+        */
         SignType    type        = 1;
+
+        /*
+        The code that represents the content of the sign.
+        */
         string      sign_code   = 2;
 
-        // Face value and text used by some SignType categories
+        /*
+        The "value" that is shown on the rendered sign (e.g. in a speed limit sign).
+        */
         uint32      face_value  = 3;
+
+        /*
+        The "text" that is shown on the rendered sign (e.g. in a direction sign).
+        */
         string      face_text   = 4;
 
+        /*
+        The name of the sign asset.
+        */
         string      asset_name  = 5;
     }
 }
 
+/*
+Information about traffic lights that exist in the UMD map.
+*/
 message TrafficLightData
 {
-    // Link to junction containing traffic light
+    /*
+    The integer ID of the junction to which the Traffic Light belongs.
+    */
     required uint64 signaled_intersection_id    = 1;
 
-    // A list of bulbs contained in this traffic light box
+    /*
+    A list of bulbs that exist on the traffic light.
+    */
     repeated TrafficLightBulb bulbs             = 2;
 
-    // An optional reference to the asset for this traffic light box
+    /*
+    An optional reference to the asset name of this traffic light box.
+    */
     optional string asset_name                  = 3;
 }
 
+/*
+Information about the bulbs that exist in traffic lights.
+*/
 message TrafficLightBulb
 {
+    /*
+    All possible shapes of traffic light bulbs.
+    */
     enum Shape
     {
         CIRCLE                  = 0;
@@ -378,6 +639,9 @@ message TrafficLightBulb
         NUMBER                  = 11;
     }
 
+    /*
+    All possible colors that a traffic light bulb can have.
+    */
     enum Color
     {
         RED     = 0;
@@ -385,18 +649,35 @@ message TrafficLightBulb
         GREEN   = 2;
     }
 
+    /*
+    The shape of the traffic light bulb
+    */
     required Shape shape        = 1;
+
+    /*
+    The color of the traffic light bulb
+    */
     required Color color        = 2;
 
-    // Note that this phase_id is only unique within the SignaledIntersection that the parent TrafficLight belongs to
+    /*
+    The integer ID of the phase of the traffic light signal (e.g. red vs green etc).
+    */
     required uint64 phase_id    = 3;
 
-    // An optional flag to mark this bulb as flashing
+    /*
+    Boolean flag to show whether or not the traffic light bulb is flashing
+    */
     optional bool is_flashing   = 4;
 }
 
+/*
+Information about props that exist in the UMD map.
+*/
 message PropData
 {
+    /*
+    All possible types that a prop can be
+    */
     enum PropType
     {
         VEHICLE         = 0;
@@ -410,76 +691,142 @@ message PropData
         OTHER           = 8;
     }
 
-    // One of either PropType or asset name to specify object
+    /*
+    Data about what type of prop is represented.
+    */
     oneof data
     {
+        /*
+        The type of the prop
+        */
         PropType    type        = 1;
+
+        /*
+        The name of the asset represented by the prop.
+        */
         string      asset_name  = 2;
     }
 }
 
+/*
+An object that exists in the UMD map.
+*/
 message Object
 {
+    /*
+    The integer ID of the :obj:`Object`
+    */
     required uint64         id                  = 1;
 
-    // Orientation of object
+    /*
+    The orientation of the :obj:`Object`
+    */
     required Quaternion     orientation         = 3;
 
-    // Placement of object specified either as origin position or bounding box
+    /*
+    Information which stores where the :obj:`Object` is placed in the UMD map.
+    */
     oneof placement
     {
+        /*
+        The point on which the :obj:`Object` is placed.
+        */
         Point_ENU           origin              = 2;
+
+        /*
+        The bounding box that encapsulates the :obj:`Object`.
+        */
         AABB                bounding_box        = 4;
     }
-    // Type specific object data
+
+    /*
+    Information about the :obj:`Object`.
+    */
     oneof data
     {
+        /*
+        Data about the traffic sign if the :obj:`Object` is a traffic sign.
+        */
         TrafficSignData     traffic_sign_data   = 5;
+
+        /*
+        Data about the traffic light if the :obj:`Object` is a traffic light.
+        */
         TrafficLightData    traffic_light_data  = 6;
+
+        /*
+        Data about the prop if the :obj:`Object` is a prop.
+        */
         PropData            prop_data           = 7;
     }
 
-    // Exclusion radius to prevent spawning of other objects
-    // < 0 -> use object aabb
+    /*
+    The radius around the :obj:`Object` in which other :obj:`Object` should not be placed.
+    */
     optional float          exclusion_radius    = 8 [default = -1];
 
+    /*
+    Optional information about the :obj:`Object`
+    */
     optional string         user_data           = 9;
 }
 
+/*
+A junction that exists in the UMD map.
+*/
 message Junction
 {
+    /*
+    The integer ID of the :obj:`Junction`
+    */
     required uint64 id                      = 1;
 
-    // List of ids for all connector LaneSegments contained within the
-    // Junction. Each LaneSegment must connect on either end to a LaneSegment
-    // not contained within the Junction, and each LaneSegment must be
-    // contained within a single RoadSegment containing only that LaneSegment
-    repeated uint64 lane_segments           = 2;    // LaneSegment
+    /*
+    List of :obj:`LaneSegment`s that connect to the :obj:`Junction`.
+    */
+    repeated uint64 lane_segments           = 2;
 
-    // List of ids for all RoadSegments used as containers for the Junction LaneSegments
-    // in the above list. Each RoadSegment should contain only one LaneSegment, and
-    // must be connected on either end to RoadSegments contained within the predecessor_roads
-    // or successor_roads list below.
-    // These connecting RoadSegments ensure that our maps RoadSegment's for a connected path
-    // through the Junction, along routing and path-planning at the RoadSegment level if necessary
-    repeated uint64 road_segments           = 3;    // RoadSegment
+    /*
+    List of :obj:`RoadSegment`s that connect to the :obj:`Junction`.
+    */
+    repeated uint64 road_segments           = 3;
 
-    // Optional id of SignaledIntersection used to control this Junction (if present)
+    /*
+    Integer ID of the signaled intersection that controls this :obj:`Junction` if the :obj:`Junction` is a signaled
+    intersection
+    */
     optional uint64 signaled_intersection   = 6;
+
+    /*
+    Optional information about the :obj:`Junction`.
+    */
     optional string user_data               = 7;
 
-    // An optional list of edges that constitute the corners of the junction. Sorted in clockwise order.
+    /*
+    List of integer IDs of the :obj:`Edge` objects that define the corners of the :obj:`Junction`.
+    */
     repeated uint64 corners                 = 8;
 
-    // An optional list of crosswalk LaneSegments
+    /*
+    List of the integer IDs of the  :obj:`LaneSegment` objects that define the crosswalks on the :obj:`Junction`
+     */
     repeated uint64 crosswalk_lanes         = 9;
 
-    // An optional id that points to a signed intersection
+    /*
+    Integer ID of the signed intersection that controls this :obj:`Junction` if the :obj:`Junction` is a signed
+    intersection
+    */
     optional uint64 signed_intersection     = 10;
 }
 
+/*
+Markings that exist on the road to separate :obj:`LaneSegment`s
+ */
 message RoadMarking
 {
+    /*
+    All possible types of :obj:`RoadMarking`.
+    */
     enum Type
     {
         SOLID         = 0;
@@ -492,6 +839,9 @@ message RoadMarking
         NO_PAINT      = 7;
     }
 
+    /*
+    All possible colors that a :obj:`RoadMarking` can be.
+    */
     enum Color
     {
         WHITE  = 0;
@@ -501,34 +851,55 @@ message RoadMarking
         YELLOW = 4;
     }
 
-    // Unique ID for road marking
+    /*
+    The integer ID of the :obj:`RoadMarking`.
+    */
     required uint64 id              = 1;
 
-    // ID of Edge defining geometry of marking
+    /*
+    The integer ID of the :obj:`Edge` that defines the line on which the :obj:`RoadMarking` exists.
+    */
     required uint64 edge_id         = 2;
 
-    // Width of lane marking (in m)
+    /*
+    The width of the :obj:`RoadMarking` in meters.
+    */
     required float width            = 3;
 
-    // type of road marking
+    /*
+    The type of the :obj:`RoadMarking`.
+    */
     optional Type type              = 4;
 
-    // color of marking
+    /*
+    The color of the :obj:`RoadMarking`.
+    */
     optional Color color            = 5;
 
-    // length of the dashed line
+    /*
+    The length in meters of the dashes on the :obj:`RoadMarking` if the :obj:`RoadMarking` is dashed.
+    */
     optional float dash_length      = 7;
 
-    // space between dashes
+    /*
+    The length of the separation between dashes in meters on the :obj:`RoadMarking` if the :obj:`RoadMarking` is dashed.
+    */
     optional float dash_separation  = 8;
 
-    // Optional flag to denote a stopline. Defaults to false.
+    /*
+    Boolean flag to denote whether or not the :obj:`RoadMarking` is a stop line.
+    */
     optional bool is_stopline       = 9;
 }
 
+/*
+The state of a Traffic Light
+*/
 message SignalOnset
 {
-    // TODO: to follow convention, these values should be capitalized!
+    /*
+    All possible states of the signal.
+    */
     enum SignalState
     {
         red    = 0;
@@ -536,9 +907,11 @@ message SignalOnset
         green  = 2;
     }
 
+    /*
+    All possible logical states of the signal.
+    */
     enum LogicalState
     {
-        // We cannot have two enums with the same constant names
         inactive        = 0;
         red_solid       = 1;
         red_flashing    = 2;
@@ -548,50 +921,152 @@ message SignalOnset
         green_flashing  = 6;
     }
 
-    // The time in the phase cycle when this state activates
+    /*
+    The time in seconds until the :attr:`signal_state` activates.
+    */
     required double onset              = 1;
 
-    // The type of signal state
+    /*
+    The type of signal state.
+    */
     required SignalState signal_state  = 2;
 
-    // Controls different flashing states
+    /*
+    The logical state of the traffic signal.
+    */
     optional LogicalState logical_state = 3;
 }
 
+/*
+The phase of a :obj:`TrafficLightBulb`.
+*/
 message Phase
 {
+    /*
+    The integer ID of the phase.
+    */
     required uint64 id                     = 1;
+
+    /*
+    The signal state that is about to activate.
+    */
     repeated SignalOnset phase_timing      = 2;
-	repeated uint64 controlled_lanes       = 3;
+
+    /*
+    The integer IDs of the :obj:`LaneSegment` objects that are controlled by this :obj:`TrafficLightBulb`.
+    */
+    repeated uint64 controlled_lanes       = 3;
 }
 
+/*
+An intersection that is controlled by a signal.
+*/
 message SignaledIntersection
 {
-	required uint64 id                      = 1;
+    /*
+    The integer ID of the intersection.
+    */
+    required uint64 id                      = 1;
+
+    /*
+    The :obj:`Junction` that is controlled by the signaled intersection.
+    */
     required uint64 junction                = 2;
+
+    /*
+    The timings of phases in the intersection.
+    */
     repeated Phase phase_timings            = 3;
+
+    /*
+    The cycle time of the :attr:`phase_timings`.
+    */
     required double cycle_time              = 4;
 }
 
+/*
+An intersection that is controlled by a sign.
+*/
 message SignedIntersection
 {
+    /*
+    The integer ID of the intersection.
+    */
     required uint64 id                      = 1;
+
+    /*
+    The :obj:`Junction` that is controlled by the signaled intersection.
+    */
     required uint64 junction                = 2;
+
+    /*
+    The integer IDs of :obj:`LaneSegment` objects that are controlled by a stop sign.
+    */
     repeated uint64 stop_sign_lane_ids      = 3;
+
+    /*
+    The integer IDs of :obj:`LaneSegment` objects that are controlled by a yield sign.
+    */
     repeated uint64 yield_sign_lane_ids     = 4;
 }
 
+/*
+Wrapper message for a UMD map and all its constituent parts.
+*/
 message UniversalMap
 {
+    /*
+    Information about the UMD map.
+    */
     required    Info                    info                            = 1;
+
+    /*
+    All :obj:`RoadSegment` objects in the UMD map.
+    */
     map<uint64, RoadSegment>            road_segments                   = 2;
+
+    /*
+    All :obj:`LaneSegment` objects in the UMD map.
+    */
     map<uint64, LaneSegment>            lane_segments                   = 3;
+
+    /*
+    All :obj:`Area` objects in the UMD map.
+    */
     map<uint64, Area>                   areas                           = 4;
+
+    /*
+    All :obj:`Object` objects in the UMD map.
+    */
     map<uint64, Object>                 objects                         = 5;
+
+    /*
+    All :obj:`Edge` objects in the UMD map.
+    */
     map<uint64, Edge>                   edges                           = 6;
+
+    /*
+    All :obj:`Junction` objects in the UMD map.
+    */
     map<uint64, Junction>               junctions                       = 7;
+
+    /*
+    All :obj:`RoadMarking` objects in the UMD map.
+    */
     map<uint64, RoadMarking>            road_markings                   = 9;
+
+    /*
+    All :obj:`SignaledIntersection` objects in the UMD map.
+    */
     map<uint64, SignaledIntersection>   signaled_intersections          = 10;
+
+    /*
+    All :obj:`SignedIntersection` objects in the UMD map.
+    */
     map<uint64, SignedIntersection>     signed_intersections            = 12;
+
+    /*
+    The :obj:`ZoneGrid` objects of the UMD Map.
+     */
     optional    ZoneGrid                zone_grid                       = 11;
 }

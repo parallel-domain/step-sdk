@@ -28,6 +28,9 @@ message PythonEngineConfig
     // TODO: streams should explicitly track this information (PD-22096)
     repeated StreamDimensions input_dims = 7;
 	
+	// Input stream types
+	repeated DataType input_types = 8;
+	
 	// What sensor types to run the transform on
-	repeated SensorType sensor_types = 8;
+	repeated SensorType sensor_types = 9;
 };

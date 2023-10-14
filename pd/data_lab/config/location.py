@@ -3,9 +3,8 @@
 #
 # Use of this file is only permitted if you have entered into a
 # separate written license agreement with Parallel Domain, Inc.
-from typing import Optional
-
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass

@@ -13,9 +13,9 @@ from typing import Optional
 
 import pd.internal.umd.UMD_pb2 as schema
 from pd.core.errors import PdError
-from pd.management import LevelpakVersion, Levelpak, fetch_level_umd
-from pd.management.utils import is_uuid
 from pd.internal.proto.umd.generated.wrapper.UMD_pb2 import UniversalMap
+from pd.management import Levelpak, LevelpakVersion, fetch_level_umd
+from pd.management.utils import is_uuid
 
 
 def load_map_from_file(path: Path) -> UniversalMap:
@@ -29,7 +29,6 @@ def load_map_from_file(path: Path) -> UniversalMap:
         UniversalMap object
     """
     return UniversalMap(proto=load_umd_map_from_file(path=path))
-
 
 
 def load_map(name: str, version: Optional[str] = None) -> UniversalMap:
@@ -51,7 +50,6 @@ def load_map(name: str, version: Optional[str] = None) -> UniversalMap:
     return UniversalMap(proto=load_umd_map(name=name, version=version))
 
 
-
 def load_umd_map_from_file(path: Path) -> schema.UniversalMap:
     """
     Load UMD map as a protobuf object
@@ -62,11 +60,10 @@ def load_umd_map_from_file(path: Path) -> schema.UniversalMap:
     Returns:
         Map protobuf object
     """
-    with path.open('rb') as umd_file:
+    with path.open("rb") as umd_file:
         umd_map = schema.UniversalMap()
         umd_map.ParseFromString(umd_file.read())
     return umd_map
-
 
 
 def load_umd_map(name: str, version: Optional[str] = None) -> schema.UniversalMap:
@@ -86,20 +83,21 @@ def load_umd_map(name: str, version: Optional[str] = None) -> schema.UniversalMa
         Map protobuf object
     """
     import pd.internal.umd.maps as maps_package
+
     maps_package_path = Path(maps_package.__file__).resolve().parent
 
     # First try internal maps directory
     # These are the Umds for the test maps built into IG
     # These maps are versionless, so only try this if no version is provided
     if not version:
-        umd_path = maps_package_path / f'{name}.umd'
+        umd_path = maps_package_path / f"{name}.umd"
         if umd_path.is_file():
             return load_umd_map_from_file(umd_path)
 
     # Next, see if the Umd already exists locally
     # We can only do this if a version is provided
     if version:
-        umd_path = maps_package_path / 'downloaded' / f'{name}' / f'{version}' / f'{name}.umd'
+        umd_path = maps_package_path / "downloaded" / f"{name}" / f"{version}" / f"{name}.umd"
         if umd_path.is_file():
             return load_umd_map_from_file(umd_path)
 
@@ -114,20 +112,21 @@ def load_umd_map(name: str, version: Optional[str] = None) -> schema.UniversalMa
     if not is_uuid(version):
         level_versions = LevelpakVersion.list()
         try:
-            level_internal_version = next(lv.internal_version for lv in level_versions
-                                        if lv.levelpak == name and lv.version == version)
+            level_internal_version = next(
+                lv.internal_version for lv in level_versions if lv.levelpak == name and lv.version == version
+            )
         except StopIteration:
             raise PdError(
                 f"Failed to fetch Umd for level '{name}' with version '{version}'. "
-                f"No such level and version combination exists."
+                "No such level and version combination exists."
             )
     else:
         level_internal_version = version
-    umd_path = maps_package_path / 'downloaded' / f'{name}' / f'{version}' / f'{name}.umd'
+    umd_path = maps_package_path / "downloaded" / f"{name}" / f"{version}" / f"{name}.umd"
     if not umd_path.is_file():
         umd_content = fetch_level_umd(level_internal_version)
         umd_path.parent.mkdir(parents=True, exist_ok=True)
-        with umd_path.open('wb') as umd_file:
+        with umd_path.open("wb") as umd_file:
             umd_file.write(umd_content)
     return load_umd_map_from_file(umd_path)
 

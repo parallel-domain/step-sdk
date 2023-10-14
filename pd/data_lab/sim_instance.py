@@ -6,47 +6,100 @@
 
 import abc
 import logging
-import random
-from abc import abstractmethod
-from pathlib import Path
-from typing import Optional, Tuple, Generator, Union, List
+from typing import Generator, List, Optional, Tuple, Type, Union
 
 from pd.core import PdError
-from pd.data_lab.config.build_sim_state import BuildSimState
 from pd.data_lab.config.location import Location
-from pd.data_lab.constants import TIME_OF_DAY_MAP
-from pd.data_lab.context import get_datalab_context
+from pd.data_lab.context import validate_instance_address
 from pd.data_lab.generators.custom_generator import CustomAtomicGenerator
-from pd.data_lab.scenario import Scenario, DiscreteScenario, SimulatedScenario, SampledScenario
+from pd.data_lab.scenario import DiscreteScenario, Lighting, SampledScenario, SimulatedScenario
 from pd.data_lab.sim_state import SimState
-from pd.data_lab.state_callback import StateCallback
-from pd.management import Ig
+from pd.data_lab.state_callback import StateCallback, TSimState
+from pd.internal.assets.asset_registry import DataLightingSublevels
 from pd.session import SimSession
-from pd.state import State, bytes_to_state, ModelAgent, VehicleAgent
+from pd.state import ModelAgent, State, VehicleAgent
 
 logger = logging.getLogger(__name__)
 
 
 class SimulationStateProvider:
-    @abc.abstractmethod
-    def next_frame(self, sim_state: SimState) -> bool:
-        pass
+    def __init__(self):
+        self._sim_state: Optional[SimState] = None
+        self._location = None
+        self._lighting = None
+        self._street_lights: bool = False
+        self._headlights: bool = False
+        self.start_skip_frames = None
+        self.sim_capture_rate = None
 
     @abc.abstractmethod
-    def setup(self, discrete_scenario: DiscreteScenario, sim_state: SimState):
+    def next_frame(self) -> bool:
         pass
 
-    @abc.abstractmethod
-    def _init_sim_state(self, scenario: DiscreteScenario, sim_state: SimState):
-        pass
+    def configure(self, discrete_scenario: DiscreteScenario):
+        self.start_skip_frames = discrete_scenario.start_skip_frames
+        self.sim_capture_rate = discrete_scenario.sim_capture_rate
 
-    @abc.abstractmethod
-    def __enter__(self):
-        pass
+    def setup(self, unique_scene_name: str, location: Location, lighting: Lighting, sim_state_type: Type[TSimState]):
+        self._sim_state = sim_state_type.from_blank_state()
+        self._location = location
 
-    @abc.abstractmethod
-    def __exit__(self):
-        pass
+        lighting_levels = DataLightingSublevels.select().where(DataLightingSublevels.name == lighting)
+        if len(lighting_levels) == 0:
+            raise PdError(
+                f"Lighting level {lighting} not found in database. Please check your spelling and make sure it exists"
+                " in `DataLightingSublevels` table."
+            )
+        self._lighting = lighting
+        self._street_lights = bool(lighting_levels[0].street_lights)
+        self._headlights = bool(lighting_levels[0].street_lights)
+        self.start_skip_frames = None
+        self.sim_capture_rate = None
+
+    def cleanup(self):
+        self._sim_state = None
+        self.start_skip_frames = None
+        self.sim_capture_rate = None
+        self._lighting = None
+        self._street_lights = False
+        self._headlights = False
+
+    def _sim_state_generator(self) -> Generator[SimState, None, None]:
+        first_frame = True
+        while True:
+            if first_frame:
+                # on beginning we need to run start_skip_frames plus one frame we want to capture
+                sim_capture_rate = self.start_skip_frames + 1
+            else:
+                sim_capture_rate = max(1, self.sim_capture_rate)
+
+            for i in range(sim_capture_rate):
+                # we already have the first state from sim instance setup, but have not rendered it yet
+                if first_frame:
+                    has_state = True
+                    first_frame = False
+                else:
+                    # this updates the current simulation state in our sim state
+                    has_state = self.next_frame()
+
+                if has_state is False:
+                    # if the sim instance has no more state we signal the end of the scene by returning None
+                    # this is the case when loading states from disk or if we have defined a max number of frames
+                    # in the simulation config
+                    return
+
+                # Flags to the renderer if we want to access this frame
+                # e.g. preview the image or save to disk
+                # Since we only capture the last frame of #sim_capture_rate we check for the last index
+                capture = i == sim_capture_rate - 1
+                self._sim_state.current_state.capture = capture
+                yield self._sim_state
+
+    def sim_state_generator(self, state_callbacks: List[StateCallback]) -> Generator[SimState, None, None]:
+        for state in self._sim_state_generator():
+            for cb in state_callbacks:
+                cb(state)
+            yield state
 
 
 class FromDiskSimulation(SimulationStateProvider):
@@ -56,35 +109,36 @@ class FromDiskSimulation(SimulationStateProvider):
     """
 
     def __init__(self, map_file: Optional[str] = None):
+        super().__init__()
         self._map_file = map_file
         self._state_gen = None
         self._sim_time = 0.0
-        self._state_callbacks: Optional[List[StateCallback]] = list()
 
-    def next_frame(self, sim_state: SimState) -> bool:
+    def next_frame(self) -> bool:
         state: Union[bool, State] = next(self._state_gen, False)
+
         if state is False:
             return state
         else:
             time_delta = state.simulation_time_sec - self._sim_time
             self._sim_time = state.simulation_time_sec
 
-            sim_state.set_next_state_message(state=state, time_delta=time_delta)
-
-        for cb in self._state_callbacks:
-            cb(sim_state)
+            self._sim_state.set_next_state_message(state=state, time_delta=time_delta)
         return True
 
-    @staticmethod
-    def state_generator(folder: Path) -> Generator[State, None, None]:
-        if folder is not None:
-            sorted_state_files = sorted([i for i in folder.iterdir() if i.suffix == ".pd"], key=lambda k: int(k.stem))
-            for sim_state_file in sorted_state_files:
-                with sim_state_file.open("rb") as file:
-                    sim_state = bytes_to_state(file.read())
-                    yield sim_state
+    def setup(self, unique_scene_name: str, location: Location, lighting: Lighting, sim_state_type: Type[TSimState]):
+        super().setup(
+            unique_scene_name=unique_scene_name,
+            location=location,
+            lighting=lighting,
+            sim_state_type=sim_state_type,
+        )
+        self._state_gen = None
+        self._sim_time = 0.0
+        self._sim_state = sim_state_type.from_blank_state()
 
-    def setup(self, discrete_scenario: DiscreteScenario, sim_state: SimState):
+    def configure(self, discrete_scenario: DiscreteScenario):
+        super().configure(discrete_scenario=discrete_scenario)
         if not isinstance(discrete_scenario, SimulatedScenario):
             raise ValueError(
                 "FromDiskSimulation need a SimulatedScenario objects to setup the Simulation!"
@@ -92,185 +146,36 @@ class FromDiskSimulation(SimulationStateProvider):
                 "Maybe try using SimulationInstance for simulation."
             )
         folder = discrete_scenario.folder
-        self._state_callbacks = discrete_scenario.state_callbacks
         if folder is not None:
-            self._state_gen = self.state_generator(folder=folder)
-            self._init_sim_state(scenario=discrete_scenario, sim_state=sim_state)
+            self._state_gen = discrete_scenario.state_generator()
+
+            # This auxiliary state is to retrieve ego_agent and location
+            first_state = discrete_scenario.first_state
+            ego_agent = next(
+                iter(
+                    [a for a in first_state.agents if isinstance(a, (ModelAgent, VehicleAgent)) and len(a.sensors) > 0]
+                )
+            )
+            self._sim_state.set_ego_agent_id(ego_id=ego_agent.id)
+            self._sim_state.set_location(location=Location(name=first_state.world_info.location))
+            # To be consistent with SimulationInstance we take the first step in the setup phase
+            self.next_frame()
+
         else:
             raise ValueError("Scenario is not compatible with this sim provider")
 
-    def _init_sim_state(self, scenario: SimulatedScenario, sim_state: SimState):
-        # This auxiliary state is to retrieve ego_agent and location
-        first_state = next(self.state_generator(folder=scenario.folder))
-        ego_agent = next(
-            iter([a for a in first_state.agents if isinstance(a, (ModelAgent, VehicleAgent)) and len(a.sensors) > 0])
-        )
-        sim_state.set_ego_agent_id(ego_id=ego_agent.id)
-        sim_state.set_location(location=Location(name=first_state.world_info.location))
-        # To be consistent with AbstractSimulationInstance we take the first step in the setup phase
-        self.next_frame(sim_state=sim_state)
-
-    def __enter__(self):
+    def cleanup(self):
+        super().cleanup()
         self._state_gen = None
         self._sim_time = 0.0
-        self._state_callbacks = list()
-
-    def __exit__(self):
-        self._state_gen = None
-        self._sim_time = 0.0
-        self._state_callbacks = list()
 
 
-class AbstractSimulationInstance(SimulationStateProvider):
-    """
-    Base class for a simulation that creates states using a remote simulation instances
-    and/or local custom simulation agents. Will be configured from a Scenario object that contians
-    the configs for remote generators as well as references to custom simulation behaviours.
-    """
-
-    def __init__(self, verbose: bool = True, map_file: Optional[str] = None):
-        self._verbose = verbose
-        self._map_file = map_file
-        self._simulated_frames = 0
-        self._max_frames = None
-        self._sim_config: Optional[BuildSimState] = None
-        self._use_remote_simulation: Optional[bool] = None
-        self._custom_generators: Optional[List[CustomAtomicGenerator]] = None
-        self._state_callbacks: Optional[List[StateCallback]] = list()
-
-    def __enter__(self):
-        self._sim_config = None
-        self._use_remote_simulation = None
-        self._custom_generators = None
-        self._state_callbacks = list()
-        self._simulated_frames = 0
-        self._max_frames = None
-
-    def __exit__(self):
-        self._sim_config = None
-        self._use_remote_simulation = None
-        self._custom_generators = None
-        self._state_callbacks = list()
-        self._simulated_frames = 0
-        self._max_frames = None
-
-    def setup(self, discrete_scenario: DiscreteScenario, sim_state: SimState):
-        if not isinstance(discrete_scenario, SampledScenario):
-            raise ValueError(
-                "SimulationInstances needs a SampledScenario object to setup the Simulation!"
-                f"{type(discrete_scenario)} is not supported! "
-                "Maybe try using FromDiskSimulation for simulation."
-            )
-        self._sim_config = discrete_scenario.sim_state
-        self._state_callbacks = discrete_scenario.state_callbacks
-
-        self._simulated_frames = 0
-        self._max_frames = (
-            (discrete_scenario.sim_state.scenario_gen.num_frames - 1)
-            * discrete_scenario.sim_state.scenario_gen.sim_capture_rate
-            + discrete_scenario.sim_state.scenario_gen.start_skip_frames
-            + 1
-        )
-        self._init_sim_state(scenario=discrete_scenario, sim_state=sim_state)
-
-    def _setup_pd_generators(self, scenario: SampledScenario, sim_state: SimState):
-        self._use_remote_simulation = len(scenario.pd_generators) > 0
-        if self._use_remote_simulation:
-            sim_state_str = scenario.to_scenario_generation_json()
-            if self._verbose:
-                logger.info("Created sim_state json string:")
-                logger.info(sim_state_str)
-
-            location, ego_id = self.load_scenario_generation(scenario_gen=sim_state_str)
-            sim_state.set_ego_agent_id(ego_id=ego_id)
-            sim_state.set_location(location=location)
-
-    def _setup_custom_generators(self, scenario: SampledScenario, sim_state: SimState):
-        self._custom_generators = scenario.custom_generators
-        if len(self._custom_generators) > 0:
-            if not sim_state.is_initialized:
-                tod_category = scenario.environment.time_of_day.sample(random_seed=scenario.random_seed)
-                time_of_day = random.Random(scenario.random_seed).choice(TIME_OF_DAY_MAP[tod_category])
-                location = scenario.location
-
-                sim_state.set_location(location=location)
-                sim_state.set_time_of_day(time_of_day=time_of_day)
-                sim_state.current_state.world_info.rain_intensity = scenario.environment.rain.sample(
-                    random_seed=scenario.random_seed
-                )
-                sim_state.current_state.world_info.fog_intensity = scenario.environment.fog.sample(
-                    random_seed=scenario.random_seed
-                )
-                sim_state.current_state.world_info.wetness = scenario.environment.wetness.sample(
-                    random_seed=scenario.random_seed
-                )
-
-            for gen in self._custom_generators:
-                gen.on_new_scene(state=sim_state, random_seed=scenario.random_seed)
-
-            self._custom_generators.sort(key=lambda a: a.has_ego_agent, reverse=True)
-
-            for gen in self._custom_generators:
-                gen.set_initial_agent_positions(
-                    state=sim_state,
-                    random_seed=scenario.random_seed,
-                    raycast=self.session.raycast,
-                )
-
-    def _update_pd_generators(self, sim_state: SimState):
-        if self._use_remote_simulation:
-            state = self.query_sim_state()
-            sim_state.set_next_state_message(state=state, time_delta=self._sim_config.scenario_gen.sim_update_time)
-
-    def _update_custom_generators(self, sim_state: SimState):
-        if not self._use_remote_simulation:
-            sim_state.set_next_state_message_from_previous(time_delta=self._sim_config.scenario_gen.sim_update_time)
-        for gen in self._custom_generators:
-            gen.update_state(state=sim_state, raycast=self.session.raycast)
-
-    def _init_sim_state(self, scenario: SampledScenario, sim_state: SimState):
-        # Need to make sure that first state is set in the sim state for custom generators to access ego pose.
-        # sim state will be stored here and rendered in scenario generator loop.
-        self._setup_pd_generators(scenario=scenario, sim_state=sim_state)
-        self._update_pd_generators(sim_state=sim_state)
-        self._setup_custom_generators(scenario=scenario, sim_state=sim_state)
-        self._update_custom_generators(sim_state=sim_state)
-        for cb in self._state_callbacks:
-            cb(sim_state)
-        self._simulated_frames += 1
-
-    def next_frame(self, sim_state: SimState) -> bool:
-        if self._max_frames is not None and self._simulated_frames >= self._max_frames:
-            return False
-
-        self._update_pd_generators(sim_state=sim_state)
-        self._update_custom_generators(sim_state=sim_state)
-        self._simulated_frames += 1
-        for cb in self._state_callbacks:
-            cb(sim_state)
-        return True
-
-    @property
-    @abstractmethod
-    def session(self) -> SimSession:
-        ...
-
-    def load_scenario_generation(self, scenario_gen: str) -> Tuple[Location, int]:
-        loc_name, ego_id = self.session.load_scenario_generation(scenario_gen=scenario_gen)
-        return Location(name=loc_name), ego_id
-
-    def query_sim_state(self) -> State:
-        # state_data = self.session.query_state_data()
-        # sim_state = bytes_to_state(state_data)
-        sim_state = self.session.query_state_data()
-        return sim_state
-
-
-class SimulationInstance(AbstractSimulationInstance):
+class SimulationInstance(SimulationStateProvider):
     def __init__(
         self,
         name: Optional[str] = None,
         address: Optional[str] = None,
+        map_file: Optional[str] = None,
     ):
         """
         Create a simulation instance for an existing remote Sim server
@@ -280,41 +185,15 @@ class SimulationInstance(AbstractSimulationInstance):
             address: Instance address. Used in local mode
         """
         super().__init__()
+        self._map_file = map_file
+        self._simulated_frames = 0
+        self._sim_update_time = None
+        self._max_frames = None
+        self._custom_generators: Optional[List[CustomAtomicGenerator]] = None
         self.name = name
         self.address = address
-        context = get_datalab_context()
-        self._client_cert_file = context.client_cert_file
-        self._temporal_session_reference = None
-
+        self._client_cert_file = None
         self._session: Optional[SimSession] = None
-
-        if name and address:
-            raise PdError("Only one of 'name' or 'address' can be specified for SimulationInstance.")
-        if not context.is_mode_local and not name:
-            raise PdError("A 'name' is required in SimulationInstance when running in cloud mode.")
-
-        if context.is_mode_local:
-            # Local mode, use local address if none is provided
-            self.address = self.address or "tcp://localhost:9002"
-        else:
-            # Cloud mode, resolve the address
-            try:
-                ig = next(ig for ig in Ig.list() if ig.name == name)
-            except StopIteration:
-                raise PdError(
-                    f"Couldn't find a simulation instance with the name '{name}'. "
-                    "Please verify that the name is correct."
-                )
-            if context.fail_on_version_mismatch:
-                if ig.ig_version != context.version:
-                    raise PdError(
-                        f"There's a mismatch between the selected Data Lab version ({context.version}) "
-                        f"and the version of the sim instance ({ig.ig_version}). "
-                        "To disable this check, pass fail_on_version_mismatch=False to setup_datalab()."
-                    )
-            self.address = ig.sim_url
-            if self.address is None:
-                raise PdError("Render Instance doesn't have a simulation server.")
 
     @property
     def session(self) -> SimSession:
@@ -322,38 +201,232 @@ class SimulationInstance(AbstractSimulationInstance):
 
     def create_session(self):
         if self._session is None:
+            logger.debug("Requesting sim session")
             self._session = SimSession(request_addr=self.address, client_cert_file=self._client_cert_file)
             self._session.transport.timeout_recv_ms = 600_000
             self._session.__enter__()
-            logger.info("Started Sim Session.")
+            logger.info("Created sim session")
         return self._session
 
     def end_session(self):
         if self._session is not None:
             self._session.__exit__()
             self._session = None
-            logger.info("Ended Sim Session!")
+            logger.info("Ended sim session!")
 
-    def __enter__(self) -> SimSession:
-        super().__enter__()
-        return self.create_session()
+    def setup(self, unique_scene_name: str, location: Location, lighting: Lighting, sim_state_type: Type[TSimState]):
+        self.address, self.name, self._client_cert_file = validate_instance_address(
+            instance_type="sim", address=self.address, name=self.name
+        )
 
-    def __exit__(self, *args):
-        super().__exit__()
+        super().setup(
+            unique_scene_name=unique_scene_name,
+            location=location,
+            lighting=lighting,
+            sim_state_type=sim_state_type,
+        )
+        self._custom_generators = None
+        self._simulated_frames = 0
+        self._max_frames = None
+        self._sim_update_time = None
+        self.create_session()
+
+        logger.debug("Start sim load location")
+        self.session.load_location(location.name, unique_scene_name)
+        logger.debug("Sim loaded location")
+        self._sim_state.set_location(location=location)
+
+    def configure(self, discrete_scenario: DiscreteScenario):
+        super().configure(discrete_scenario=discrete_scenario)
+        if not isinstance(discrete_scenario, SampledScenario):
+            raise ValueError(
+                "SimulationInstances needs a SampledScenario object to setup the Simulation!"
+                f"{type(discrete_scenario)} is not supported! "
+                "Maybe try using FromDiskSimulation for simulation."
+            )
+        self._sim_update_time = discrete_scenario.sim_state.scenario_gen.sim_update_time
+
+        self._max_frames = (
+            (discrete_scenario.sim_state.scenario_gen.num_frames - 1)
+            * discrete_scenario.sim_state.scenario_gen.sim_capture_rate
+            + discrete_scenario.sim_state.scenario_gen.start_skip_frames
+            + 1
+        )
+
+        # Need to make sure that first state is set in the sim state for custom generators to access ego pose.
+        # sim state will be stored here and rendered in scenario generator loop.
+        self._setup_pd_generators(scenario=discrete_scenario)
+        self._update_pd_generators()
+        self._setup_custom_generators(scenario=discrete_scenario)
+        self._update_custom_generators()
+        # self._simulated_frames += 1
+
+    def cleanup(self):
+        super().cleanup()
+        self._custom_generators = None
+        self._simulated_frames = 0
+        self._sim_update_time = None
+        self._max_frames = None
         self.end_session()
 
+    def _setup_pd_generators(self, scenario: SampledScenario):
+        if len(scenario.pd_generators) > 0:
+            sim_state_str = scenario.to_scenario_generation_json()
+            location, ego_id = self.load_scenario_generation(scenario_gen=sim_state_str)
+            logger.info("Server loaded scenario")
+            self._sim_state.set_ego_agent_id(ego_id=ego_id)
+        else:
+            logger.debug("Skip loading scenario because there are no atomic generators")
 
-class ManagedSimulationInstance(SimulationInstance):
-    pass
+    def _setup_custom_generators(self, scenario: SampledScenario):
+        self._custom_generators = scenario.custom_generators
+        if len(self._custom_generators) > 0:
+            for i, gen in enumerate(self._custom_generators):
+                logger.info(f"Creating custom generator {i}")
+                gen.on_new_scene(state=self._sim_state, random_seed=scenario.random_seed)
+
+            self._custom_generators.sort(key=lambda a: a.has_ego_agent, reverse=True)
+
+            for i, gen in enumerate(self._custom_generators):
+                logger.info(f"Setting initial agent positions for custom generator {i}")
+                gen.set_initial_agent_positions(
+                    state=self._sim_state,
+                    random_seed=scenario.random_seed,
+                    raycast=self.session.raycast,
+                )
+
+    def _update_pd_generators(self):
+        state = self.query_sim_state()
+
+        self._sim_state.set_next_state_message(state=state, time_delta=self._sim_update_time)
+
+    def _update_custom_generators(self):
+        for gen in self._custom_generators:
+            gen.update_state(state=self._sim_state, raycast=self.session.raycast)
+
+    def next_frame(self) -> bool:
+        if self._max_frames is not None and self._simulated_frames >= self._max_frames:
+            return False
+
+        self._update_pd_generators()
+        self._update_custom_generators()
+
+        self._sim_state.current_state.world_info.time_of_day = self._lighting
+        self._sim_state.current_state.world_info.street_lights = float(self._street_lights)
+        self._sim_state.current_state.world_info.enable_headlights = self._headlights
+
+        self._simulated_frames += 1
+
+        return True
+
+    def load_scenario_generation(self, scenario_gen: str) -> Tuple[Location, int]:
+        logger.info("Loading scenario generation")
+        logger.debug(scenario_gen)
+        loc_name, ego_id = self.session.load_scenario_generation(scenario_gen=scenario_gen)
+        return Location(name=loc_name), ego_id
+
+    def query_sim_state(self) -> State:
+        sim_state = self.session.query_state_data()
+        return sim_state
 
 
-class CustomOnlySimulationInstance(AbstractSimulationInstance):
-    @property
-    def session(self) -> SimSession:
-        raise RuntimeError("This instance does not support remote simulation")
+class CustomOnlySimulator(SimulationStateProvider):
+    def __init__(
+        self,
+    ):
+        """
+        Sim Instance for local only simulation.
+        """
+        super().__init__()
+        self._simulated_frames = 0
+        self._sim_update_time = None
+        self._max_frames = None
+        self._custom_generators: Optional[List[CustomAtomicGenerator]] = None
+        self._client_cert_file = None
+        self._session: Optional[SimSession] = None
 
-    def _setup_pd_generators(self, scenario: Scenario, sim_state: SimState):
-        pass
+    def setup(self, unique_scene_name: str, location: Location, lighting: Lighting, sim_state_type: Type[TSimState]):
+        super().setup(
+            unique_scene_name=unique_scene_name,
+            location=location,
+            lighting=lighting,
+            sim_state_type=sim_state_type,
+        )
+        self._custom_generators = None
+        self._simulated_frames = 0
+        self._max_frames = None
+        self._sim_update_time = None
 
-    def _update_pd_generators(self, sim_state: SimState):
-        pass
+    def configure(self, discrete_scenario: DiscreteScenario):
+        super().configure(discrete_scenario=discrete_scenario)
+        if not isinstance(discrete_scenario, SampledScenario):
+            raise ValueError(
+                "SimulationInstances needs a SampledScenario object to setup the Simulation!"
+                f"{type(discrete_scenario)} is not supported! "
+                "Maybe try using FromDiskSimulation for simulation."
+            )
+        self._sim_update_time = discrete_scenario.sim_state.scenario_gen.sim_update_time
+
+        self._max_frames = (
+            (discrete_scenario.sim_state.scenario_gen.num_frames - 1)
+            * discrete_scenario.sim_state.scenario_gen.sim_capture_rate
+            + discrete_scenario.sim_state.scenario_gen.start_skip_frames
+            + 1
+        )
+
+        # Need to make sure that first state is set in the sim state for custom generators to access ego pose.
+        # sim state will be stored here and rendered in scenario generator loop.
+        self._setup_custom_generators(scenario=discrete_scenario)
+        for _ in range(discrete_scenario.sim_state.scenario_gen.sim_settle_frames):
+            self._update_custom_generators()
+
+    def cleanup(self):
+        super().cleanup()
+        self._custom_generators = None
+        self._simulated_frames = 0
+        self._sim_update_time = None
+        self._max_frames = None
+
+    def _setup_custom_generators(self, scenario: SampledScenario):
+        self._custom_generators = scenario.custom_generators
+        if len(self._custom_generators) > 0:
+            if not self._sim_state.is_initialized:
+                self._sim_state.set_location(location=self._location)
+                self._sim_state.current_state.world_info.rain_intensity = scenario.environment.rain.sample(
+                    random_seed=scenario.random_seed
+                )
+                self._sim_state.current_state.world_info.fog_intensity = scenario.environment.fog.sample(
+                    random_seed=scenario.random_seed
+                )
+                self._sim_state.current_state.world_info.wetness = scenario.environment.wetness.sample(
+                    random_seed=scenario.random_seed
+                )
+
+            for gen in self._custom_generators:
+                gen.on_new_scene(state=self._sim_state, random_seed=scenario.random_seed)
+
+            self._custom_generators.sort(key=lambda a: a.has_ego_agent, reverse=True)
+
+            for gen in self._custom_generators:
+                gen.set_initial_agent_positions(
+                    state=self._sim_state,
+                    random_seed=scenario.random_seed,
+                )
+
+    def _update_custom_generators(self):
+        self._sim_state.set_next_state_message_from_previous(time_delta=self._sim_update_time)
+        for gen in self._custom_generators:
+            gen.update_state(state=self._sim_state, raycast=None)
+
+    def next_frame(self) -> bool:
+        if self._max_frames is not None and self._simulated_frames >= self._max_frames:
+            return False
+        self._update_custom_generators()
+
+        self._sim_state.current_state.world_info.time_of_day = self._lighting
+        self._sim_state.current_state.world_info.street_lights = float(self._street_lights)
+        self._sim_state.current_state.world_info.enable_headlights = self._headlights
+
+        self._simulated_frames += 1
+
+        return True

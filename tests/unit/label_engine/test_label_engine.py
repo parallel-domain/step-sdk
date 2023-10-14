@@ -62,13 +62,16 @@ class TestLabelData:
             timestamp="001",
             label="test_annotation",
             sensor_id_and_name=(123, "testsensor"),
-            data=annotation_data.encode()
+            data=annotation_data.encode(),
         )
         test_annotation = label_data.data_as_annotation
-        assert(len(test_annotation.geometry.primitives) == 1)
+        assert len(test_annotation.geometry.primitives) == 1
         primitive = test_annotation.geometry.primitives[0]
-        from pd.internal.proto.label_engine.generated.python.bounding_box_2d_pb2 import VisibilitySampleMetadata, \
-            VisibilitySampleType
+        from pd.internal.proto.label_engine.generated.python.bounding_box_2d_pb2 import (
+            VisibilitySampleMetadata,
+            VisibilitySampleType,
+        )
+
         visibility_sample_metadata = VisibilitySampleMetadata()
         primitive.metadata.Unpack(visibility_sample_metadata)
-        assert(visibility_sample_metadata.type == VisibilitySampleType.eInstanceSample)
+        assert visibility_sample_metadata.type == VisibilitySampleType.eInstanceSample

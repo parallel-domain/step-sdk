@@ -8,13 +8,13 @@
 Utilities related to recording a session
 """
 
-from enum import IntEnum
-from dataclasses import dataclass
-from typing import Optional
 import logging
+from dataclasses import dataclass
+from enum import IntEnum
+from typing import Optional
 
-from google.protobuf.internal.encoder import _VarintBytes
 from google.protobuf.internal.decoder import _DecodeVarint32
+from google.protobuf.internal.encoder import _VarintBytes
 
 from pd.internal.log.log_pb2 import Action
 from pd.session.transport import IZmqTransportListener
@@ -33,6 +33,7 @@ class ZmqRecord:
     """
     Represents a single message in a Recording
     """
+
     timestamp: float
     socket_type: ZmqSocketType
     socket_id: int
@@ -45,7 +46,7 @@ class ZmqRecordingWriter:
         self.path = path
 
     def __enter__(self):
-        self.file = open(self.path, 'wb')
+        self.file = open(self.path, "wb")
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -83,7 +84,7 @@ class ZmqRecordingWriter:
 
 class ZmqRecordingReader:
     def __init__(self, path: str):
-        self.file = open(path, 'rb')
+        self.file = open(path, "rb")
         self.size_read = 0
 
     def __iter__(self):
@@ -113,9 +114,7 @@ class ZmqRecordingReader:
         self.size_read += len(data)
         if len(data) < size:
             logger = logging.getLogger(__name__)
-            logger.warning(
-                f"Failed to read record - {size} bytes needed but only {len(data)} bytes read"
-            )
+            logger.warning(f"Failed to read record - {size} bytes needed but only {len(data)} bytes read")
             raise StopIteration
         action = Action()
         action.ParseFromString(data)
@@ -128,7 +127,7 @@ class ZmqRecordingReader:
             socket_type=ZmqSocketType(action.socket_info.type),
             socket_id=action.socket_info.id,
             address=address,
-            message=message
+            message=message,
         )
         return record
 
@@ -137,6 +136,7 @@ class RecordingZmqTransportListener(IZmqTransportListener):
     """
     Listens to ZmqTransport events and records them to a log.
     """
+
     def __init__(self, path: str):
         self.writer = ZmqRecordingWriter(path=path)
         self.writer.__enter__()
@@ -145,42 +145,22 @@ class RecordingZmqTransportListener(IZmqTransportListener):
         self.writer.__exit__(None, None, None)
 
     def on_connect_request(self, timestamp: float, request_addr: str):
-        self.writer.write_connect(
-            timestamp=timestamp,
-            id_='request',
-            type_=ZmqSocketType.REQ,
-            address=request_addr
-        )
+        self.writer.write_connect(timestamp=timestamp, id_="request", type_=ZmqSocketType.REQ, address=request_addr)
 
     def on_disconnect_request(self, timestamp: float):
         pass
 
     def on_connect_state(self, timestamp: float, state_addr: str):
-        self.writer.write_bind(
-            timestamp=timestamp,
-            id_='state_publisher',
-            type_=ZmqSocketType.PUB,
-            address=state_addr
-        )
+        self.writer.write_bind(timestamp=timestamp, id_="state_publisher", type_=ZmqSocketType.PUB, address=state_addr)
 
     def on_disconnect_state(self, timestamp: float):
         pass
 
     def on_send_request_msg(self, timestamp: float, data: bytes):
-        self.writer.write_message(
-            timestamp=timestamp,
-            id_='request',
-            type_=ZmqSocketType.REQ,
-            data=data
-        )
+        self.writer.write_message(timestamp=timestamp, id_="request", type_=ZmqSocketType.REQ, data=data)
 
     def on_send_state_msg(self, timestamp: float, data: bytes):
-        self.writer.write_message(
-            timestamp=timestamp,
-            id_='state_publisher',
-            type_=ZmqSocketType.PUB,
-            data=data
-        )
+        self.writer.write_message(timestamp=timestamp, id_="state_publisher", type_=ZmqSocketType.PUB, data=data)
 
     def on_receive_state_msg(self, timestamp: float, data: bytes):
         pass

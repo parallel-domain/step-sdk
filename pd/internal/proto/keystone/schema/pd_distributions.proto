@@ -3,116 +3,209 @@ syntax = "proto3";
 package keystone;
 
 /*
-Description:
-    Normal distribution, is a probability distribution that is symmetric about the mean.
-    Data near the mean is more frequent in occurrence than data far from the mean.
+Normal distribution.
 */
 message NormalDistribution
 {
+    /*
+    Mean of the normal distribution.
+    */
     float mean = 1;
+    
+    /*
+    Variance of the normal distribution
+    */
     float variance = 2;
 }
 
 /*
-Description:
-    Normal distribution truncated within the interval specified by min and max values.
+Normal distribution that is truncated to only contain values within the interval specified by min and max values.
 */
 message TrucatedNormalDistribution
 {
+    /*
+    Mean of the normal distribution.
+    */
     float mean = 1;
+
+    /*
+    Variance of the normal distribution.
+    */
     float variance = 2;
+
+    /*
+    Minimum value of the truncated normal distribution.
+    */
     float min = 3;
+    
+    /*
+    Maximum value of the truncated normal distribution.
+    */
     float max = 4;
 }
 /*
-Description:
-    A uniform distribution, also known as a rectangular distribution, 
-    is a distribution that has constant probability.
+A uniform distribution with constant probability.
 */
 message ContinousUniformDistribution
 {
+    /*
+    Minimum value of the continuous normal distribution.
+    */
     float min = 1;
+
+    /*
+    Maximum value of the continuous normal distribution.
+    */
     float max = 2;
 }
 /*
-Description:
-    A discrete value range which groups continuos floating-point values 
-    into a single binary feature in the distribution.
+A discrete value with an associated probability.
 */
 message Bucket {
+
+    /*
+    The buckets' identifier
+    */
     oneof value {
+
+        /*
+        String name of the bucket.
+        */
         string string_value = 1;
+
+        /*
+        Float value of the bucket.
+        */
         float float_value = 2;
+
+        /*
+        Integer value of the bucket.
+        */
         int32 int32_value = 3;
     }
+
+    /*
+    The probability associated with the bucket.
+    */
     float probability = 4;
 }
 
 /*
-Description:
-    A uniform distribution, where the probability of outcomes is equally likely
-    and with finite values.
+A discrete distribution in which each bucket has a uniform probability.
 */
 message DiscreteUniformDistribution
 {
+    /*
+    The buckets which make up the discrete distribution.
+    */
     repeated Bucket buckets = 1;
 }
 
 /*
-Description:
-    This is a discrete probability distribution that describes the results of
-    a random variable that can take on one of K possible categories,
-    with the probability of each category (bucket) separately specified.
+Discrete probability distribution that describes the results of
+a random variable that can take on one of K possible categories,
+with the probability of each category (bucket) separately specified.
 */
 message CategoricalDistribution
 {
+    /*
+    The buckets which make up the distribution.
+    */
     repeated Bucket buckets = 1;
 }
 
 /*
-Description:
-    A single sample distribution.
+A single sample distribution.
 */
 message ConstantDistribution
 {
+    /*
+    The value of the distribution.
+    */
     oneof value {
+        /*
+        The string value of the distribution.
+        */
         string string_value = 1;
+
+        /*
+        The float value of the distribution.
+        */
         float float_value = 2;
+
+        /*
+        The integer value of the distribution.
+        */
         int32 int32_value = 3;
     }
 }
 /*
-Description:
-    A distribution represented by categories and their corresponding probabilities.
-    Probability weights need to sum up to 1.
+A distribution represented by categories and their corresponding probabilities.
+All probability weights in the distribution should sum up to 1.
 */
 message EnumDistribution
 {
+    /*
+    The name and corresponding probability of each category.
+    */
     map<string, float> probabilities = 1;
 }
 
 /*
-Description:
-    Specifies type of distribution to use.
+A wrapper which contains a single distribution.
 */
 message Distribution
 {
+    /*
+    The distribution that is contained within the :obj:`Distribution` object.
+    */
     oneof distribution {
+        
+        /*
+        A normal distribution.
+        */
         NormalDistribution normal = 1;
+
+        /*
+        A truncated normal distribution.
+        */
         TrucatedNormalDistribution truncated_normal = 2;
+
+        /*
+        A continuous uniform distribution.
+        */
         ContinousUniformDistribution uniform_continous = 3;
+
+        /*
+        A constant distribution.
+        */
         ConstantDistribution constant = 4;
+
+        /*
+        A discrete uniform distribution.
+        */
         DiscreteUniformDistribution uniform_discrete = 5;
+
+        /*
+        A categorical distribution.
+        */
         CategoricalDistribution categorical = 6;
     }
 }
 
 /*
-Description:
-    Associates distribution weight of the associated vehicle category.
+The spawn probability weight of a particular vehicle category.
 */
 message VehicleCategoryWeight
 {
+    /*
+    The spawn weight of a particular vehicle category.
+    */
     float weight = 2;
+
+    /*
+    A list containing the name of a vehicle model within the vehicle category, and the spawn probability weight
+    of that vehicle mode
+    */
     map<string, float> model_weights = 3;
 }

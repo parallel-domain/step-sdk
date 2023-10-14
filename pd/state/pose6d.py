@@ -39,14 +39,12 @@ class Pose6D:
         * Z-axis points up through the roof of the vehicle or agent. It is also the Yaw axis.
         * See `this article <https://en.wikipedia.org/wiki/Aircraft_principal_axes>`_ for reference.
     """
+
     rotation: Quaternion = field(default_factory=Quaternion)
     translation: Tuple[float, float, float] = field(default_factory=lambda: (0, 0, 0))
 
     @classmethod
-    def from_translation(
-            cls,
-            x_metres: float, y_metres: float, z_metres: float
-    ) -> "Pose6D":
+    def from_translation(cls, x_metres: float, y_metres: float, z_metres: float) -> "Pose6D":
         """
         Constructs a :class:`Pose6D` object from translation only
 
@@ -63,9 +61,7 @@ class Pose6D:
 
     @classmethod
     def from_direction(
-            cls,
-            x_metres: float, y_metres: float, z_metres: float,
-            direction: Tuple[float, float, float]
+        cls, x_metres: float, y_metres: float, z_metres: float, direction: Tuple[float, float, float]
     ) -> "Pose6D":
         """
         Constructs a :class:`Pose6D` object from translation and direction vector
@@ -89,19 +85,20 @@ class Pose6D:
             raise ValueError("Direction vector must be non-zero")
         translation = (x_metres, y_metres, z_metres)
         dir_xy_norm = np.array(direction[:2]) / np.linalg.norm(direction[:2])
-        rotation_xy = Quaternion(
-            axis=(0.0, 0.0, 1.0),
-            radians=-np.sign(dir_xy_norm[0])*np.arccos(dir_xy_norm[1])
-        )
+        rotation_xy = Quaternion(axis=(0.0, 0.0, 1.0), radians=-np.sign(dir_xy_norm[0]) * np.arccos(dir_xy_norm[1]))
         theta = np.arcsin(direction[2] / np.linalg.norm(direction))
         rotation_elevation = Quaternion(axis=(dir_xy_norm[1], -dir_xy_norm[0], 0), radians=theta)
-        return cls(translation=translation, rotation=rotation_elevation*rotation_xy)
+        return cls(translation=translation, rotation=rotation_elevation * rotation_xy)
 
     @classmethod
     def from_euler_angles(
-            cls,
-            x_metres: float, y_metres: float, z_metres: float,
-            alpha_radians: float, beta_radians: float, gamma_radians: float
+        cls,
+        x_metres: float,
+        y_metres: float,
+        z_metres: float,
+        alpha_radians: float,
+        beta_radians: float,
+        gamma_radians: float,
     ) -> "Pose6D":
         """
         Constructs a :class:`Pose6D` object from translation and rotation vector
@@ -121,17 +118,23 @@ class Pose6D:
         Returns:
             Pose representation as :class:`Pose6D`
         """
-        rotation = Quaternion(axis=(0.0, 0.0, 1.0), radians=gamma_radians) * \
-            Quaternion(axis=(0.0, 1.0, 0.0), radians=beta_radians) * \
-            Quaternion(axis=(1.0, 0.0, 0.0), radians=alpha_radians)
+        rotation = (
+            Quaternion(axis=(0.0, 0.0, 1.0), radians=gamma_radians)
+            * Quaternion(axis=(0.0, 1.0, 0.0), radians=beta_radians)
+            * Quaternion(axis=(1.0, 0.0, 0.0), radians=alpha_radians)
+        )
         translation = (x_metres, y_metres, z_metres)
         return cls(rotation=rotation, translation=translation)
 
     @classmethod
     def from_rpy_angles(
-            cls,
-            x_metres: float, y_metres: float, z_metres: float,
-            roll_degrees: float, pitch_degrees: float, yaw_degrees: float,
+        cls,
+        x_metres: float,
+        y_metres: float,
+        z_metres: float,
+        roll_degrees: float,
+        pitch_degrees: float,
+        yaw_degrees: float,
     ) -> "Pose6D":
         """
         Constructs a :class:`Pose6D` object from translation and rotation vector
@@ -149,9 +152,11 @@ class Pose6D:
         Returns:
             Pose representation as :class:`Pose6D`
         """
-        rotation = Quaternion(axis=(0.0, 0.0, 1.0), degrees=yaw_degrees) * \
-            Quaternion(axis=(1.0, 0.0, 0.0), degrees=pitch_degrees) * \
-            Quaternion(axis=(0.0, 1.0, 0.0), degrees=roll_degrees)
+        rotation = (
+            Quaternion(axis=(0.0, 0.0, 1.0), degrees=yaw_degrees)
+            * Quaternion(axis=(1.0, 0.0, 0.0), degrees=pitch_degrees)
+            * Quaternion(axis=(0.0, 1.0, 0.0), degrees=roll_degrees)
+        )
 
         translation = (x_metres, y_metres, z_metres)
         return cls(rotation=rotation, translation=translation)

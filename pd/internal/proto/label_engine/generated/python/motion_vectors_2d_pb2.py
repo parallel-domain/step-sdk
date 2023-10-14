@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 from . import options_pb2 as options__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17motion_vectors_2d.proto\x12\x07pd.data\x1a\roptions.proto\"d\n\x1dGenerateMotionVectors2DConfig\x12\x1d\n\x0boutput_path\x18\x01 \x01(\tB\x08\x80\xb5\x18\x01\x88\xb5\x18\x01\x12\x16\n\tbackwards\x18\x02 \x01(\x08H\x00\x88\x01\x01\x42\x0c\n\n_backwardsb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17motion_vectors_2d.proto\x12\x07pd.data\x1a\roptions.proto\"\x8b\x01\n\x1dGenerateMotionVectors2DConfig\x12\"\n\x1a\x65nable_child_mesh_rotation\x18\x01 \x01(\x08\x12\'\n\x04mode\x18\x02 \x01(\x0e\x32\x19.pd.data.MotionVectorMode\x12\x1d\n\x0boutput_path\x18\x03 \x01(\tB\x08\x80\xb5\x18\x01\x88\xb5\x18\x01\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'motion_vectors_2d_pb2', globals())
@@ -23,6 +23,6 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._options = None
   _GENERATEMOTIONVECTORS2DCONFIG.fields_by_name['output_path']._options = None
   _GENERATEMOTIONVECTORS2DCONFIG.fields_by_name['output_path']._serialized_options = b'\200\265\030\001\210\265\030\001'
-  _GENERATEMOTIONVECTORS2DCONFIG._serialized_start=51
-  _GENERATEMOTIONVECTORS2DCONFIG._serialized_end=151
+  _GENERATEMOTIONVECTORS2DCONFIG._serialized_start=52
+  _GENERATEMOTIONVECTORS2DCONFIG._serialized_end=191
 # @@protoc_insertion_point(module_scope)

@@ -22,6 +22,7 @@ import "semantic_segmentation_3d.proto";
 import "instance_segmentation_3d.proto";
 import "motion_vectors_3d.proto";
 import "projection.proto";
+import "lidar_postprocess.proto";
 
 message TransformPipelineNode
 {
@@ -43,4 +44,5 @@ message TransformPipeline
 message DataTypeRecord
 {
     DataType type = 1;
+    string ontology = 2;
 }

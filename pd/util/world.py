@@ -5,9 +5,8 @@
 # separate written license agreement with Parallel Domain, Inc.
 
 from pd.session import StepSession
+from pd.state import Pose6D, SensorAgent, SensorBuffer, State, rand_agent_id
 from pd.state.sensor import CameraSensor, DistortionParams
-from pd.state import Pose6D, SensorAgent, rand_agent_id, State
-from pd.state import SensorBuffer
 
 
 def get_altitude_estimate(x: float, y: float, state: State, session: StepSession, z_initial: float = 100.0) -> float:

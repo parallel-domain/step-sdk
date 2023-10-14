@@ -4,13 +4,13 @@
 # Use of this file is only permitted if you have entered into a
 # separate written license agreement with Parallel Domain, Inc.
 
-import sys
-import os
-from pathlib import Path
-import logging
-import shutil
 import json
+import logging
 import math
+import os
+import shutil
+import sys
+from pathlib import Path
 
 import click
 import cv2
@@ -18,7 +18,7 @@ from matplotlib import pyplot as plt
 
 import pd.session
 import pd.state
-from pd.util import common_step_options, StepScriptContext
+from pd.util import StepScriptContext, common_step_options
 
 _DEFAULT_SENSOR_RIG = """
 {
@@ -74,21 +74,23 @@ def save_image(base_path: Path, agent_id: int, sensor_name: str, frame: int, ima
 
 @click.command()
 @common_step_options()
-@click.option('--preview/--no-preview', default=True, show_default=True, help="Preview rendered frame")
+@click.option("--preview/--no-preview", default=True, show_default=True, help="Preview rendered frame")
 @click.option(
-    '-i', '--input',
+    "-i",
+    "--input",
     type=click.Path(exists=True, file_okay=False),
     required=True,
-    help="Path to directory with input State files. Must contain only '*.pd' files"
+    help="Path to directory with input State files. Must contain only '*.pd' files",
 )
 @click.option(
-    '-o', '--output',
+    "-o",
+    "--output",
     type=click.Path(exists=False, file_okay=False, dir_okay=True),
-    default='./output',
+    default="./output",
     help="Output directory for images",
-    show_default=True
+    show_default=True,
 )
-@click.option('-f', '--force', help="Force overwrite output", is_flag=True, default=False)
+@click.option("-f", "--force", help="Force overwrite output", is_flag=True, default=False)
 def cli(preview, input, output, force, step_options: StepScriptContext = None):
     """
     Static Cameras example
@@ -97,7 +99,7 @@ def cli(preview, input, output, force, step_options: StepScriptContext = None):
     those cameras.
     """
     # Hide warnings from deserializer
-    logging.getLogger('pd.state.serialize').setLevel(logging.CRITICAL)
+    logging.getLogger("pd.state.serialize").setLevel(logging.CRITICAL)
 
     request_addr = step_options.ig
     client_cert_file = step_options.client_cert_file
@@ -105,8 +107,8 @@ def cli(preview, input, output, force, step_options: StepScriptContext = None):
     # Validate input files
     input_path = Path(input)
     (_, _, filenames) = next(os.walk(input_path))
-    if not filenames or any(not f.endswith('.pd') for f in filenames):
-        sys.exit(f"Error: Input directory must contain only State files")
+    if not filenames or any(not f.endswith(".pd") for f in filenames):
+        sys.exit("Error: Input directory must contain only State files")
     filenames = sorted(filenames)
 
     # Set up output directory
@@ -143,11 +145,11 @@ def cli(preview, input, output, force, step_options: StepScriptContext = None):
             z_metres=ego_start_translation[2] + 8.0,
             roll_degrees=0.0,
             pitch_degrees=-20.0,
-            yaw_degrees=103.0
+            yaw_degrees=103.0,
         ),
         velocity=(0, 0, 0),
         id=pd.state.rand_agent_id(),
-        sensors=default_sensor_rig
+        sensors=default_sensor_rig,
     )
 
     plot_initialized = False
@@ -194,14 +196,19 @@ def cli(preview, input, output, force, step_options: StepScriptContext = None):
                     sensor_rgb_data = session.query_sensor_data(agent_id, camera_name, pd.state.SensorBuffer.RGB)
                     rgb_image = sensor_rgb_data.data_as_rgb
 
-                    save_image(rgb_output_path, agent_id, camera_name, curr_state_index*10,
-                               cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR))
+                    save_image(
+                        rgb_output_path,
+                        agent_id,
+                        camera_name,
+                        curr_state_index * 10,
+                        cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR),
+                    )
 
                     if preview:
                         if not plot_initialized:
                             fig, axarr = plt.subplots(2, math.ceil(len(cameras) / 2.0))
                             for ax in axarr.ravel():
-                                ax.axis('off')
+                                ax.axis("off")
                             fig.set_size_inches(18, 10)
                         plot_initialized = True
                         ax = axarr.ravel()[i]
@@ -215,5 +222,5 @@ def cli(preview, input, output, force, step_options: StepScriptContext = None):
                     plt.pause(0.01)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()

@@ -2,81 +2,166 @@ syntax = "proto2";
 
 package keystone;
 
-// Checklist for adding/modifying sensor parameters
-//   1. Update pd_sensor.proto
-//   2. Update sensor_module.fbs
-//   3. Update sensor_helpers.h
-//   4. Update sim_load_sensor_rig() and sim_load_sensor_rig_le() in sensor_helpers.cpp
-//   5. Update both fb_to_sensor() in sensor_helpers.cpp
-//   6. Update both sensor_to_proto() in sensor_data.cpp
-//   7. Update sim_build_sensor_rig_config() in sim_helpers.cpp
-
-
+/*
+Object that stores information about an individual lidar beam.
+*/
 message LidarBeam
 {
+    /*
+    The integer ID of the lidar beam.
+    */
     required int32 id = 1;
+
+    /*
+    The azimuth of the lidar beam.
+    */
     required float azimuth = 2;
+
+    /*
+    The elevation of the lidar beam.
+    */
     required float elevation = 3;
 }
 
+/*
+Parameters which control the noise applied to Lidar sensors.
+*/
 message LidarNoiseParams
 {
+    /*
+    The minimum distance at which noise is applied to Lidar returns.
+    */
     optional float min_dist = 1;
+
+    /*
+    The maximum distance at which noise is applied to Lidar returns.
+    */
     optional float max_dist = 2;
 
+    /*
+    The minimum probability that a particular Lidar beam will be subjected to noise.
+    */
     optional float min_prob = 3;
+
+    /*
+    The maximum probability that a particular Lidar beam will be subjected to noise.
+    */
     optional float max_prob = 4;
 
+    /*
+    Minimum offset of the applied noise.
+    */
     optional float min_offset = 5;
+
+    /*
+    Maximum offset of the applied noise.
+    */
     optional float max_offset = 6;
 
+    /*
+    The minimum amount of noise applied to a Lidar beam.
+    */
     optional float min_noise = 7;
 }
 
+/*
+The weights of rgb channels used to compose the surface albedo for LiDAR beams
+*/
 message AlbedoWeights
 {
+    /*
+    R channel weight.
+    */
     optional float x = 1 [default = 1.0];
-    optional float y = 2 [default = 0.8]; 
+
+    /*
+    G channel weight.
+    */
+    optional float y = 2 [default = 0.8];
+
+    /*
+    B channel weight.
+    */
     optional float z = 3 [default = 0.4];
 }
 
+/*
+Parameters which control the intensity manipulations applied to Lidar sensors
+*/
 message LidarIntensityParams
 {
-	optional float retro_range_noise_stddev = 1 [default = 0.1];		// bump the depth noise for retroreflective beams
-	optional float retroreflection_noise_mean = 2 [default = 0.0];	// noise for refroreflective intensity
-	optional float retroreflection_noise_stddev = 3 [default = 0.1];
-	optional float max_attenuation_distance = 4 [default = 220.0];	// unit is meter
+    /*
+    Manipulates the depth noise for retro-reflective lidar beams.
+    */
+    optional float retro_range_noise_stddev = 1 [default = 0.1];
 
-	// reflection intensity enhance when the beam hits a retroreflective surface, the default value is 1.5, which means the intensity is 50% stronger than the general
-	optional float retro_intensity_enhance = 5 [default = 1.5];	
+    /*
+    Mean of noise applied to retro-reflective lidar beams.
+    */
+    optional float retroreflection_noise_mean = 2 [default = 0.0];
 
-	// Because the LiDAR beams are infrared light, the specular of the object's surface would be higher than the visible light.
-	// The default value of it should be 4.0, because in Engine code, F=50*SpecularColor=50*0.08*BaseColor=4.0*BaseColor, where 4.0 is the specular scale we used.
-	optional float intensity_specular_scale = 6 [default = 2.0];
+    /*
+    Standard Deviation of noise applied to retro-reflective lidar beams.
+    */
+    optional float retroreflection_noise_stddev = 3 [default = 0.1];
 
-	// Because the LiDAR beams are infrared light, the beam would be spread more than the visible light. By scaling up roughness to 1.5,
-	// we could let the beam spread more. 
-	optional float intensity_roughness_scale = 7 [default = 1.5];
+    /*
+    Maximum distance at which attenuation is applied in meters
+    */
+    optional float max_attenuation_distance = 4 [default = 220.0];
 
-	optional float beam_intensity = 8 [default = 2.0];				// The intensity of the beam. It could be used to scale the final intensity to a reasonable range
+    /*
+    Amount by which reflection intensity is enhanced when the beam hits a retroreflective surface. If a value of 1.5 is set,
+    the intensity will be 50% stronger.
+    */
+    optional float retro_intensity_enhance = 5 [default = 1.5];
 
-	// The weights of rgb channels to compose the surface albedo for LiDAR beams. Because the LiDAR beams are infrared light, 
-	// the weight of red should be heavier than green and blue. So the default value is { 1.0f, 0.8f, 0.4f }
-	optional AlbedoWeights albedo_weights = 9;
+    /*
+    Because the LiDAR beams are infrared light, the specular of the object's surface is higher than with visible light.
+    This value adjusts the specular value.
+    */
+    optional float intensity_specular_scale = 6 [default = 2.0];
 
-    // Max surface albedo value, prevent too bright
+    /*
+    Because the LiDAR beams are infrared light, return beam is scattered more than with visible light.
+    This value adjusts the beam spread.
+    */
+    optional float intensity_roughness_scale = 7 [default = 1.5];
+
+    /*
+    Intensity of the beam.
+    */
+    optional float beam_intensity = 8 [default = 2.0];
+
+    /*
+    The weights of rgb channels used to compose the surface albedo for LiDAR beams.
+    Because the LiDAR beams are infrared light, the weight of red should be heavier than green and blue.
+    */
+    optional AlbedoWeights albedo_weights = 9;
+
+    /*
+    Max surface albedo value, prevents the surface from being too bright.
+    */
     optional float max_albedo = 10 [default = 2.2];
 
-    // Enhance when the beam hits a traffic sign
+    /*
+    Parameter that controls how much reflected intensity is enhanced when the beam hits a traffic sign.
+    */
     optional float strong_retro_intensity_enhance = 11 [default = 1.5];
 
-    // Scale the metallic
+    /*
+    Parameter that scales metallic values of surfaces for lidar returns.
+     */
     optional float intensity_metallic_scale = 12 [default = 1.5];
 
-    // At least how much emissive value will enhance the intensity
+    /*
+    Parameter that governs how much emissive values will enhance the intensity of lidar returns.
+    */
     optional float emissive_gate = 13 [default = 100.0];
 
-    // The emissive will be less than (max_emissive_rate * emissive_gate)
+    /*
+    Maximum emissive value will be :attr:`max_emissive_rate` * :attr:`emissive_gate`
+    */
     optional float max_emissive_rate = 14 [default = 10.0];
 }
 
@@ -94,176 +179,637 @@ message AliceLidarModel
     optional float horizontal_spacing = 10;
 }
 
+/*
+Intrinsic parameters of a Lidar sensor.
+ */
 message LidarIntrinsic
 {
+    /*
+    The sampling rate of the lidar.
+    */
     required float sample_rate = 1;
+
+    /*
+    The rotation rate of the lidar.
+    */
     required float rotation_rate = 2;
+
+    /*
+    The minimum azimuth value of the lidar.
+    */
     optional float azimuth_min = 3;
+
+    /*
+    The maximum azimuth value of the lidar.
+    */
     optional float azimuth_max = 4;
+
+    /*
+    The elevation delta of the lidar.
+    */
     optional float elevation_delta = 31;
+
+    /*
+    List of information about the beams that make up the lidar sensor.
+    */
     repeated LidarBeam beam_data = 5;
 
+    /*
+    Flag to control whether RGB data is captured.
+    */
     optional bool capture_rgb = 6;
+
+    /*
+    Flag to control whether intensity data is captured.
+    */
     optional bool capture_intensity = 7;
+
+    /*
+    Flag to control whether depth data is captured.
+    */
     optional bool capture_depth = 8;
+
+    /*
+    Flag to control whether surface normal data is captured.
+    */
     optional bool capture_normals = 9;
+
+    /*
+    Flag to control whether semantic segmentation data is captured.
+    */
     optional bool capture_segmentation = 10;
+
+    /*
+    Flag to control whether instance segmentation data is captured.
+    */
     optional bool capture_instance = 11;
+
+    /*
+    Flag to control whether bounding box data is captured.
+    */
     optional bool capture_detections = 12;
+
+    /*
+    Flag to control whether motion vector data is captured.
+    */
     optional bool capture_motionvectors = 13;
 
-    optional float minimum_range_cutoff = 14 [default = 60.0]; // All samples with lower range will not be culled by the range based culling
-    optional float maximum_range_cutoff = 15 [default = 150.0]; // All samples with greater range will always be culled by range culling
-    optional float minimum_cutoff_prob = 21 [default = 0.0]; // Minimum culling probability, range [0.0, 1.0]
-    optional float maximum_cutoff_prob = 22 [default = 0.95]; // Maximum culling probability, range [0.0, 1.0]
+    /*
+    All returns with closer than this value will not be culled by the range based culling.
+    */
+    optional float minimum_range_cutoff = 14 [default = 60.0];
+
+    /*
+    All samples farther than this value will always be culled by range based culling.
+    */
+    optional float maximum_range_cutoff = 15 [default = 150.0];
+
+    /*
+    The minimum culling probability.
+    */
+    optional float minimum_cutoff_prob = 21 [default = 0.0];
+
+    /*
+    The maximum culling probability.
+    */
+    optional float maximum_cutoff_prob = 22 [default = 0.95];
+
+    /*
+    Minimum offset. 
+    */
     optional float minimum_offset = 23 [default = 0.002];
+
+    /*
+    Maximum offset.
+    */
     optional float maximum_offset = 24 [default = 0.02];
+
+    /*
+    Minimum amount of noise applied to the lidar return.
+    */
     optional float minimum_noise = 25 [default = 0.001];
+
+    /*
+    Mean of the range based noise applied to the lidar returns.
+    */
     optional float range_noise_mean = 16 [default = 0.0];
+
+    /*
+    Standard deviation of the range based noise applied to the lidar returns.
+    */
     optional float range_noise_stddev = 17 [default = 0.005];
 
+    /*
+    Parameters which govern the intensity of the lidar sensor.
+    */
     optional LidarIntensityParams intensity_params = 18;
 
     optional AliceLidarModel alice_lidar_model = 19;
     optional string pattern = 20;
 
+    /*
+    The time offset of the lidar scan pattern.
+    */
     optional float time_offset = 26;
 
+    /*
+    How many returns will be added.
+    */
     optional int32 multi_returns = 27; // How many returns will be added
-    optional float multi_returns_angle = 32 [default = 0.00035];
-    optional int32 merge_returns = 28; // Merge returns into one return or dual returns
 
+    /*
+    The angles between multiple returns.
+    */
+    optional float multi_returns_angle = 32 [default = 0.00035];
+
+    /*
+    Controls whether to merge returns into one return or dual returns.
+    */
+    optional int32 merge_returns = 28;
+
+    /*
+    Flag to control whether material property data is captured.
+    */
     optional bool capture_properties = 29;
+
+    /*
+    Flag to control whether backwards motion vector data is captured.
+    */
     optional bool capture_backwardmotionvectors = 30;
 
 }
 
+/*
+Parameters that control the lens distortion applied to RGB camera sensors
+*/
 message DistortionParams
 {
+    /*
+    Radial distortion parameter `k1` if the Brown Conrady or OpenCV Fisheye models are specified in :attr:`fisheye_model`, ignored otherwise.
+    */
     optional float k1 = 1;
+
+    /*
+    Radial distortion parameter `k2` if the Brown Conrady or OpenCV Fisheye models are specified in :attr:`fisheye_model`, ignored otherwise.
+    */
     optional float k2 = 2;
+
+    /*
+    Radial distortion parameter `k3` if the Brown Conrady or OpenCV Fisheye models are specified in :attr:`fisheye_model`, ignored otherwise.
+    */
     optional float k3 = 3;
+
+    /*
+    Radial distortion parameter `k4` if the Brown Conrady or OpenCV Fisheye models are specified in :attr:`fisheye_model`, ignored otherwise.
+    */
     optional float k4 = 4;
+
+    /*
+    Radial distortion parameter `k5` if the Brown Conrady model is specified in :attr:`fisheye_model`. Ignored otherwise.
+    */
     optional float k5 = 5;
+
+    /*
+    Radial distortion parameter `k6` if the Brown Conrady model is specified in :attr:`fisheye_model`. Ignored otherwise.
+    */
     optional float k6 = 6;
+
+    /*
+    Tangential distortion parameter `p1` if the Brown Conrady model is specified in :attr:`fisheye_model`. Ignored otherwise.
+    */
     optional float p1 = 7;
+
+    /*
+    Tangential distortion parameter `p2` if the Brown Conrady model is specified in :attr:`fisheye_model`. Ignored otherwise.
+    */
     optional float p2 = 8;
+
+    /*
+    Parameter controlling the skew distortion that is applied to the camera.
+    */
     optional float skew = 9;
+
+    /*
+    DEPRECATED
+    */
     optional bool is_fisheye = 10;
+
+    /*
+    The horizontal focal length of the camera.
+    */
     optional float fx = 11;
+
+    /*
+    Vertical focal length of the camera.
+    */
     optional float fy = 12;
+
+    /*
+    Distortion center of the image along the horizontal axis.
+    */
     optional float cx = 13;
+
+    /*
+    Distortion center of the image along the vertical axis.
+    */
     optional float cy = 14;
+
+    /*
+    The type of fisheye cameras being replicated. The following are valid values::
+
+        0 - Pinhole Camera if :attr:`k1`,:attr:`k2`,:attr:`p1`,:attr:`p2`[,:attr:`k3`[,:attr:`k4`,:attr:`k5`,:attr:`k6`]] not specified or Brown Conrady Distortion if distortion parameters are specified
+        1 - OpenCV Fisheye Distortion
+        3 - PD Fisheye Distortion
+        6 - Orthographic Projection
+    */
     optional int32 fisheye_model = 15;
 }
 
+/*
+Node which carries out post processing on a rendered image.
+*/
 message PostProcessNode
 {
-    required string material=1;
-    required float weight=2;
+    /*
+    The material to be applied in post processing.
+    */
+    required string material = 1;
+    
+    /*
+    The weight of the post processing to be applied.
+    */
+    required float weight = 2;
 }
 
+/*
+Parameters that control the post processing applied to rgb camera sensor data.
+*/
 message PostProcessParams
 {
+    /*
+    Logarithmic adjustment for exposure. When set to 0, there will be no adjustment, -1 is two times darker,
+    -2 is four times darker, 1 is two times brighter, and 2 is four times brighter
+    */
     optional float exposure_compensation = 1 [default = -100.0];
+
+    /*
+    Speeds up eye adaptation in f-stops per second.
+    */
     optional float exposure_speed_up = 2;
+
+    /*
+    Slows down eye adaptation in f-stops per second.
+    */
     optional float exposure_speed_down = 3;
+
+    /*
+    The minimum brightness limit for auto exposure adaptation, expressed in pixel luminance (cd/m2). Value is typically
+    negative and should be less than or equal to Max EV100. As this value increases, the scene view gets darker.
+    If Min EV100 is equal to Max EV100, auto exposure is disabled.
+    */
     optional float exposure_min_ev100 = 4 [default = -100.0];
+
+    /*
+    The maximum brightness limit for auto exposure adaptation, expressed in pixel luminance (cd/m2). Value should be
+    positive and should be greater than or equal to Min EV100. As this value decreases, the scene view gets brighter.
+    If Max EV100 is equal to Min EV100, auto exposure is disabled.
+    */
     optional float exposure_max_ev100 = 5 [default = -100.0];
+
+    /*
+    Texture in unreal syntax. Bright spots on the mask will have high influence on auto exposure metering,
+    and dark spots will have low influence.
+    */
     optional string exposure_metering_mask = 6;
+
+    /*
+    Motion blur amount expressed in screen percentage (exposure will affect the final outcome).
+    */
     optional float motion_blur_amount = 7 [default = 1.5];
+
+    /*
+    Maximum motion blue amount in screen percentage.
+    */
     optional float motion_blur_max = 8 [default = 5.0];
+
+    /*
+    Focal distance (in cm) to near focal plane.
+    */
     optional float dof_focal_distance = 9 [default = -1.0];
+
+    /*
+    Distance (in km) where we blur to 50%.
+    */
     optional float dof_depth_blur_amount = 10;
+
+    /*
+    Radius of how many pixels to blur.
+    */
     optional float dof_depth_blur_radius = 11 [default = -1.0];
+
+    /*
+    Strength of vignette applied.
+    */
     optional float vignette_intensity = 12;
+
+    /*
+    Type of tone curve applied to the image.
+    */
     optional ToneCurveParams tone_curve = 13;
+
+    /*
+    Curve in unreal syntax. The X and Y-axis values in the Curve graph translate to the Average Scene EV100 and
+    Exposure Compensation (Curve) values
+    */
     optional string exposure_compensation_curve = 14;
 }
 
+/*
+Parameters that control the tone curve applied to the image.
+*/
 message ToneCurveParams
 {
+    /*
+    A slope tone curve.
+    */
     optional float slope = 1 [default = 0.66];
+
+    /*
+    A toe tone curve.
+    */
     optional float toe = 2 [default = 0.52];
+
+    /*
+    A shoulder tone curve.
+    */
     optional float shoulder = 3 [default = 0.49];
+
+    /*
+    A black_clip tone curve.
+    */
     optional float black_clip = 4 [default = 0.0];
+
+    /*
+    A white_clip tone curve.
+    */
     optional float white_clip = 5 [default = 0.08];
 }
 
+/*
+The type of denoising filter applied to an image.
+*/
 enum DenoiseFilter {
+    /*
+    Denoising filter using `average` method.
+    */
     AVERAGE_FILTER = 0;
+
+    /*
+    Denoising filter using `median` method.
+    */
     MEDIAN_FILTER = 1;
+
+    /*
+    Denoising filter using `fast median` method.
+    */
     FAST_MEDIAN_FILTER = 2;
+
+    /*
+    Denoising filter using `bilateral` method.
+    */
     BILATERAL_FILTER = 3;
 }
 
 message NoiseParams
 {
+    /*
+    Flag to enable Bayer noise, also known as RGGB noise, simulates the noise patterns present when using a Bayer filter
+    to capture color images. This filter is a common way to capture color in digital cameras. It shows up as a colors
+    shifting away from pixels.
+    */
     optional bool enable_bayer = 1 [default = true];
+
+    /*
+    Flag to enable Gaussian noise, also known as white noise, simulates electronic interference caused by thermal
+    vibrations. This type of noise is tied to the temperature of the sensor and the brightness of the scene being
+    captured - this adds noise uniformly on the image
+    */
     optional bool enable_gauss_noise = 2 [default = true];
+
+    /*
+    Flag to enable Poisson Noise. Simulates the probability of photons being collected by the sensor. This is the most
+    common form of noise in an image, unless it is a low-light capture. Poisson noise is a good way to simulate the
+    natural behavior of photons in an image. This adds more noise to brighter areas, less to darker areas.
+    */
     optional bool enable_poisson_noise = 3 [default = true];
+
+    /*
+    Flag to add a denoise pass to mimic a real sensor’s stack.
+    */
     optional bool enable_denoise = 4 [default = true];
 
-    // Gaussian-Poissonian noise parameters
+    /*
+    Sigma applied when Gauss Noise is activated. Larger values result in noisier images.
+    */
     optional float gauss_noise_sigma = 5 [default = 0.025];
+
+    /*
+    Lambda applied to poisson noise. Smaller values result in noisier images.
+    */
     optional float poisson_noise_lambda = 6 [default = 1000.0];
 
-    // Denoise parameters
+    /*
+    Type of denoising filter applied.
+    */
     optional DenoiseFilter denoise_filter = 7 [default = MEDIAN_FILTER];
+
+    /*
+    Only applies to Bilateral denoising filter. Represents how many pixels to sample.
+    */
     optional int32 denoise_filter_size = 8 [default = 3];
+
+    /*
+    Spatial `sigma_d` of bilateral denoising filter.
+    */
     optional float bilateral_sigma_d = 9 [default = 3.0];
+
+    /*
+    `sigma_r` of bilateral denoising filter.
+    */
     optional float bilateral_sigma_r = 10 [default = 20.0];
 
-    // Auto setting noise parameters depending on exposure value
+    /*
+    Boolean to enable automatic setting of noise parameters based on exposure value.
+    */
     optional bool enable_auto_noise = 11 [default = true];
+
+    /*
+    Signal amount.
+    */
     optional int32 signal_amount = 12 [default = 5223];
+
+    /*
+    Pre-amplifier noise.
+    */
     optional float pre_amplifier_noise = 13 [default = 7.63];
+
+    /*
+    Post-amplifier noise.
+    */
     optional float post_amplifier_noise = 14 [default = 247.5];
 
-    // Use ISO to adjust noise parameters
+    /*
+    Boolean flag to control whether ISO is used to adjust noise parameters
+    */
     optional bool is_using_iso = 15 [default = true];
+
+    /*
+    ISO level of the camera.
+    */
     optional int32 iso_level = 16 [default = 800];
 
-    // Auto ISO (Aperture  priority)
+    /*
+    Controls whether IDO is used to scale noise parameters.
+    */
     optional bool enable_auto_iso = 17;
+
+    /*
+    F-Stop of the camera.
+    */
     optional float fstop = 18 [default = 1.0];
+
+    /*
+    Inverse of the minimum shutter speed.
+    */
     optional float max_exposure_time = 19 [default = 0.033];
+
+    /*
+    Used when calculating auto ISO defaults.
+     */
     optional float quantum_efficiency = 20 [default = 0.7];
 }
 
+/*
+Parameters which control the intrinsics of an rgb camera sensor.
+*/
 message CameraIntrinsic
 {
+    /*
+    Width of the image in pixels
+    */
     required int32 width = 1;
+
+    /*
+    Height of the image in pixels.
+    */
     required int32 height = 2;
+
+    /*
+    Field of view of the camera in degrees. Ignored when `fx`, `fy`, `cx` and `cy` are set in :obj:`DistortionParams`.
+    */
     optional float fov = 3;
+
+    /*
+    Supersampling to apply during rendering.  Supersampling is ignored on pinhole cameras.
+    */
     optional float supersample = 4;
 
+    /*
+    Flag to control whether RGB data is captured.
+    */
     optional bool capture_rgb = 5;
+
+    /*
+    Flag to control whether depth data is captured.
+    */
     optional bool capture_depth = 6;
+
+    /*
+    Flag to control whether surface normal data is captured.
+    */
     optional bool capture_normals = 7;
+
+    /*
+    Flag to control whether semantic segmentation data is captured.
+    */
     optional bool capture_segmentation = 8;
+
+    /*
+    Flag to control whether instance segmentation data is captured.
+    */
     optional bool capture_instance = 9;
+
+    /*
+    Flag to control whether bounding box data is captured.
+    */
     optional bool capture_detections = 10;
+
+    /*
+    Flag to control whether motion vector data is captured.
+    */
     optional bool capture_motionvectors = 11;
 
+    /*
+    Path to color adjustment map in unreal syntax.
+    */
     optional string lut = 12;
+
+    /*
+    Scale factor when applying :attr:`lut`.
+    */
     optional float lut_weight = 13 [default = 1.0];
+
+    /*
+    Post processing parameters to apply to the rendered image.
+    */
     optional PostProcessParams post_process_params = 14;
+
+    /*
+    Array of ‘post_process_entries’, each of which has an unreal material path and a weight (to blend with the previous
+    image). “material” is the path in unreal syntax and “weight” is the blend weight (0->1).
+    */
     repeated PostProcessNode post_process = 15;
 
+    /*
+    The distortion parameters to apply to the image.
+    */
     optional DistortionParams distortion_params = 16;
-    
+
+    /*
+    The noise parameters to apply to the image.
+    */
     optional NoiseParams noise_params = 17;
 
     optional bool enable_streaming = 18;
+
+    /*
+    Control whether the returned image is grayscale.
+    */
     optional bool transmit_gray = 19;
 
+    /*
+    Path to the distortion lookup table if a lookup table is required by :obj:`DistortionParams`.
+    */
     optional string distortion_lookup_table = 20;
 
+    /*
+    Flag to control whether base color data is captured.
+    */
     optional bool capture_basecolor = 21;
+
+    /*
+    Flag to control whether material propety data is captured.
+    */
     optional bool capture_properties = 22;
 
+    /*
+    Time offset of captured images.
+    */
     optional float time_offset = 23;
+
+    /*
+    Flag to control whether backwards motion vector data is captured.
+    */
     optional bool capture_backwardmotionvectors = 24;
 
 }
@@ -309,11 +855,11 @@ message RadarDetectorParameters
     optional float detector_constant_gain = 2 [default = 30.0];
     optional float detector_radiometric_gain = 3 [default = 100.0];
     optional float detector_radiometric_decay = 4 [default = 4.0];
-	optional bool enable_cfar = 5 [default = false];
-	optional string cfar_type = 6 [default = "CACFAR"];
-	optional int32 cfar_guard_cell = 7 [default = 2];
-	optional int32 cfar_neighbor_cell = 8 [default = 5];
-	optional float cfar_threshold_scale = 9 [default=0.5];
+    optional bool enable_cfar = 5 [default = false];
+    optional string cfar_type = 6 [default = "CACFAR"];
+    optional int32 cfar_guard_cell = 7 [default = 2];
+    optional int32 cfar_neighbor_cell = 8 [default = 5];
+    optional float cfar_threshold_scale = 9 [default = 0.5];
 }
 
 message RadarIntrinsic
@@ -324,51 +870,121 @@ message RadarIntrinsic
     optional RadarDetectorParameters detector_parameters = 4;
 }
 
+/*
+Object to store extrinsic parameters of sensors. All extrinsics are stored in the RFU coordinate system relative to
+the agent to which the sensor is attached.
+ */
 message SensorExtrinsic
 {
+    /*
+    Yaw of the sensor in degrees.
+    */
     required float yaw = 1;
+
+    /*
+    Pitch of the sensor in degrees.
+    */
     required float pitch = 2;
+
+    /*
+    Roll of the sensor in degrees.
+    */
     required float roll = 3;
+
+    /*
+    `x` position of the sensor in meters.
+    */
     required float x = 4;
+
+    /*
+    `y` position of the sensor in meters.
+    */
     required float y = 5;
+
+    /*
+    `z` position of the sensor in meters.
+    */
     required float z = 6;
 
-    // Setting this flag to true will cause the yaw value of the sensor orientation to be locked to the vehicle
-    // but leave the pitch and roll values as zero with respect to the world frame
+    /*
+    Setting this flag to true will cause the yaw value of the sensor orientation to be locked to the agent to which the
+    sensor is attached, but leave the pitch and roll values as zero with respect to the world frame.
+    */
     optional bool lock_to_yaw = 7;
 
-    // If attach_socket is not empty, the camera would attach to a socket of the mesh
+    /*
+    Controls the socket on the agent to which the sensor should be attached.
+    */
     optional string attach_socket = 8;
+
+    /*
+    Controls whether or not the sensor follows the rotation of the socket to which it is attached if
+    :attr:`attach_socket` is `True`.
+    */
     optional bool follow_rotation = 9;
 }
 
+/*
+A configuration of one sensor.
+*/
 message SensorConfig
 {
+    /*
+    The name of the sensor.
+    */
     required string display_name = 1;
+
+    /*
+    The intrinsics of the sensor.
+    */
     oneof sensor_intrinsic {
+        /*
+        Instrinsics of a camera sensor.
+        */
         CameraIntrinsic camera_intrinsic = 2;
+
+        /*
+        Instrinsics of a lidar sensor.
+        */
         LidarIntrinsic lidar_intrinsic = 3;
+
+        /*
+        Instrinsics of a radar sensor.
+        */
         RadarIntrinsic radar_intrinsic = 4;
     }
+
+    /*
+    The extrinsics of the sensor.
+    */
     required SensorExtrinsic sensor_extrinsic = 5;
 }
 
+/*
+A list of sensors.
+*/
 message SensorList
-    {
-        repeated string sensors = 1;
-    };
+{
+    repeated string sensors = 1;
+};
 
+/*
+A configuration of a rig of sensors containing one or more sensors.
+*/
 message SensorRigConfig
 {
+    /*
+    The configuration of sensors within a particular sensor rig.
+    */
     repeated SensorConfig sensor_configs = 1;
 
-    // For security reasons, in some cases we don't want to store the sensor rig data outside of our S3 bucket. In order to do this
-    // we have an optional sensor rig artifact uuid parameter in a given sensor rig.
-    // If this parameter is set, it will take precendance over any data set in the given sensor rig and we will enter into what we
-    // define as a secure sensor rig. In practical terms, the end-user have a placeholder sensor rig file that only contain the
-    // sensor_rig_artifact_uid data, if we detect that it's the case, we copy the data from S3 into the temporary location
-    // defined above in sensor_rig_data_dir_path.
+    /*
+    The s3 path to a sensor rig if it is not stored locally.
+    */
     optional string sensor_rig_artifact_uid = 2;
 
+    /*
+    A list of sensor names to control which sensors are rendered in parallel.
+    */
     repeated SensorList default_sensor_splits_list = 3;
 }

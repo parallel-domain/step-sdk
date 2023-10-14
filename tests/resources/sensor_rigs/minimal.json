@@ -1,5 +1,5 @@
 {
-    "sensor_configs": 
+    "sensor_configs":
     [
         {
             "display_name": "Front",
@@ -13,9 +13,9 @@
                 "lut": "Texture2D'/Game/pd/Textures/LUT/LUT_PD_DashCamMedia.LUT_PD_DashCamMedia'",
                 "lut_weight": 0.5,
                 "post_process": [
-                    { 
-                        "material": "MaterialInstanceConstant'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens'", 
-                        "weight": 1.0 
+                    {
+                        "material": "MaterialInstanceConstant'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens'",
+                        "weight": 1.0
                     }
                 ],
 
@@ -39,8 +39,8 @@
                 "yaw": 0.0,
                 "pitch": 0.0,
                 "roll": 0.0,
-                "x": 0.0, 
-                "y": 0.0, 
+                "x": 0.0,
+                "y": 0.0,
                 "z": 2.0
             }
         }

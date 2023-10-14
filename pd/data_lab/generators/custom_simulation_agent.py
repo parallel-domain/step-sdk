@@ -5,13 +5,17 @@
 # separate written license agreement with Parallel Domain, Inc.
 
 import abc
+import logging
 import random
-from typing import Literal, Optional, Tuple, Union, TypeVar, Generic, List, Callable
+from typing import Callable, Generic, List, Literal, Optional, Tuple, TypeVar, Union
+from warnings import warn
 
 import numpy as np
+from deprecation import deprecated
 
 import pd.state
 from pd.assets import get_asset_names_in_category, get_vehicle_colors, get_vehicle_wheel_names, get_vehicle_wheel_poses
+from pd.core import PdError
 from pd.data_lab.generators.simulation_agent import SimulationAgentBase
 from pd.data_lab.sim_state import SimState
 from pd.internal.assets.asset_registry import ObjAssets
@@ -19,10 +23,12 @@ from pd.internal.proto.keystone.generated.wrapper.pd_sensor_pb2 import SensorRig
 from pd.state import Pose6D
 
 TSimState = TypeVar("TSimState", bound=SimState)
-StepAgentType = Union[pd.state.VehicleAgent, pd.state.ModelAgent]
+StepAgentType = Union[pd.state.VehicleAgent, pd.state.ModelAgent, pd.state.SensorAgent]
+
+logger = logging.getLogger()
 
 
-class CustomSimulationAgentBehaviour(Generic[TSimState]):
+class CustomSimulationAgentBehavior(Generic[TSimState]):
     @abc.abstractmethod
     def update_state(self, sim_state: TSimState, agent: "CustomSimulationAgent", raycast: Optional[Callable] = None):
         pass
@@ -34,14 +40,18 @@ class CustomSimulationAgentBehaviour(Generic[TSimState]):
         pass
 
     @abc.abstractmethod
-    def clone(self) -> "CustomSimulationAgentBehaviour[TSimState]":
+    def clone(self) -> "CustomSimulationAgentBehavior[TSimState]":
         pass
+
+
+# Maintained for backwards compatibility
+CustomSimulationAgentBehaviour = CustomSimulationAgentBehavior
 
 
 class CustomSimulationAgent(SimulationAgentBase, Generic[TSimState]):
     def __init__(self, sensor_rig: Optional[SensorRig], step_agent: StepAgentType):
         super().__init__()
-        self._behaviour: CustomSimulationAgentBehaviour[TSimState] = None
+        self._behavior: Optional[CustomSimulationAgentBehavior[TSimState]] = None
         self._pose = np.eye(4)
         self._velocity = None
         self._step_agent = step_agent
@@ -55,16 +65,21 @@ class CustomSimulationAgent(SimulationAgentBase, Generic[TSimState]):
     def step_agent(self) -> StepAgentType:
         return self._step_agent
 
-    def set_behaviour(self, behaviour: CustomSimulationAgentBehaviour) -> "CustomSimulationAgent":
-        self._behaviour = behaviour
+    # Maintained for backwards compatibility
+    @deprecated(details="Use `set_behavior` instead")
+    def set_behaviour(self, behaviour: CustomSimulationAgentBehavior) -> "CustomSimulationAgent":
+        return self.set_behavior(behavior=behaviour)
+
+    def set_behavior(self, behavior: CustomSimulationAgentBehavior) -> "CustomSimulationAgent":
+        self._behavior = behavior
         return self
 
     def set_initial_state(self, sim_state: TSimState, random_seed: int, raycast: Optional[Callable] = None):
         self._initialize_step_agent(random_seed=random_seed)
         self.set_pose(pose=self._pose, velocity=self._velocity)
 
-        if self._behaviour is not None:
-            self._behaviour.set_initial_state(sim_state=sim_state, agent=self, random_seed=random_seed, raycast=raycast)
+        if self._behavior is not None:
+            self._behavior.set_initial_state(sim_state=sim_state, agent=self, random_seed=random_seed, raycast=raycast)
 
     def set_pose(self, pose: np.ndarray, velocity: Optional[Tuple[float, float, float]] = None):
         self._pose = pose
@@ -75,8 +90,8 @@ class CustomSimulationAgent(SimulationAgentBase, Generic[TSimState]):
                 self.step_agent.velocity = velocity
 
     def update_state(self, sim_state: TSimState, raycast: Optional[Callable] = None):
-        if self._behaviour is not None:
-            self._behaviour.update_state(sim_state=sim_state, agent=self, raycast=raycast)
+        if self._behavior is not None:
+            self._behavior.update_state(sim_state=sim_state, agent=self, raycast=raycast)
 
     @abc.abstractmethod
     def _initialize_step_agent(self, random_seed: int):
@@ -168,7 +183,9 @@ class CustomVehicleSimulationAgent(CustomSimulationAgent, Generic[TSimState]):
             asset_name=self._asset_name,
             agent_id=self.agent_id,
         )
-        cloned.set_behaviour(behaviour=self._behaviour.clone())
+        if self._behavior is None:
+            raise PdError(f"Missing behavior for {self.__class__.__name__}. Use `set_behavior()` to set a behavior.")
+        cloned.set_behavior(behavior=self._behavior.clone())
         cloned.set_pose(self._pose)
         return cloned
 
@@ -219,7 +236,38 @@ class CustomPedestrianSimulationAgent(CustomSimulationAgent, Generic[TSimState])
             asset_name=self._asset_name,
             agent_id=self.agent_id,
         )
-        cloned.set_behaviour(behaviour=self._behaviour.clone())
+        if self._behavior is None:
+            raise PdError(f"Missing behavior for {self.__class__.__name__}. Use `set_behavior()` to set a behavior.")
+        cloned.set_behavior(behavior=self._behavior.clone())
+        cloned.set_pose(self._pose)
+        return cloned
+
+
+class CustomSensorSimulationAgent(CustomSimulationAgent, Generic[TSimState]):
+    def __init__(
+        self,
+        sensor_rig: Optional[SensorRig] = None,
+        agent_id: Optional[int] = None,
+    ):
+        step_agent = pd.state.SensorAgent(
+            id=pd.state.rand_agent_id() if agent_id is None else agent_id, pose=np.eye(4), velocity=(0.0, 0.0, 0.0)
+        )
+        super().__init__(sensor_rig=sensor_rig, step_agent=step_agent)
+
+    def _initialize_step_agent(self, random_seed: int) -> StepAgentType:
+        sensors = list()
+        if self.sensor_rig is not None:
+            sensors.extend(self.sensor_rig.sensors)
+
+        self.step_agent.sensors = [s.to_step_sensor() for s in sensors]
+
+    def clone(self) -> "CustomSensorSimulationAgent[TSimState]":
+        cloned = CustomSensorSimulationAgent(
+            sensor_rig=self.sensor_rig.clone() if self.sensor_rig is not None else None,
+        )
+        if self._behavior is None:
+            raise PdError(f"Missing behavior for {self.__class__.__name__}. Use `set_behavior()` to set a behavior.")
+        cloned.set_behavior(behavior=self._behavior.clone())
         cloned.set_pose(self._pose)
         return cloned
 
@@ -282,7 +330,9 @@ class CustomObjectSimulationAgent(CustomSimulationAgent, Generic[TSimState]):
             asset_category=self._asset_category,
             agent_id=self.agent_id,
         )
-        cloned.set_behaviour(behaviour=self._behaviour.clone())
+        if self._behavior is None:
+            raise PdError(f"Missing behavior for {self.__class__.__name__}. Use `set_behavior()` to set a behavior.")
+        cloned.set_behavior(behavior=self._behavior.clone())
         cloned.set_pose(self._pose)
         return cloned
 
@@ -334,6 +384,13 @@ class CustomSimulationAgents(Generic[TSimState]):
         )
 
     @staticmethod
+    def create_ego_sensor(
+        sensor_rig: SensorRig,
+        agent_id: Optional[int] = None,
+    ) -> CustomSimulationAgent[TSimState]:
+        return CustomSensorSimulationAgent(sensor_rig=sensor_rig, agent_id=agent_id)
+
+    @staticmethod
     def create_ego_vehicle(
         sensor_rig: SensorRig,
         asset_name: Optional[str] = None,
@@ -362,5 +419,10 @@ class CustomSimulationAgents(Generic[TSimState]):
 
     @staticmethod
     def get_asset_size(asset_name: str) -> Tuple[float, float, float]:
-        asset = [i for i in ObjAssets.select().where(ObjAssets.name == asset_name)][0]
+        assets = [i for i in ObjAssets.select().where(ObjAssets.name == asset_name)]
+        if len(assets) == 0:
+            logger.info(f"Could not find asset {asset_name} in database. Using default size (1,1,1)")
+            return 1.0, 1.0, 1.0
+
+        asset = assets[0]
         return asset.width, asset.length, asset.height

@@ -18,9 +18,9 @@ import json
 import logging
 from abc import ABC
 from dataclasses import dataclass, field
-from enum import IntEnum, Enum
+from enum import Enum, IntEnum
 from pathlib import Path
-from typing import List, Dict, Optional, Union, Any, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -50,7 +50,7 @@ class Sensor(ABC):
     lock_to_yaw: bool = field(default=False, init=False)
     """
     Lock yaw to agent only
-    
+
     Setting this flag to true will cause the yaw value of the sensor orientation to be locked to the agent
     but leave the pitch and roll values as zero with respect to the world frame
     """
@@ -66,6 +66,7 @@ class Sensor(ABC):
 #############################
 # CameraSensor
 #############################
+
 
 @dataclass
 class PostProcessMaterial:
@@ -139,7 +140,7 @@ class TonemapCurve:
 @dataclass
 class PostProcessParams:
     exposure_compensation: float = -100.0
-    """
+    """  # noqa: E501
     Auto exposure histogram setting for exposure compensation
 
     When set to 0, there will be no adjustment, -1 is two times darker, -2 is four times darker,
@@ -149,7 +150,7 @@ class PostProcessParams:
     """
 
     exposure_speed_up: float = 0.0
-    """
+    """  # noqa: E501
     Auto exposure histogram setting for exposure speed up
 
     The speed at which the adaptation occurs from a dark environment to a bright environment.
@@ -157,7 +158,7 @@ class PostProcessParams:
     """
 
     exposure_speed_down: float = 0.0
-    """
+    """  # noqa: E501
     Auto exposure histogram setting for exposure speed down
 
     The speed at which adaptation occurs from a bright environment to a dark environment.
@@ -165,7 +166,7 @@ class PostProcessParams:
     """
 
     exposure_min_ev100: float = -100.0
-    """
+    """  # noqa: E501
     Auto exposure histogram setting for min ev100
 
     The minimum brightness for auto exposure adaptation, expressed in pixel luminance (cd/m2).
@@ -177,7 +178,7 @@ class PostProcessParams:
     """
 
     exposure_max_ev100: float = -100.0
-    """
+    """  # noqa: E501
     Auto exposure histogram setting for max ev100
 
     The maximum brightness for auto exposure adaptation, expressed in pixel luminance (cd/m2).
@@ -189,7 +190,7 @@ class PostProcessParams:
     """
 
     exposure_metering_mask: Optional[str] = None
-    """
+    """  # noqa: E501
     Auto exposure histogram setting for metering mask (internal-use)
 
     Use your own texture mask to meter exposure.
@@ -212,6 +213,7 @@ class CameraSensor(Sensor):
     """
     Describes the intrinsic and extrinsic parameters of a camera sensor
     """
+
     width: int
     height: int
 
@@ -234,8 +236,8 @@ class CameraSensor(Sensor):
     capture_instances: bool = False
     capture_motionvectors: bool = False
     capture_backwardmotionvectors: bool = False
-    capture_basecolor : bool = False
-    capture_properties : bool = False
+    capture_basecolor: bool = False
+    capture_properties: bool = False
 
     enable_streaming: bool = False
 
@@ -264,13 +266,14 @@ class CameraSensor(Sensor):
 
     distortion_lookup_table: Optional[str] = None
 
-    time_offset : float = 0.0
+    time_offset: float = 0.0
     """Offset capture time in ms"""
 
 
 #############################
 # LiDARSensor
 #############################
+
 
 @dataclass
 class LiDARBeam:
@@ -313,7 +316,7 @@ class LiDARIntensityParams:
     beam_intensity: float = 2.0
     """The intensity of the beam. It could be used to scale the final intensity to a reasonable range"""
 
-    albedo_weights: Tuple[float, float, float] = field(default=(0., 0., 0.))
+    albedo_weights: Tuple[float, float, float] = field(default=(0.0, 0.0, 0.0))
     """
     The weights of rgb channels to compose the surface albedo for LiDAR beams.
     Because the LiDAR beams are infrared light, the weight of red should be heavier than green and blue.
@@ -341,6 +344,7 @@ class LiDARSensor(Sensor):
     """
     Describes the intrinsic and extrinsic parameters of a LiDAR sensor
     """
+
     sample_rate: float
     rotation_rate: float
 
@@ -410,7 +414,7 @@ class SensorData:
         """
         Returns data array as a single-channel float32 depth buffer
         """
-        return self.data.view('<f4').squeeze(axis=2)
+        return self.data.view("<f4").squeeze(axis=2)
 
     @property
     def data_as_segmentation_ids(self) -> np.ndarray:
@@ -454,6 +458,7 @@ class SensorData:
         """
         # Instance id to color map
         import cv2
+
         np.random.seed(1234)
         random_ids = np.random.randint(0, 256, 65536, dtype=np.uint8)
         instance_id_to_color_lookup = cv2.applyColorMap(random_ids, cv2.COLORMAP_JET).reshape(-1, 3).astype(np.float32)
@@ -474,8 +479,10 @@ class SensorData:
         instance_image_rgb = self.data_as_instance_rgb.astype(np.float64)
         # Height and width must match, channels can be 3 (color) or 1 (grayscale)
         if rgb.shape[:2] != instance_image_rgb.shape[:2]:
-            raise PdError(f"Rgb image size {str(rgb.shape[:2])} must match the instances "
-                          f"image size {str(instance_image_rgb.shape[:2])}")
+            raise PdError(
+                f"Rgb image size {str(rgb.shape[:2])} must match the instances "
+                f"image size {str(instance_image_rgb.shape[:2])}"
+            )
         # Generates instance id alpha mask
         # Alpha mask has a non-zero alpha value for every non-zero pixel in instances rgb image
         # Lastly, broadcasts alpha to match dims of rgb image
@@ -484,7 +491,7 @@ class SensorData:
         alpha = np.expand_dims(alpha, axis=2)
         alpha = np.broadcast_to(alpha, shape=instance_image_rgb.shape)
         # Generates output image by combining rgb image with instances image
-        output_img = rgb * (1-alpha) + instance_image_rgb * alpha
+        output_img = rgb * (1 - alpha) + instance_image_rgb * alpha
         return output_img.astype(np.uint8)
 
     @property
@@ -508,6 +515,7 @@ class LidarSensorData:
     """
     Holds LiDAR sensor data returned from server
     """
+
     num_points: int
     data: np.ndarray
 
@@ -516,6 +524,7 @@ class SensorBuffer(IntEnum):
     """
     Enumerates annotation buffer type
     """
+
     RGB = 0
     DEPTH = 1
     NORMALS = 2
@@ -527,20 +536,23 @@ class SensorBuffer(IntEnum):
 # Sensor Rigs
 #############################
 
+
 class SensorRig(Enum):
     """
     Enumerates default sensor rigs available in the SDK
     """
-    BAREBONES_RGB = 'barebones_rgb'
-    BAREBONES_ALL = 'barebones_all'
-    DEMO_RIG_SIMPLE_FRONT_ALL = 'demo_rig_simple_front_all'
-    MINIMAL = 'minimal'
+
+    BAREBONES_RGB = "barebones_rgb"
+    BAREBONES_ALL = "barebones_all"
+    DEMO_RIG_SIMPLE_FRONT_ALL = "demo_rig_simple_front_all"
+    MINIMAL = "minimal"
 
 
 class PdBadSensorConfigError(PdError):
     """
     Error indicating a bad sensor config
     """
+
     pass
 
 
@@ -550,14 +562,14 @@ def sensors_from_json(json_dict: Dict[Any, Any]) -> List[Sensor]:
     """
     sensors = []
 
-    for sensor_config in json_dict['sensor_configs']:
+    for sensor_config in json_dict["sensor_configs"]:
         # Sensor name
-        if 'display_name' not in sensor_config:
+        if "display_name" not in sensor_config:
             raise PdBadSensorConfigError("Missing sensor name")
-        name = sensor_config['display_name']
+        name = sensor_config["display_name"]
 
         # Sensor pose
-        if 'sensor_extrinsic' not in sensor_config:
+        if "sensor_extrinsic" not in sensor_config:
             raise PdBadSensorConfigError("Missing sensor extrinsics")
         _ext = sensor_config["sensor_extrinsic"]
         try:
@@ -576,150 +588,151 @@ def sensors_from_json(json_dict: Dict[Any, Any]) -> List[Sensor]:
             raise PdBadSensorConfigError(str(e))
 
         # Sensor details
-        if 'sensor_intrinsic' in sensor_config or 'camera_intrinsic' in sensor_config:
+        if "sensor_intrinsic" in sensor_config or "camera_intrinsic" in sensor_config:
             # Camera sensor
-            camera_intrinsic = sensor_config.get('sensor_intrinsic', {})
-            camera_intrinsic.update(sensor_config.get('camera_intrinsic', {}))
+            camera_intrinsic = sensor_config.get("sensor_intrinsic", {})
+            camera_intrinsic.update(sensor_config.get("camera_intrinsic", {}))
             try:
                 sensor = CameraSensor(
-                    name=name,
-                    pose=pose,
-                    width=camera_intrinsic['width'],
-                    height=camera_intrinsic['height']
+                    name=name, pose=pose, width=camera_intrinsic["width"], height=camera_intrinsic["height"]
                 )
             except KeyError as e:
                 raise PdBadSensorConfigError(str(e))
-            sensor.field_of_view_degrees = camera_intrinsic.get('fov', sensor.field_of_view_degrees)
-            sensor.supersample = camera_intrinsic.get('supersample', sensor.supersample)
-            sensor.capture_rgb = camera_intrinsic.get('capture_rgb', sensor.capture_rgb)
-            sensor.capture_depth = camera_intrinsic.get('capture_depth', sensor.capture_depth)
-            sensor.capture_normals = camera_intrinsic.get('capture_normals', sensor.capture_normals)
-            sensor.capture_segmentation = camera_intrinsic.get('capture_segmentation', sensor.capture_segmentation)
-            sensor.capture_instances = camera_intrinsic.get('capture_instance', sensor.capture_instances)
-            sensor.capture_motionvectors = camera_intrinsic.get('capture_motionvectors', sensor.capture_motionvectors)
-            sensor.capture_backwardmotionvectors = camera_intrinsic.get('capture_backwardmotionvectors', sensor.capture_backwardmotionvectors)
-            sensor.capture_basecolor = camera_intrinsic.get('capture_basecolor', sensor.capture_basecolor)
-            sensor.capture_properties = camera_intrinsic.get('capture_properties', sensor.capture_properties)
-            if camera_intrinsic.get('capture_detections', False):
-                logger.warning(f"'capture_detections' is not currently supported and will have no effect for sensor '{sensor.name}'.")
-            sensor.enable_streaming = camera_intrinsic.get('enable_streaming', sensor.enable_streaming)
-            sensor.distortion_lookup_table = camera_intrinsic.get('distortion_lookup_table', sensor.distortion_lookup_table) or None
-            sensor.lut = camera_intrinsic.get('lut', sensor.lut)
-            sensor.lut_weight = camera_intrinsic.get('lut_weight', sensor.lut_weight)
-            sensor.time_offset = camera_intrinsic.get('time_offset', sensor.time_offset)
-            if 'distortion_params' in camera_intrinsic:
-                d = camera_intrinsic['distortion_params']
+            sensor.field_of_view_degrees = camera_intrinsic.get("fov", sensor.field_of_view_degrees)
+            sensor.supersample = camera_intrinsic.get("supersample", sensor.supersample)
+            sensor.capture_rgb = camera_intrinsic.get("capture_rgb", sensor.capture_rgb)
+            sensor.capture_depth = camera_intrinsic.get("capture_depth", sensor.capture_depth)
+            sensor.capture_normals = camera_intrinsic.get("capture_normals", sensor.capture_normals)
+            sensor.capture_segmentation = camera_intrinsic.get("capture_segmentation", sensor.capture_segmentation)
+            sensor.capture_instances = camera_intrinsic.get("capture_instance", sensor.capture_instances)
+            sensor.capture_motionvectors = camera_intrinsic.get("capture_motionvectors", sensor.capture_motionvectors)
+            sensor.capture_backwardmotionvectors = camera_intrinsic.get(
+                "capture_backwardmotionvectors", sensor.capture_backwardmotionvectors
+            )
+            sensor.capture_basecolor = camera_intrinsic.get("capture_basecolor", sensor.capture_basecolor)
+            sensor.capture_properties = camera_intrinsic.get("capture_properties", sensor.capture_properties)
+            if camera_intrinsic.get("capture_detections", False):
+                logger.warning(
+                    "'capture_detections' is not currently supported and will have no effect for sensor"
+                    f" '{sensor.name}'."
+                )
+            sensor.enable_streaming = camera_intrinsic.get("enable_streaming", sensor.enable_streaming)
+            sensor.distortion_lookup_table = (
+                camera_intrinsic.get("distortion_lookup_table", sensor.distortion_lookup_table) or None
+            )
+            sensor.lut = camera_intrinsic.get("lut", sensor.lut)
+            sensor.lut_weight = camera_intrinsic.get("lut_weight", sensor.lut_weight)
+            sensor.time_offset = camera_intrinsic.get("time_offset", sensor.time_offset)
+            if "distortion_params" in camera_intrinsic:
+                d = camera_intrinsic["distortion_params"]
                 sensor.distortion_params = DistortionParams()
                 p = sensor.distortion_params
-                p.k1 = d.get('k1', p.k1)
-                p.k2 = d.get('k2', p.k2)
-                p.k3 = d.get('k3', p.k3)
-                p.k4 = d.get('k4', p.k4)
-                p.k5 = d.get('k5', p.k5)
-                p.k6 = d.get('k6', p.k6)
-                p.p1 = d.get('p1', p.p1)
-                p.p2 = d.get('p2', p.p2)
-                p.skew = d.get('skew', p.skew)
-                p.is_fisheye = d.get('is_fisheye', p.is_fisheye)
-                p.fx = d.get('fx', p.fx)
-                p.fy = d.get('fy', p.fy)
-                p.cx = d.get('cx', p.cx)
-                p.cy = d.get('cy', p.cy)
-                sensor.fisheye_model = d.get('fisheye_model', sensor.fisheye_model)
-            if 'noise_params' in camera_intrinsic:
+                p.k1 = d.get("k1", p.k1)
+                p.k2 = d.get("k2", p.k2)
+                p.k3 = d.get("k3", p.k3)
+                p.k4 = d.get("k4", p.k4)
+                p.k5 = d.get("k5", p.k5)
+                p.k6 = d.get("k6", p.k6)
+                p.p1 = d.get("p1", p.p1)
+                p.p2 = d.get("p2", p.p2)
+                p.skew = d.get("skew", p.skew)
+                p.is_fisheye = d.get("is_fisheye", p.is_fisheye)
+                p.fx = d.get("fx", p.fx)
+                p.fy = d.get("fy", p.fy)
+                p.cx = d.get("cx", p.cx)
+                p.cy = d.get("cy", p.cy)
+                sensor.fisheye_model = d.get("fisheye_model", sensor.fisheye_model)
+            if "noise_params" in camera_intrinsic:
                 denoise_filter_lut = {
                     "AVERAGE_FILTER": DenoiseFilter.AverageFilter,
                     "MEDIAN_FILTER": DenoiseFilter.MedianFilter,
                     "FAST_MEDIAN_FILTER": DenoiseFilter.FastMedianFilter,
                     "BILATERAL_FILTER": DenoiseFilter.BilateralFilter,
                 }
-                d = camera_intrinsic['noise_params']
+                d = camera_intrinsic["noise_params"]
                 sensor.noise_params = NoiseParams()
                 p = sensor.noise_params
-                p.enable_bayer = d.get('enable_bayer', p.enable_bayer)
-                p.enable_gauss_noise = d.get('enable_gauss_noise', p.enable_gauss_noise)
-                p.enable_poisson_noise = d.get('enable_poisson_noise', p.enable_poisson_noise)
-                p.enable_denoise = d.get('enable_denoise', p.enable_denoise)
-                p.gauss_noise_sigma = d.get('gauss_noise_sigma', p.gauss_noise_sigma)
-                p.poisson_noise_lambda = d.get('poisson_noise_lambda', p.poisson_noise_lambda)
-                if 'denoise_filter' in d:
-                    p.denoise_filter = denoise_filter_lut[d.get('denoise_filter')]
-                p.denoise_filter_size = d.get('denoise_filter_size', p.denoise_filter_size)
-                p.bilateral_sigma_d = d.get('bilateral_sigma_d', p.bilateral_sigma_d)
-                p.bilateral_sigma_r = d.get('bilateral_sigma_r', p.bilateral_sigma_r)
-                p.enable_auto_noise = d.get('enable_auto_noise', p.enable_auto_noise)
-                p.signal_amount = d.get('signal_amount', p.signal_amount)
-                p.pre_amplifier_noise = d.get('pre_amplifier_noise', p.pre_amplifier_noise)
-                p.post_amplifier_noise = d.get('post_amplifier_noise', p.post_amplifier_noise)
-                p.is_using_iso = d.get('is_using_iso', p.is_using_iso)
-                p.iso_level = d.get('iso_level', p.iso_level)
-                p.enable_auto_iso = d.get('enable_auto_iso', p.enable_auto_iso)
-                p.fstop = d.get('fstop', p.fstop)
-                p.max_exposure_time = d.get('max_exposure_time', p.max_exposure_time)
-                p.quantum_efficiency = d.get('quantum_efficiency', p.quantum_efficiency)
-            if 'post_process_params' in camera_intrinsic:
-                d = camera_intrinsic['post_process_params']
+                p.enable_bayer = d.get("enable_bayer", p.enable_bayer)
+                p.enable_gauss_noise = d.get("enable_gauss_noise", p.enable_gauss_noise)
+                p.enable_poisson_noise = d.get("enable_poisson_noise", p.enable_poisson_noise)
+                p.enable_denoise = d.get("enable_denoise", p.enable_denoise)
+                p.gauss_noise_sigma = d.get("gauss_noise_sigma", p.gauss_noise_sigma)
+                p.poisson_noise_lambda = d.get("poisson_noise_lambda", p.poisson_noise_lambda)
+                if "denoise_filter" in d:
+                    p.denoise_filter = denoise_filter_lut[d.get("denoise_filter")]
+                p.denoise_filter_size = d.get("denoise_filter_size", p.denoise_filter_size)
+                p.bilateral_sigma_d = d.get("bilateral_sigma_d", p.bilateral_sigma_d)
+                p.bilateral_sigma_r = d.get("bilateral_sigma_r", p.bilateral_sigma_r)
+                p.enable_auto_noise = d.get("enable_auto_noise", p.enable_auto_noise)
+                p.signal_amount = d.get("signal_amount", p.signal_amount)
+                p.pre_amplifier_noise = d.get("pre_amplifier_noise", p.pre_amplifier_noise)
+                p.post_amplifier_noise = d.get("post_amplifier_noise", p.post_amplifier_noise)
+                p.is_using_iso = d.get("is_using_iso", p.is_using_iso)
+                p.iso_level = d.get("iso_level", p.iso_level)
+                p.enable_auto_iso = d.get("enable_auto_iso", p.enable_auto_iso)
+                p.fstop = d.get("fstop", p.fstop)
+                p.max_exposure_time = d.get("max_exposure_time", p.max_exposure_time)
+                p.quantum_efficiency = d.get("quantum_efficiency", p.quantum_efficiency)
+            if "post_process_params" in camera_intrinsic:
+                d = camera_intrinsic["post_process_params"]
                 sensor.post_process_params = PostProcessParams()
                 p = sensor.post_process_params
-                p.exposure_compensation = d.get('exposure_compensation', p.exposure_compensation)
-                p.exposure_speed_up = d.get('exposure_speed_up', p.exposure_speed_up)
-                p.exposure_speed_down = d.get('exposure_speed_down', p.exposure_speed_down)
-                p.exposure_min_ev100 = d.get('exposure_min_ev100', p.exposure_min_ev100)
-                p.exposure_max_ev100 = d.get('exposure_max_ev100', p.exposure_max_ev100)
-                p.exposure_compensation_curve = d.get('exposure_compensation_curve', p.exposure_compensation_curve)
-                p.exposure_metering_mask = d.get('exposure_metering_mask', p.exposure_metering_mask)
-                p.motion_blur_amount = d.get('motion_blur_amount', p.motion_blur_amount)
-                p.motion_blur_max = d.get('motion_blur_max', p.motion_blur_max)
-                p.dof_focal_distance = d.get('dof_focal_distance', p.dof_focal_distance)
-                p.dof_depth_blur_amount = d.get('dof_depth_blur_amount', p.dof_depth_blur_amount)
-                p.dof_depth_blur_radius = d.get('dof_depth_blur_radius', p.dof_depth_blur_radius)
-                p.vignette_intensity = d.get('vignette_intensity', p.vignette_intensity)
-                if 'tone_curve' in d:
-                    p.tone_curve = TonemapCurve();
-                    tone = d['tone_curve']
+                p.exposure_compensation = d.get("exposure_compensation", p.exposure_compensation)
+                p.exposure_speed_up = d.get("exposure_speed_up", p.exposure_speed_up)
+                p.exposure_speed_down = d.get("exposure_speed_down", p.exposure_speed_down)
+                p.exposure_min_ev100 = d.get("exposure_min_ev100", p.exposure_min_ev100)
+                p.exposure_max_ev100 = d.get("exposure_max_ev100", p.exposure_max_ev100)
+                p.exposure_compensation_curve = d.get("exposure_compensation_curve", p.exposure_compensation_curve)
+                p.exposure_metering_mask = d.get("exposure_metering_mask", p.exposure_metering_mask)
+                p.motion_blur_amount = d.get("motion_blur_amount", p.motion_blur_amount)
+                p.motion_blur_max = d.get("motion_blur_max", p.motion_blur_max)
+                p.dof_focal_distance = d.get("dof_focal_distance", p.dof_focal_distance)
+                p.dof_depth_blur_amount = d.get("dof_depth_blur_amount", p.dof_depth_blur_amount)
+                p.dof_depth_blur_radius = d.get("dof_depth_blur_radius", p.dof_depth_blur_radius)
+                p.vignette_intensity = d.get("vignette_intensity", p.vignette_intensity)
+                if "tone_curve" in d:
+                    p.tone_curve = TonemapCurve()
+                    tone = d["tone_curve"]
                     p.tone_curve.slope = tone.get("slope", p.tone_curve.slope)
                     p.tone_curve.toe = tone.get("toe", p.tone_curve.toe)
                     p.tone_curve.shoulder = tone.get("shoulder", p.tone_curve.shoulder)
                     p.tone_curve.white_clip = tone.get("white_clip", p.tone_curve.white_clip)
-                    p.tone_curve.black_clip =tone.get("black_clip", p.tone_curve.black_clip)
-            if 'post_process' in camera_intrinsic:
-                for d in camera_intrinsic['post_process']:
+                    p.tone_curve.black_clip = tone.get("black_clip", p.tone_curve.black_clip)
+            if "post_process" in camera_intrinsic:
+                for d in camera_intrinsic["post_process"]:
                     sensor.post_process_materials.append(
-                        PostProcessMaterial(material=d['material'], weight=d['weight'])
+                        PostProcessMaterial(material=d["material"], weight=d["weight"])
                     )
             sensors.append(sensor)
-        elif 'lidar_intrinsic' in sensor_config:
+        elif "lidar_intrinsic" in sensor_config:
             # Lidar sensor
-            lidar_intrinsic = sensor_config['lidar_intrinsic']
+            lidar_intrinsic = sensor_config["lidar_intrinsic"]
             try:
                 sensor = LiDARSensor(
                     name=name,
                     pose=pose,
-                    sample_rate=lidar_intrinsic['sample_rate'],
-                    rotation_rate=lidar_intrinsic['rotation_rate']
+                    sample_rate=lidar_intrinsic["sample_rate"],
+                    rotation_rate=lidar_intrinsic["rotation_rate"],
                 )
             except KeyError as e:
                 raise PdBadSensorConfigError(str(e))
-            if 'beam_data' in lidar_intrinsic:
-                beam_data = lidar_intrinsic['beam_data']
+            if "beam_data" in lidar_intrinsic:
+                beam_data = lidar_intrinsic["beam_data"]
                 for d in beam_data:
-                    sensor.beam_data.append(
-                        LiDARBeam(
-                            id=d['id'],
-                            azimuth=d['azimuth'],
-                            elevation=d['elevation']
-                        )
-                    )
-            sensor.azimuth_min = lidar_intrinsic.get('azimuth_min', sensor.azimuth_min)
-            sensor.azimuth_max = lidar_intrinsic.get('azimuth_max', sensor.azimuth_max)
-            sensor.capture_rgb = lidar_intrinsic.get('capture_rgb', sensor.capture_rgb)
-            sensor.capture_depth = lidar_intrinsic.get('capture_depth', sensor.capture_depth)
-            sensor.capture_normals = lidar_intrinsic.get('capture_normals', sensor.capture_normals)
-            sensor.capture_segmentation = lidar_intrinsic.get('capture_segmentation', sensor.capture_segmentation)
-            sensor.capture_instances = lidar_intrinsic.get('capture_instance', sensor.capture_instances)
-            sensor.capture_motionvectors = lidar_intrinsic.get('capture_motionvectors', sensor.capture_motionvectors)
-            if lidar_intrinsic.get('capture_detections', False):
-                logger.warning(f"'capture_detections' is not currently supported and will have no effect for sensor '{sensor.name}'.")
+                    sensor.beam_data.append(LiDARBeam(id=d["id"], azimuth=d["azimuth"], elevation=d["elevation"]))
+            sensor.azimuth_min = lidar_intrinsic.get("azimuth_min", sensor.azimuth_min)
+            sensor.azimuth_max = lidar_intrinsic.get("azimuth_max", sensor.azimuth_max)
+            sensor.capture_rgb = lidar_intrinsic.get("capture_rgb", sensor.capture_rgb)
+            sensor.capture_depth = lidar_intrinsic.get("capture_depth", sensor.capture_depth)
+            sensor.capture_normals = lidar_intrinsic.get("capture_normals", sensor.capture_normals)
+            sensor.capture_segmentation = lidar_intrinsic.get("capture_segmentation", sensor.capture_segmentation)
+            sensor.capture_instances = lidar_intrinsic.get("capture_instance", sensor.capture_instances)
+            sensor.capture_motionvectors = lidar_intrinsic.get("capture_motionvectors", sensor.capture_motionvectors)
+            if lidar_intrinsic.get("capture_detections", False):
+                logger.warning(
+                    "'capture_detections' is not currently supported and will have no effect for sensor"
+                    f" '{sensor.name}'."
+                )
             sensors.append(sensor)
         else:
             raise PdBadSensorConfigError("Missing sensor intrinsics")
@@ -744,6 +757,7 @@ def load_sensor_rig(name_or_path: Union[SensorRig, str]) -> List[Sensor]:
         List of sensors
     """
     import pd.internal.sensor_rigs as sensor_rigs_package
+
     base_rig_path = Path(sensor_rigs_package.__file__).resolve().parent
     if isinstance(name_or_path, SensorRig):
         file_name = name_or_path.value

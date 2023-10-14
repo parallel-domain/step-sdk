@@ -12,10 +12,8 @@ import logging
 import time
 from uuid import UUID
 
-
-from pd.management.ig import Ig, IgStatus
 from pd.core import PdError
-
+from pd.management.ig import Ig, IgStatus
 
 logger = logging.getLogger(__name__)
 

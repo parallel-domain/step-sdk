@@ -254,6 +254,13 @@ class DataSockets(BaseModel):
     class Meta:
         table_name = 'DATA_sockets'
 
+class UtilTrafficSignalAxisAlignments(BaseModel):
+    id = CharField(primary_key=True)
+    name = TextField(null=True, unique=True)
+
+    class Meta:
+        table_name = 'UTIL_traffic_signal_axis_alignments'
+
 class UtilTrafficSignalOrientations(BaseModel):
     id = CharField(primary_key=True)
     name = TextField(null=True, unique=True)
@@ -275,13 +282,6 @@ class UtilTrafficSignalMountOrientations(BaseModel):
     class Meta:
         table_name = 'UTIL_traffic_signal_mount_orientations'
 
-class UtilTrafficSignalAxisAlignments(BaseModel):
-    id = CharField(primary_key=True)
-    name = TextField(null=True, unique=True)
-
-    class Meta:
-        table_name = 'UTIL_traffic_signal_axis_alignments'
-
 class DataTrafficSignal(BaseModel):
     asset = ForeignKeyField(column_name='asset_id', field='id', model=ObjAssets, null=True)
     axis0_alignment = ForeignKeyField(column_name='axis0_alignment_id', field='id', model=UtilTrafficSignalAxisAlignments, null=True)
@@ -294,6 +294,8 @@ class DataTrafficSignal(BaseModel):
     axis3_diameter = FloatField(null=True)
     axis4_alignment = ForeignKeyField(backref='UTIL_traffic_signal_axis_alignments_axis4_alignment_set', column_name='axis4_alignment_id', field='id', model=UtilTrafficSignalAxisAlignments, null=True)
     axis4_diameter = FloatField(null=True)
+    axis5_alignment = ForeignKeyField(backref='UTIL_traffic_signal_axis_alignments_axis5_alignment_set', column_name='axis5_alignment_id', field='id', model=UtilTrafficSignalAxisAlignments, null=True)
+    axis5_diameter = FloatField(null=True)
     backplate = IntegerField(null=True)
     backplate_tape = IntegerField(null=True)
     bulb00 = IntegerField(null=True)
@@ -306,6 +308,8 @@ class DataTrafficSignal(BaseModel):
     bulb31 = IntegerField(null=True)
     bulb40 = IntegerField(null=True)
     bulb41 = IntegerField(null=True)
+    bulb50 = IntegerField(null=True)
+    bulb51 = IntegerField(null=True)
     id = CharField(primary_key=True)
     mount_alignment = ForeignKeyField(column_name='mount_alignment_id', field='id', model=UtilTrafficSignalMountOrientations, null=True)
     mount_orientation = ForeignKeyField(backref='UTIL_traffic_signal_mount_orientations_mount_orientation_set', column_name='mount_orientation_id', field='id', model=UtilTrafficSignalMountOrientations, null=True)

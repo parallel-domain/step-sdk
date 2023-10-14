@@ -475,6 +475,20 @@ table pdQueryLabelEngineAnnotationStatus
     scene_name: string;
 }
 
+//Query to see if sim map loading has completed
+table pdQueryLoadLocationStatus
+{
+	// map name to check
+    location: string;
+}
+
+// Response from pdQueryLoadLocationStatus
+table pdReturnLoadLocationStatus
+{
+    // True if map is loaded
+    status : bool;
+}
+
 // Response from pdQueryLabelEngineAnnotationStatus
 table pdReturnLabelEngineAnnotationStatus
 {
@@ -563,7 +577,7 @@ union pdMessageType
     pdReturnScenarioData,
     pdQueryStateData,
     pdReturnStateData,
-    
+
     // Query world
     pdRaycastQuery,
     pdRaycastHits,
@@ -575,7 +589,11 @@ union pdMessageType
     pdReturnLabelEngineAnnotationStatus,
     pdRequestLabelEngineAnnotationData,
     pdReturnLabelEngineAnnotationData,
-    pdUpdateLabelEngineAnnotationData
+    pdUpdateLabelEngineAnnotationData,
+
+    // Load Location querying
+    pdQueryLoadLocationStatus,
+    pdReturnLoadLocationStatus,
 }
 
 table pdMessage

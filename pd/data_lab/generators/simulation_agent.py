@@ -5,13 +5,13 @@
 # separate written license agreement with Parallel Domain, Inc.
 import abc
 from functools import lru_cache
-from typing import Union, Tuple
+from typing import Tuple, Union
 
 import numpy as np
 
 import pd.state
 from pd.internal.assets.asset_registry import ObjAssets
-from pd.state import Pose6D, ModelAgent
+from pd.state import ModelAgent, Pose6D
 
 StepAgentType = Union[pd.state.VehicleAgent, pd.state.ModelAgent]
 

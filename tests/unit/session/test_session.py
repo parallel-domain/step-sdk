@@ -1,75 +1,85 @@
+import logging
 import threading
 import time
 from queue import Queue
 from typing import List
-import logging
 
 import flatbuffers
+import numpy as np
 import pytest
 import zmq
-import numpy as np
 
 import pd.state
-from pd.internal.fb.generated.python import pdMessage, pdReturnSystemInfo, pdLoadLocation, pdReturnRuntimeInfo, \
-    pdIgState, pdUpdateState, pdReturnSensorData, pdQuerySensorData, pdReturnScenarioData, pdSubmitScenarioGenConfig, \
-    pdReturnStateData, pdRaycastHit, pdFloat3, pdRaycastHits, pdRaycastQuery, pdConfigLabelEngine, \
-    pdReturnLabelEngineAnnotationStatus, pdQueryLabelEngineAnnotationStatus, pdReturnLabelEngineAnnotationData, \
-    pdLabelData, pdRequestLabelEngineAnnotationData, pdUpdateLabelEngineAnnotationData
+from pd.core.errors import PdError
+from pd.internal.fb.generated.python import (
+    pdConfigLabelEngine,
+    pdFloat3,
+    pdIgState,
+    pdLabelData,
+    pdLoadLocation,
+    pdMessage,
+    pdQueryLabelEngineAnnotationStatus,
+    pdQuerySensorData,
+    pdRaycastHit,
+    pdRaycastHits,
+    pdRaycastQuery,
+    pdRequestLabelEngineAnnotationData,
+    pdReturnLabelEngineAnnotationData,
+    pdReturnLabelEngineAnnotationStatus,
+    pdReturnRuntimeInfo,
+    pdReturnScenarioData,
+    pdReturnSensorData,
+    pdReturnStateData,
+    pdReturnSystemInfo,
+    pdSubmitScenarioGenConfig,
+    pdUpdateLabelEngineAnnotationData,
+    pdUpdateState, pdQueryLoadLocationStatus, pdReturnLoadLocationStatus,
+)
 from pd.internal.fb.generated.python.pdBufferType import pdBufferType
 from pd.internal.fb.generated.python.pdIgStateType import pdIgStateType
 from pd.internal.fb.generated.python.pdMessageType import pdMessageType
 from pd.internal.fb.generated.python.pdResponseCode import pdResponseCode
 from pd.internal.fb.generated.python.pdRuntimeInfo import pdRuntimeInfo
 from pd.label_engine import DataType
-from pd.session.session import BaseSession, StepIgSession, PdMessageMixin, RuntimeState, SimSession, LabelEngineSession
+from pd.session.session import BaseSession, LabelEngineSession, PdMessageMixin, RuntimeState, SimSession, StepIgSession
 from pd.session.transport import get_zmq_context
-from pd.core.errors import PdError
 from pd.sim import Raycast
-from pd.state import bytes_to_state, SensorBuffer, state_to_bytes
+from pd.state import SensorBuffer, bytes_to_state, state_to_bytes
 
 logger = logging.getLogger(__name__)
 
 
 class TestBaseSession:
     def test_base_session_init_tcp(self):
-        BaseSession(
-            request_addr='tcp://hostname:1234'
-        )
+        BaseSession(request_addr="tcp://hostname:1234")
 
     def test_base_session_init_ssl(self):
-        BaseSession(
-            request_addr='ssl://hostname:1234', client_cert_file='/path/to/file'
-        )
+        BaseSession(request_addr="ssl://hostname:1234", client_cert_file="/path/to/file")
 
     def test_base_session_init_fails_on_unknown_protocol(self):
-        with pytest.raises(PdError, match=r'.*Invalid request address.*'):
-            BaseSession(
-                request_addr='udp://hostname:1234'
-            )
+        with pytest.raises(PdError, match=r".*Invalid request address.*"):
+            BaseSession(request_addr="udp://hostname:1234")
 
     def test_base_session_init_fails_on_missing_port(self):
-        with pytest.raises(PdError, match=r'.*Invalid request address.*'):
-            BaseSession(
-                request_addr='tcp://hostname'
-            )
+        with pytest.raises(PdError, match=r".*Invalid request address.*"):
+            BaseSession(request_addr="tcp://hostname")
 
     def test_base_session_init_fails_on_missing_ssl_cert(self):
-        with pytest.raises(PdError, match=r'.*certificate path missing.*'):
-            BaseSession(
-                request_addr='ssl://hostname:1234'
-            )
+        with pytest.raises(PdError, match=r".*certificate path missing.*"):
+            BaseSession(request_addr="ssl://hostname:1234")
 
     def test_base_session_init_fails_on_state_not_tcp(self):
-        with pytest.raises(PdError, match=r'.*Invalid state address.*'):
+        with pytest.raises(PdError, match=r".*Invalid state address.*"):
             BaseSession(
-                request_addr='ssl://hostname:1234', state_addr='ssl://hostname:1234',
-                client_cert_file='/path/to/file'
+                request_addr="ssl://hostname:1234", state_addr="ssl://hostname:1234", client_cert_file="/path/to/file"
             )
+
 
 class PdMessageZmqServerStub:
     """
     A zmq server that sinks all pd messages it receives
     """
+
     def __init__(self):
         self._thread = None
         self._exit = False
@@ -78,9 +88,7 @@ class PdMessageZmqServerStub:
         self.requests: List[pdMessage.pdMessage] = []  # request messages received by server
 
     def __enter__(self):
-        self._thread = threading.Thread(
-            target=self._worker
-        )
+        self._thread = threading.Thread(target=self._worker)
         self._thread.start()
 
     def __exit__(self, *args):
@@ -92,7 +100,9 @@ class PdMessageZmqServerStub:
     @property
     def address(self) -> str:
         if not self._thread:
-            raise ValueError("Server stub context has not started. Address is only available after context has started.")
+            raise ValueError(
+                "Server stub context has not started. Address is only available after context has started."
+            )
         return self._address_queue.get(timeout=1)
 
     def _worker(self):
@@ -178,7 +188,9 @@ class TestStepIgSession:
         assert system_info.version.build == "test"
 
     def test_system_info_raises_error_on_error_response(self, builder):
-        msg = PdMessageMixin._build_ack_message(builder, pdMessageType.pdQuerySystemInfo, "error ack", pdResponseCode.SERVER_ERROR)
+        msg = PdMessageMixin._build_ack_message(
+            builder, pdMessageType.pdQuerySystemInfo, "error ack", pdResponseCode.SERVER_ERROR
+        )
         builder.Finish(msg)
         request_bytes = builder.Output()
 
@@ -187,7 +199,7 @@ class TestStepIgSession:
         with server:
             session = StepIgSession(request_addr=server.address)
             session.transport.timeout_recv_ms = 1000  # fail quickly
-            with pytest.raises(PdError, match=r'.*error ack.*'):
+            with pytest.raises(PdError, match=r".*error ack.*"):
                 with session:
                     # Query system info is called automatically by session
                     # We don't need to do anything here
@@ -215,12 +227,14 @@ class TestStepIgSession:
     def test_query_runtime_state_raises_error_on_error_response(self, builder, server_and_session):
         server, session = server_and_session
 
-        msg = PdMessageMixin._build_ack_message(builder, pdMessageType.pdQueryRuntimeInfo, "error ack", pdResponseCode.SERVER_ERROR)
+        msg = PdMessageMixin._build_ack_message(
+            builder, pdMessageType.pdQueryRuntimeInfo, "error ack", pdResponseCode.SERVER_ERROR
+        )
         builder.Finish(msg)
         request_bytes = builder.Output()
         server.responses.append(request_bytes)
 
-        with pytest.raises(PdError, match=r'.*error ack*'):
+        with pytest.raises(PdError, match=r".*error ack*"):
             session.query_runtime_state()
 
     def test_load_location(self, builder, server_and_session):
@@ -259,12 +273,14 @@ class TestStepIgSession:
     def test_load_location_raises_error_on_error_response(self, builder, server_and_session):
         server, session = server_and_session
 
-        msg = PdMessageMixin._build_ack_message(builder, pdMessageType.pdLoadLocation, "error ack", pdResponseCode.SERVER_ERROR)
+        msg = PdMessageMixin._build_ack_message(
+            builder, pdMessageType.pdLoadLocation, "error ack", pdResponseCode.SERVER_ERROR
+        )
         builder.Finish(msg)
         request_bytes = builder.Output()
         server.responses.append(request_bytes)
 
-        with pytest.raises(PdError, match=r'.*error ack*'):
+        with pytest.raises(PdError, match=r".*error ack*"):
             session.load_location("test_location", "test_lighting")
 
     def test_update_state(self, builder, server_and_session, helpers):
@@ -275,11 +291,7 @@ class TestStepIgSession:
         request_bytes = builder.Output()
         server.responses.append(request_bytes)
 
-        state = pd.state.State(
-            simulation_time_sec=0.123,
-            world_info=pd.state.WorldInfo(),
-            agents=[]
-        )
+        state = pd.state.State(simulation_time_sec=0.123, world_info=pd.state.WorldInfo(), agents=[])
         session.update_state(state)
         request_pd_msg = server.requests[-1]
         assert request_pd_msg.MessageType() == pdMessageType.pdUpdateState
@@ -292,17 +304,15 @@ class TestStepIgSession:
     def test_update_state_raises_error_on_error_response(self, builder, server_and_session):
         server, session = server_and_session
 
-        msg = PdMessageMixin._build_ack_message(builder, pdMessageType.pdUpdateState, "error ack", pdResponseCode.SERVER_ERROR)
+        msg = PdMessageMixin._build_ack_message(
+            builder, pdMessageType.pdUpdateState, "error ack", pdResponseCode.SERVER_ERROR
+        )
         builder.Finish(msg)
         request_bytes = builder.Output()
         server.responses.append(request_bytes)
 
-        with pytest.raises(PdError, match=r'.*error ack*'):
-            state = pd.state.State(
-                simulation_time_sec=0.123,
-                world_info=pd.state.WorldInfo(),
-                agents=[]
-            )
+        with pytest.raises(PdError, match=r".*error ack*"):
+            state = pd.state.State(simulation_time_sec=0.123, world_info=pd.state.WorldInfo(), agents=[])
             session.update_state(state)
 
     def test_query_sensor_data(self, builder, server_and_session):
@@ -346,12 +356,14 @@ class TestStepIgSession:
     def test_query_sensor_data_raises_error_on_error_response(self, builder, server_and_session):
         server, session = server_and_session
 
-        msg = PdMessageMixin._build_ack_message(builder, pdMessageType.pdQuerySensorData, "error ack", pdResponseCode.SERVER_ERROR)
+        msg = PdMessageMixin._build_ack_message(
+            builder, pdMessageType.pdQuerySensorData, "error ack", pdResponseCode.SERVER_ERROR
+        )
         builder.Finish(msg)
         request_bytes = builder.Output()
         server.responses.append(request_bytes)
 
-        with pytest.raises(PdError, match=r'.*error ack*'):
+        with pytest.raises(PdError, match=r".*error ack*"):
             session.query_sensor_data(agent_id=123, sensor_name="test", buffer=SensorBuffer.DEPTH)
 
 
@@ -400,22 +412,20 @@ class TestSimSession:
     def test_load_scenario_generation_error_on_error_response(self, builder, server_and_session):
         server, session = server_and_session
 
-        msg = PdMessageMixin._build_ack_message(builder, pdMessageType.pdSubmitScenarioGenConfig, "error ack", pdResponseCode.SERVER_ERROR)
+        msg = PdMessageMixin._build_ack_message(
+            builder, pdMessageType.pdSubmitScenarioGenConfig, "error ack", pdResponseCode.SERVER_ERROR
+        )
         builder.Finish(msg)
         request_bytes = builder.Output()
         server.responses.append(request_bytes)
 
-        with pytest.raises(PdError, match=r'.*error ack*'):
+        with pytest.raises(PdError, match=r".*error ack*"):
             session.load_scenario_generation(scenario_gen="test scenario string", location_index=42)
 
     def test_query_state_data(self, builder, server_and_session, helpers):
         server, session = server_and_session
 
-        state = pd.state.State(
-            simulation_time_sec=0.456,
-            world_info=pd.state.WorldInfo(),
-            agents=[]
-        )
+        state = pd.state.State(simulation_time_sec=0.456, world_info=pd.state.WorldInfo(), agents=[])
         state_bytes = state_to_bytes(state)
         pdReturnStateData.pdReturnStateDataStartStateDataVector(builder, len(state_bytes))
         builder.head = builder.head - len(state_bytes)
@@ -440,12 +450,14 @@ class TestSimSession:
     def test_query_state_data_raises_error_on_error_response(self, builder, server_and_session):
         server, session = server_and_session
 
-        msg = PdMessageMixin._build_ack_message(builder, pdMessageType.pdQueryStateData, "error ack", pdResponseCode.SERVER_ERROR)
+        msg = PdMessageMixin._build_ack_message(
+            builder, pdMessageType.pdQueryStateData, "error ack", pdResponseCode.SERVER_ERROR
+        )
         builder.Finish(msg)
         request_bytes = builder.Output()
         server.responses.append(request_bytes)
 
-        with pytest.raises(PdError, match=r'.*error ack*'):
+        with pytest.raises(PdError, match=r".*error ack*"):
             session.query_state_data()
 
     def test_raycast(self, builder, server_and_session, helpers):
@@ -517,13 +529,66 @@ class TestSimSession:
     def test_raycast_raises_error_on_error_response(self, builder, server_and_session):
         server, session = server_and_session
 
-        msg = PdMessageMixin._build_ack_message(builder, pdMessageType.pdRaycastQuery, "error ack", pdResponseCode.SERVER_ERROR)
+        msg = PdMessageMixin._build_ack_message(
+            builder, pdMessageType.pdRaycastQuery, "error ack", pdResponseCode.SERVER_ERROR
+        )
         builder.Finish(msg)
         request_bytes = builder.Output()
         server.responses.append(request_bytes)
 
-        with pytest.raises(PdError, match=r'.*error ack*'):
+        with pytest.raises(PdError, match=r".*error ack*"):
             session.raycast([])
+
+    def test_load_location(self, builder, server_and_session):
+        server, session = server_and_session
+
+        msg = PdMessageMixin._build_ack_message(builder, pdMessageType.pdLoadLocation, "ack")
+        builder.Finish(msg)
+        request_bytes = builder.Output()
+        server.responses.append(request_bytes)
+
+        session.load_location("test_location", "scene_abc")
+        request_pd_msg = server.requests[-1]
+        assert request_pd_msg.MessageType() == pdMessageType.pdLoadLocation
+        request_msg = pdLoadLocation.pdLoadLocation()
+        request_msg.Init(request_pd_msg.Message().Bytes, request_pd_msg.Message().Pos)
+        assert request_msg.LocationName().decode() == "test_location"
+        assert request_msg.SceneName().decode() == "scene_abc"
+        assert not request_msg.TimeOfDay()
+
+    def test_load_location_raises_error_on_error_response(self, builder, server_and_session):
+        server, session = server_and_session
+
+        msg = PdMessageMixin._build_ack_message(
+            builder, pdMessageType.pdLoadLocation, "error ack", pdResponseCode.SERVER_ERROR
+        )
+        builder.Finish(msg)
+        request_bytes = builder.Output()
+        server.responses.append(request_bytes)
+
+        with pytest.raises(PdError, match=r".*error ack*"):
+            session.load_location("test_location", "scene_abc")
+
+    def test_query_load_location(self, builder, server_and_session):
+        server, session = server_and_session
+
+        pdReturnLoadLocationStatus.pdReturnLoadLocationStatusStart(builder)
+        pdReturnLoadLocationStatus.pdReturnLoadLocationStatusAddStatus(builder, True)
+        msg_bytes = pdReturnLoadLocationStatus.pdReturnLoadLocationStatusEnd(builder)
+
+        msg = PdMessageMixin._build_pd_message(builder, msg_bytes, pdMessageType.pdReturnLoadLocationStatus)
+        builder.Finish(msg)
+        request_bytes = builder.Output()
+        server.responses.append(request_bytes)
+
+        ret = session.query_load_location("test_location")
+        request_pd_msg = server.requests[-1]
+        assert request_pd_msg.MessageType() == pdMessageType.pdQueryLoadLocationStatus
+        request_msg = pdQueryLoadLocationStatus.pdQueryLoadLocationStatus()
+        request_msg.Init(request_pd_msg.Message().Bytes, request_pd_msg.Message().Pos)
+        assert request_msg.Location().decode() == "test_location"
+
+        assert ret
 
 
 class TestLabelEngineSession:
@@ -562,12 +627,14 @@ class TestLabelEngineSession:
     def test_configure_raises_error_on_error_response(self, builder, server_and_session):
         server, session = server_and_session
 
-        msg = PdMessageMixin._build_ack_message(builder, pdMessageType.pdConfigLabelEngine, "error ack", pdResponseCode.SERVER_ERROR)
+        msg = PdMessageMixin._build_ack_message(
+            builder, pdMessageType.pdConfigLabelEngine, "error ack", pdResponseCode.SERVER_ERROR
+        )
         builder.Finish(msg)
         request_bytes = builder.Output()
         server.responses.append(request_bytes)
 
-        with pytest.raises(PdError, match=r'.*error ack*'):
+        with pytest.raises(PdError, match=r".*error ack*"):
             session.configure(scene_name="scene abc", config="test pipeline json")
 
     @staticmethod
@@ -585,7 +652,9 @@ class TestLabelEngineSession:
         server, session = server_and_session
         self._add_response_for_query_annotation_status(builder, server, True)
 
-        status = session.query_annotation_status(scene_name="scene abc", timestamp="000123", sensor_id_and_name=(123, "testsensor"), label="data_stream_xyz")
+        status = session.query_annotation_status(
+            scene_name="scene abc", timestamp="000123", sensor_id_and_name=(123, "testsensor"), label="data_stream_xyz"
+        )
         request_pd_msg = server.requests[-1]
         assert request_pd_msg.MessageType() == pdMessageType.pdQueryLabelEngineAnnotationStatus
         request_msg = pdQueryLabelEngineAnnotationStatus.pdQueryLabelEngineAnnotationStatus()
@@ -602,7 +671,9 @@ class TestLabelEngineSession:
         server, session = server_and_session
         self._add_response_for_query_annotation_status(builder, server, True)
 
-        status = session.query_annotation_status(scene_name="scene abc", sensor_id_and_name=(123, "testsensor"), label="data_stream_xyz")
+        status = session.query_annotation_status(
+            scene_name="scene abc", sensor_id_and_name=(123, "testsensor"), label="data_stream_xyz"
+        )
         request_pd_msg = server.requests[-1]
         assert request_pd_msg.MessageType() == pdMessageType.pdQueryLabelEngineAnnotationStatus
         request_msg = pdQueryLabelEngineAnnotationStatus.pdQueryLabelEngineAnnotationStatus()
@@ -647,19 +718,23 @@ class TestLabelEngineSession:
     def test_query_annotation_status_raises_error_on_error_response(self, builder, server_and_session):
         server, session = server_and_session
 
-        msg = PdMessageMixin._build_ack_message(builder, pdMessageType.pdQueryLabelEngineAnnotationStatus, "error ack", pdResponseCode.SERVER_ERROR)
+        msg = PdMessageMixin._build_ack_message(
+            builder, pdMessageType.pdQueryLabelEngineAnnotationStatus, "error ack", pdResponseCode.SERVER_ERROR
+        )
         builder.Finish(msg)
         request_bytes = builder.Output()
         server.responses.append(request_bytes)
 
-        with pytest.raises(PdError, match=r'.*error ack*'):
+        with pytest.raises(PdError, match=r".*error ack*"):
             session.query_annotation_status(scene_name="scene abc", label="data_stream_xyz")
 
     def test_query_annotation_status_sensor_name_with_hyphen(self, builder, server_and_session):
         server, session = server_and_session
         self._add_response_for_query_annotation_status(builder, server, True)
 
-        status = session.query_annotation_status(scene_name="scene abc", timestamp="000123", sensor_id_and_name=(123, "test-sensor"), label="data_stream_xyz")
+        status = session.query_annotation_status(
+            scene_name="scene abc", timestamp="000123", sensor_id_and_name=(123, "test-sensor"), label="data_stream_xyz"
+        )
         request_pd_msg = server.requests[-1]
         assert request_pd_msg.MessageType() == pdMessageType.pdQueryLabelEngineAnnotationStatus
         request_msg = pdQueryLabelEngineAnnotationStatus.pdQueryLabelEngineAnnotationStatus()
@@ -669,7 +744,7 @@ class TestLabelEngineSession:
         assert status is True
 
     @staticmethod
-    def _add_response_for_request_annotation_data(builder, server, timestamp, sensor,data):
+    def _add_response_for_request_annotation_data(builder, server, timestamp, sensor, data):
         label_data_fbs = []
 
         label_data_bytes = data.encode()
@@ -687,7 +762,9 @@ class TestLabelEngineSession:
         pdLabelData.pdLabelDataAddLabelData(builder, label_data_bytes_fb)
         label_data_fbs.append(pdLabelData.pdLabelDataEnd(builder))
 
-        pdReturnLabelEngineAnnotationData.pdReturnLabelEngineAnnotationDataStartLabelDataVector(builder, len(label_data_fbs))
+        pdReturnLabelEngineAnnotationData.pdReturnLabelEngineAnnotationDataStartLabelDataVector(
+            builder, len(label_data_fbs)
+        )
         for label_data_fb in reversed(label_data_fbs):
             builder.PrependUOffsetTRelative(label_data_fb)
         label_data_fb_vec = builder.EndVector(len(label_data_fbs))
@@ -704,7 +781,9 @@ class TestLabelEngineSession:
         server, session = server_and_session
         self._add_response_for_request_annotation_data(builder, server, "000123", "testsensor-123", "test label data 1")
 
-        label_data = session.request_annotation_data(scene_name="scene abc", timestamp="000123", sensor_id_and_name=(123, "testsensor"), label="data_stream_xyz")
+        label_data = session.request_annotation_data(
+            scene_name="scene abc", timestamp="000123", sensor_id_and_name=(123, "testsensor"), label="data_stream_xyz"
+        )
         request_pd_msg = server.requests[-1]
         assert request_pd_msg.MessageType() == pdMessageType.pdRequestLabelEngineAnnotationData
         request_msg = pdRequestLabelEngineAnnotationData.pdRequestLabelEngineAnnotationData()
@@ -724,7 +803,9 @@ class TestLabelEngineSession:
         server, session = server_and_session
         self._add_response_for_request_annotation_data(builder, server, "000123", None, "test label data 1")
 
-        label_data = session.request_annotation_data(scene_name="scene abc", timestamp="000123", label="data_stream_xyz")
+        label_data = session.request_annotation_data(
+            scene_name="scene abc", timestamp="000123", label="data_stream_xyz"
+        )
         request_pd_msg = server.requests[-1]
         assert request_pd_msg.MessageType() == pdMessageType.pdRequestLabelEngineAnnotationData
         request_msg = pdRequestLabelEngineAnnotationData.pdRequestLabelEngineAnnotationData()
@@ -742,7 +823,9 @@ class TestLabelEngineSession:
         server, session = server_and_session
         self._add_response_for_request_annotation_data(builder, server, None, "testsensor-123", "test label data 1")
 
-        label_data = session.request_annotation_data(scene_name="scene abc", sensor_id_and_name=(123, "testsensor"), label="data_stream_xyz")
+        label_data = session.request_annotation_data(
+            scene_name="scene abc", sensor_id_and_name=(123, "testsensor"), label="data_stream_xyz"
+        )
         request_pd_msg = server.requests[-1]
         assert request_pd_msg.MessageType() == pdMessageType.pdRequestLabelEngineAnnotationData
         request_msg = pdRequestLabelEngineAnnotationData.pdRequestLabelEngineAnnotationData()
@@ -778,38 +861,66 @@ class TestLabelEngineSession:
     def test_request_annotation_data_raises_error_on_error_response(self, builder, server_and_session):
         server, session = server_and_session
 
-        msg = PdMessageMixin._build_ack_message(builder, pdMessageType.pdRequestLabelEngineAnnotationData, "error ack", pdResponseCode.SERVER_ERROR)
+        msg = PdMessageMixin._build_ack_message(
+            builder, pdMessageType.pdRequestLabelEngineAnnotationData, "error ack", pdResponseCode.SERVER_ERROR
+        )
         builder.Finish(msg)
         request_bytes = builder.Output()
         server.responses.append(request_bytes)
 
-        with pytest.raises(PdError, match=r'.*error ack*'):
+        with pytest.raises(PdError, match=r".*error ack*"):
             session.request_annotation_data(scene_name="scene abc", timestamp="000123", label="data_stream_xyz")
 
     def test_request_annotation_data_raises_error_on_mismatch_response(self, builder, server_and_session):
         server, session = server_and_session
 
-        self._add_response_for_request_annotation_data(builder, server, "000123", "anothersensor-123", "test label data 1")
-        with pytest.raises(PdError, match=r'.*Expecting sensor*'):
-            session.request_annotation_data(scene_name="scene abc", timestamp="000123", sensor_id_and_name=(123, "testsensor"), label="data_stream_xyz")
+        self._add_response_for_request_annotation_data(
+            builder, server, "000123", "anothersensor-123", "test label data 1"
+        )
+        with pytest.raises(PdError, match=r".*Expecting sensor*"):
+            session.request_annotation_data(
+                scene_name="scene abc",
+                timestamp="000123",
+                sensor_id_and_name=(123, "testsensor"),
+                label="data_stream_xyz",
+            )
 
         self._add_response_for_request_annotation_data(builder, server, "000123", None, "test label data 1")
-        with pytest.raises(PdError, match=r'.*Expecting sensor*'):
-            session.request_annotation_data(scene_name="scene abc", timestamp="000123", sensor_id_and_name=(123, "testsensor"), label="data_stream_xyz")
+        with pytest.raises(PdError, match=r".*Expecting sensor*"):
+            session.request_annotation_data(
+                scene_name="scene abc",
+                timestamp="000123",
+                sensor_id_and_name=(123, "testsensor"),
+                label="data_stream_xyz",
+            )
 
         self._add_response_for_request_annotation_data(builder, server, "000124", "testsensor-123", "test label data 1")
-        with pytest.raises(PdError, match=r'.*Expecting timestamp*'):
-            session.request_annotation_data(scene_name="scene abc", timestamp="000123", sensor_id_and_name=(123, "testsensor"), label="data_stream_xyz")
+        with pytest.raises(PdError, match=r".*Expecting timestamp*"):
+            session.request_annotation_data(
+                scene_name="scene abc",
+                timestamp="000123",
+                sensor_id_and_name=(123, "testsensor"),
+                label="data_stream_xyz",
+            )
 
         self._add_response_for_request_annotation_data(builder, server, None, "anothersensor-123", "test label data 1")
-        with pytest.raises(PdError, match=r'.*Expecting timestamp*'):
-            session.request_annotation_data(scene_name="scene abc", timestamp="000123", sensor_id_and_name=(123, "testsensor"), label="data_stream_xyz")
+        with pytest.raises(PdError, match=r".*Expecting timestamp*"):
+            session.request_annotation_data(
+                scene_name="scene abc",
+                timestamp="000123",
+                sensor_id_and_name=(123, "testsensor"),
+                label="data_stream_xyz",
+            )
 
     def test_request_annotation_data_sensor_name_with_hyphen(self, builder, server_and_session):
         server, session = server_and_session
-        self._add_response_for_request_annotation_data(builder, server, "000123", "test-sensor-123", "test label data 1")
+        self._add_response_for_request_annotation_data(
+            builder, server, "000123", "test-sensor-123", "test label data 1"
+        )
 
-        label_data = session.request_annotation_data(scene_name="scene abc", timestamp="000123", sensor_id_and_name=(123, "test-sensor"), label="data_stream_xyz")
+        label_data = session.request_annotation_data(
+            scene_name="scene abc", timestamp="000123", sensor_id_and_name=(123, "test-sensor"), label="data_stream_xyz"
+        )
         request_pd_msg = server.requests[-1]
         assert request_pd_msg.MessageType() == pdMessageType.pdRequestLabelEngineAnnotationData
         request_msg = pdRequestLabelEngineAnnotationData.pdRequestLabelEngineAnnotationData()
@@ -827,14 +938,14 @@ class TestLabelEngineSession:
         request_bytes = builder.Output()
         server.responses.append(request_bytes)
 
-        data_bytes = "test annotation data".encode()
+        data_bytes = b"test annotation data"
         session.update_annotation_data(
             scene_name="scene abc",
             label="data_stream_xyz",
             timestamp="000123",
             sensor_id_and_name=(123, "testsensor"),
             data_type=DataType.Annotation,
-            data=data_bytes
+            data=data_bytes,
         )
         request_pd_msg = server.requests[-1]
         assert request_pd_msg.MessageType() == pdMessageType.pdUpdateLabelEngineAnnotationData
@@ -855,14 +966,14 @@ class TestLabelEngineSession:
         request_bytes = builder.Output()
         server.responses.append(request_bytes)
 
-        data_bytes = "test annotation data".encode()
+        data_bytes = b"test annotation data"
         session.update_annotation_data(
             scene_name="scene abc",
             label="data_stream_xyz",
             timestamp="000123",
             sensor_id_and_name=None,
             data_type=DataType.Annotation,
-            data=data_bytes
+            data=data_bytes,
         )
         request_pd_msg = server.requests[-1]
         assert request_pd_msg.MessageType() == pdMessageType.pdUpdateLabelEngineAnnotationData
@@ -882,14 +993,14 @@ class TestLabelEngineSession:
         request_bytes = builder.Output()
         server.responses.append(request_bytes)
 
-        data_bytes = "test annotation data".encode()
+        data_bytes = b"test annotation data"
         session.update_annotation_data(
             scene_name="scene abc",
             label="data_stream_xyz",
             timestamp=None,
             sensor_id_and_name=(123, "testsensor"),
             data_type=DataType.Annotation,
-            data=data_bytes
+            data=data_bytes,
         )
         request_pd_msg = server.requests[-1]
         assert request_pd_msg.MessageType() == pdMessageType.pdUpdateLabelEngineAnnotationData
@@ -909,14 +1020,14 @@ class TestLabelEngineSession:
         request_bytes = builder.Output()
         server.responses.append(request_bytes)
 
-        data_bytes = "test annotation data".encode()
+        data_bytes = b"test annotation data"
         session.update_annotation_data(
             scene_name="scene abc",
             label="data_stream_xyz",
             timestamp=None,
             sensor_id_and_name=None,
             data_type=DataType.Annotation,
-            data=data_bytes
+            data=data_bytes,
         )
         request_pd_msg = server.requests[-1]
         assert request_pd_msg.MessageType() == pdMessageType.pdUpdateLabelEngineAnnotationData
@@ -931,20 +1042,22 @@ class TestLabelEngineSession:
     def test_update_annotation_data_raises_error_on_error_response(self, builder, server_and_session):
         server, session = server_and_session
 
-        msg = PdMessageMixin._build_ack_message(builder, pdMessageType.pdUpdateLabelEngineAnnotationData, "error ack", pdResponseCode.SERVER_ERROR)
+        msg = PdMessageMixin._build_ack_message(
+            builder, pdMessageType.pdUpdateLabelEngineAnnotationData, "error ack", pdResponseCode.SERVER_ERROR
+        )
         builder.Finish(msg)
         request_bytes = builder.Output()
         server.responses.append(request_bytes)
 
-        with pytest.raises(PdError, match=r'.*error ack*'):
-            data_bytes = "test annotation data".encode()
+        with pytest.raises(PdError, match=r".*error ack*"):
+            data_bytes = b"test annotation data"
             session.update_annotation_data(
                 scene_name="scene abc",
                 timestamp="000123",
                 label="data_stream_xyz",
                 sensor_id_and_name=(123, "testsensor"),
                 data_type=42,
-                data=data_bytes
+                data=data_bytes,
             )
 
     def test_update_annotation_data_sensor_name_with_hyphen(self, builder, server_and_session):
@@ -955,14 +1068,14 @@ class TestLabelEngineSession:
         request_bytes = builder.Output()
         server.responses.append(request_bytes)
 
-        data_bytes = "test annotation data".encode()
+        data_bytes = b"test annotation data"
         session.update_annotation_data(
             scene_name="scene abc",
             label="data_stream_xyz",
             timestamp="000123",
             sensor_id_and_name=(123, "test-sensor"),
             data_type=DataType.Annotation,
-            data=data_bytes
+            data=data_bytes,
         )
         request_pd_msg = server.requests[-1]
         assert request_pd_msg.MessageType() == pdMessageType.pdUpdateLabelEngineAnnotationData

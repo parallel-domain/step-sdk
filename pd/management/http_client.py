@@ -7,12 +7,12 @@
 """
 Client for making HTTP requests
 """
-import pd.management
-import requests
 import threading
 
-from pd.core import PdError
+import requests
 
+import pd.management
+from pd.core import PdError
 
 http_client_instance = None
 
@@ -26,26 +26,28 @@ class HTTPClient:
             if not pd.management.api_key and not (pd.management.username and pd.management.password):
                 if pd.management.username or pd.management.password:
                     raise PdError("Both username and password are required for Step Management API")
-                raise PdError("An API Key is required for accessing Step Management API. "
-                              "E.g.: pd.management.api_key='<api key>'")
+                raise PdError(
+                    "An API Key is required for accessing Step Management API. E.g.: pd.management.api_key='<api key>'"
+                )
             self._thread_local.session = requests.Session()
             if pd.management.api_key:
-                self._thread_local.session.headers.update({'X-API-Key': pd.management.api_key})
+                self._thread_local.session.headers.update({"X-API-Key": pd.management.api_key})
             else:
                 self._thread_local.session.auth = (pd.management.username, pd.management.password)
         return self._thread_local.session
 
     def request(self, method, url, params=None, data=None, raw_response=False):
         if not pd.management.org:
-            raise PdError("An Org name is required for accessing Step Management API. "
-                          "E.g.: pd.management.org='<my org>'")
+            raise PdError(
+                "An Org name is required for accessing Step Management API. E.g.: pd.management.org='<my org>'"
+            )
         session = self._session()
-        url = pd.management.api_url + f'/{pd.management.org}/{url}'
+        url = pd.management.api_url + f"/{pd.management.org}/{url}"
         response = session.request(method, url, params=params, json=data)
         response.raise_for_status()
         if raw_response:
             content = response.content
-        elif method == 'delete':
+        elif method == "delete":
             content = response.content.decode()
         else:
             content = response.json()

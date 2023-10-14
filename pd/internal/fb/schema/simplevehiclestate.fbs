@@ -88,6 +88,9 @@ table SimpleVehicleStateFB
     gears_ratios_index : uint32;
 
     headlight_on : bool = false;
+
+    // keep track of how long we've spent in each state
+    state_timer : float;
 }
 
 table EventCollisionFB

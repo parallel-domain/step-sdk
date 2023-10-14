@@ -33,17 +33,7 @@ message GeometryCollection
     repeated GeometryAnnotation primitives = 1;
 };
 
-message AnnotationMask
-{
-};
-
 message Annotation
 {
-    // Top level oneof specifying which type of annotation data is stored
-    // in this message
-
-    oneof annotation {
-        GeometryCollection geometry = 1;
-        AnnotationMask mask = 2;
-    }
+    GeometryCollection geometry = 1;
 };

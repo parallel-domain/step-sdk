@@ -4,20 +4,20 @@
 # Use of this file is only permitted if you have entered into a
 # separate written license agreement with Parallel Domain, Inc.
 
-import cv2
-from pathlib import Path
-import click
 import sys
+from pathlib import Path
 
-import pd.session
-import pd.umd
-import pd.state
+import click
+import cv2
+
 import pd.management
-from pd.util import common_step_options, StepScriptContext
+import pd.session
+import pd.state
+import pd.umd
+from pd.util import StepScriptContext, common_step_options
 
-
-DEFAULT_LOCATION = ('SJ_EssexAndBradford', 'v2.0.2')
-DEFAULT_LIGHTING = 'LS_sky_noon_mostlySunny_1250_HDS025'
+DEFAULT_LOCATION = ("SJ_EssexAndBradford", "v2.0.2")
+DEFAULT_LIGHTING = "LS_sky_noon_mostlySunny_1250_HDS025"
 DEFAULT_HEIGHT = 60.0
 
 
@@ -34,7 +34,9 @@ def get_driveway_positions_from_umd(umd_map):
         Location 3-tuple
     """
     # Find all the driveways
-    driveways = [road for road in umd_map.road_segments.values() if road.type == pd.umd.schema.RoadSegment.RoadType.DRIVEWAY]
+    driveways = [
+        road for road in umd_map.road_segments.values() if road.type == pd.umd.schema.RoadSegment.RoadType.DRIVEWAY
+    ]
     driveways = sorted(driveways, key=lambda d: d.id)
     positions = []
     for driveway in driveways:
@@ -49,11 +51,12 @@ def get_driveway_positions_from_umd(umd_map):
 @click.command()
 @common_step_options()
 @click.option(
-    '-o', '--output-dir',
+    "-o",
+    "--output-dir",
     type=click.Path(exists=False, file_okay=False, dir_okay=True),
-    default='./output',
+    default="./output",
     help="Output directory for images",
-    show_default=True
+    show_default=True,
 )
 def cli(output_dir, step_options: StepScriptContext = None):
     """
@@ -88,8 +91,7 @@ def cli(output_dir, step_options: StepScriptContext = None):
             sensor = pd.state.CameraSensor(
                 name="Front",
                 pose=pd.state.Pose6D.from_rpy_angles(
-                    x_metres=0.0, y_metres=0.0, z_metres=0.0,
-                    roll_degrees=0.0, pitch_degrees=-90.0, yaw_degrees=0.0
+                    x_metres=0.0, y_metres=0.0, z_metres=0.0, roll_degrees=0.0, pitch_degrees=-90.0, yaw_degrees=0.0
                 ),
                 width=1920,
                 height=1080,
@@ -100,24 +102,24 @@ def cli(output_dir, step_options: StepScriptContext = None):
                 capture_instances=True,
                 post_process_params=pd.state.PostProcessParams(
                     motion_blur_amount=0.0,
-                )
+                ),
             )
             sensor_agent = pd.state.SensorAgent(
                 id=pd.state.rand_agent_id(),
                 pose=pd.state.Pose6D.from_rpy_angles(
-                    x_metres=x, y_metres=y, z_metres=z+DEFAULT_HEIGHT,
-                    roll_degrees=0.0, pitch_degrees=0.0, yaw_degrees=0.0
+                    x_metres=x,
+                    y_metres=y,
+                    z_metres=z + DEFAULT_HEIGHT,
+                    roll_degrees=0.0,
+                    pitch_degrees=0.0,
+                    yaw_degrees=0.0,
                 ),
                 velocity=(0.0, 0.0, 0.0),
-                sensors=[sensor]
+                sensors=[sensor],
             )
             world_info = pd.state.WorldInfo()
 
-            state = pd.state.State(
-                simulation_time_sec=frame_count,
-                world_info=world_info,
-                agents=[sensor_agent]
-            )
+            state = pd.state.State(simulation_time_sec=frame_count, world_info=world_info, agents=[sensor_agent])
 
             # Send the environment state to server
             session.update_state(state)
@@ -139,5 +141,5 @@ def cli(output_dir, step_options: StepScriptContext = None):
             frame_count += 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()

@@ -3,14 +3,13 @@
 #
 # Use of this file is only permitted if you have entered into a
 # separate written license agreement with Parallel Domain, Inc.
+import json
 import logging
 import time
-from typing import Optional, List, overload
+from typing import Optional, overload
 
-from pd.core import PdError
-from pd.data_lab.context import get_datalab_context
-from pd.label_engine import load_pipeline_config, LabelData
-from pd.management import Ig
+from pd.data_lab.context import validate_instance_address
+from pd.label_engine import DEFAULT_LABEL_ENGINE_CONFIG_NAME, LabelData, load_pipeline_config
 from pd.session import LabelEngineSession
 
 logger = logging.getLogger(__name__)
@@ -23,7 +22,7 @@ class LabelEngineInstance:
         *,
         name: Optional[str] = None,
         address: Optional[str] = None,
-        config_name: str = "pipeline_minimal",
+        config_name: str = DEFAULT_LABEL_ENGINE_CONFIG_NAME,
     ):
         ...
 
@@ -42,7 +41,7 @@ class LabelEngineInstance:
         *,
         name: Optional[str] = None,
         address: Optional[str] = None,
-        config_name: Optional[str] = "pipeline_minimal",
+        config_name: Optional[str] = DEFAULT_LABEL_ENGINE_CONFIG_NAME,
         config: Optional[str] = None,
     ):
         """
@@ -57,45 +56,14 @@ class LabelEngineInstance:
         super().__init__()
         self.address = address
         self.name = name
-        context = get_datalab_context()
-        self._client_cert_file = context.client_cert_file
         self.session: Optional[LabelEngineSession] = None
         self._config_name = config_name
         self._config = config
         self._unique_scene_name = None
+        self._client_cert_file = None
+        self.output_path_to_generator_type = None
 
-        if name and address:
-            raise PdError("Only one of 'name' or 'address' can be specified for RenderInstance.")
-        if not context.is_mode_local and not name:
-            raise PdError("A 'name' is required in RenderInstance when running in cloud mode.")
-
-        if context.is_mode_local:
-            # Local mode, use local address if none is provided
-            self.address = self.address or "tcp://localhost:9004"
-        else:
-            # Cloud mode, resolve the address
-            try:
-                ig = next(ig for ig in Ig.list() if ig.name == name)
-            except StopIteration:
-                raise PdError(
-                    f"Couldn't find a render instance with the name '{name}'. "
-                    "Please verify that the name is correct."
-                )
-            if context.fail_on_version_mismatch:
-                if ig.ig_version != context.version:
-                    raise PdError(
-                        f"There's a mismatch between the selected Data Lab version ({context.version}) "
-                        f"and the version of the render instance ({ig.ig_version}). "
-                        "To disable this check, pass fail_on_version_mismatch=False to setup_datalab()."
-                    )
-            self.address = ig.le_url
-            if self.address is None:
-                raise PdError("Render Instance doesn't have a label engine server.")
-
-    def set_unique_scene_name(self, unique_scene_name: str):
-        self._unique_scene_name = unique_scene_name
-
-    def create_session(self):
+    def create_session(self, unique_scene_name: str):
         if self.session is None:
             self.session = LabelEngineSession(request_addr=self.address, client_cert_file=self._client_cert_file)
             self.session.transport.timeout_recv_ms = 600_000
@@ -103,9 +71,9 @@ class LabelEngineInstance:
             logger.info("Started Label Engine Session!")
 
             if self._config_name is not None:
-                self.load_config(config_name=self._config_name)
+                self.load_config(config_name=self._config_name, unique_scene_name=unique_scene_name)
             elif self._config is not None:
-                self.configure(config=self._config)
+                self.configure(config=self._config, unique_scene_name=unique_scene_name)
 
         return self.session
 
@@ -115,35 +83,55 @@ class LabelEngineInstance:
             self.session = None
             logger.info("Ended Label Engine Session!")
 
-    def __enter__(self) -> LabelEngineSession:
-        return self.create_session()
+    def setup(self, unique_scene_name: str):
+        if self._client_cert_file is None:
+            self.address, self.name, self._client_cert_file = validate_instance_address(
+                instance_type="le", address=self.address, name=self.name
+            )
+        self.create_session(unique_scene_name=unique_scene_name)
 
-    def __exit__(self, *args):
+    def cleanup(self):
         self.end_session()
 
-    def configure(self, config: str) -> None:
+    def configure(self, unique_scene_name: str, config: str) -> None:
         self._config = config
+        self._unique_scene_name = unique_scene_name
         self.session.configure(scene_name=self._unique_scene_name, config=config)
 
-    def load_config(self, config_name: str = "pipeline_minimal") -> None:
+    def load_config(self, unique_scene_name: str, config_name: str = DEFAULT_LABEL_ENGINE_CONFIG_NAME) -> None:
         self._config_name = config_name
         le_config = load_pipeline_config(config_name)
-        self.configure(config=le_config)
+        self.configure(config=le_config, unique_scene_name=unique_scene_name)
 
-    def get_annotation_data(self, frame_timestamp: str, sensor_id: int, sensor_name: str,
-                            stream_name: str) -> LabelData:
-        self.wait_for_annotation_data(frame_timestamp=frame_timestamp, sensor_id=sensor_id, sensor_name=sensor_name,
-                                      stream_name=stream_name)
-        return self.session.request_annotation_data(scene_name=self._unique_scene_name,
-                                                    timestamp=frame_timestamp, label=stream_name,
-                                                    sensor_id_and_name=(sensor_id, sensor_name))
+    def get_annotation_data(
+        self, frame_timestamp: str, sensor_id: Optional[int], sensor_name: Optional[str], stream_name: str
+    ) -> LabelData:
+        self.wait_for_annotation_data(
+            frame_timestamp=frame_timestamp, sensor_id=sensor_id, sensor_name=sensor_name, stream_name=stream_name
+        )
+        return self.session.request_annotation_data(
+            scene_name=self._unique_scene_name,
+            timestamp=frame_timestamp,
+            label=stream_name,
+            sensor_id_and_name=None if sensor_id is None or sensor_name is None else (sensor_id, sensor_name),
+        )
 
     def wait_for_annotation_data(
-        self, frame_timestamp: str, sensor_id: int, sensor_name: str, stream_name: str,
-        seconds_between_requests: float = 0.1
+        self,
+        frame_timestamp: str,
+        sensor_id: Optional[int],
+        sensor_name: Optional[str],
+        stream_name: str,
+        seconds_between_requests: float = 0.1,
     ) -> None:
-
-        while not self.session.query_annotation_status(scene_name=self._unique_scene_name,
-                                                       timestamp=frame_timestamp, label=stream_name,
-                                                       sensor_id_and_name=(sensor_id, sensor_name)):
+        while not self.session.query_annotation_status(
+            scene_name=self._unique_scene_name,
+            timestamp=frame_timestamp,
+            label=stream_name,
+            sensor_id_and_name=None if sensor_id is None or sensor_name is None else (sensor_id, sensor_name),
+        ):
             time.sleep(seconds_between_requests)
+
+    @property
+    def config_name(self) -> str:
+        return self._config_name

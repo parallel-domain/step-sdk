@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from enum import IntEnum
 from typing import Any, Dict, List, Mapping, TypeVar, Type
 
 from google.protobuf.json_format import MessageToDict, ParseDict
@@ -86,7 +87,7 @@ class AtomicGeneratorMessage(ProtoMessageClass):
     ...
 
 
-class ProtoEnumClass:
+class ProtoEnumClass(IntEnum):
     ...
 
 

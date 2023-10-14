@@ -1,0 +1,1384 @@
+{
+  "semantic_label_map": {
+    "92": {
+      "id": 92,
+      "label": "Mailboxes",
+      "is_thing": true,
+      "color": {
+        "red": 84,
+        "green": 143,
+        "blue": 88
+      }
+    },
+    "35": {
+      "id": 35,
+      "label": "Grass",
+      "is_thing": true,
+      "color": {
+        "red": 13,
+        "green": 80,
+        "blue": 155
+      }
+    },
+    "4": {
+      "id": 4,
+      "label": "Non-Road Objects",
+      "is_thing": true,
+      "color": {
+        "red": 115,
+        "green": 72,
+        "blue": 51
+      }
+    },
+    "65": {
+      "id": 65,
+      "label": "Special Vehicles",
+      "is_thing": true,
+      "color": {
+        "red": 112,
+        "green": 26,
+        "blue": 34
+      }
+    },
+    "105": {
+      "id": 105,
+      "label": "Trailers",
+      "is_thing": true,
+      "color": {
+        "red": 251,
+        "green": 133,
+        "blue": 230
+      }
+    },
+    "44": {
+      "id": 44,
+      "label": "Fullsize",
+      "is_thing": true,
+      "color": {
+        "red": 23,
+        "green": 163,
+        "blue": 29
+      }
+    },
+    "74": {
+      "id": 74,
+      "label": "Personal Mobility Devices",
+      "is_thing": true,
+      "color": {
+        "red": 1,
+        "green": 95,
+        "blue": 70
+      }
+    },
+    "17": {
+      "id": 17,
+      "label": "Directional Arrows",
+      "is_thing": true,
+      "color": {
+        "red": 124,
+        "green": 0,
+        "blue": 95
+      }
+    },
+    "114": {
+      "id": 114,
+      "label": "Vehicle License Plates",
+      "is_thing": true,
+      "color": {
+        "red": 216,
+        "green": 15,
+        "blue": 241
+      }
+    },
+    "57": {
+      "id": 57,
+      "label": "Public Bus",
+      "is_thing": true,
+      "color": {
+        "red": 14,
+        "green": 196,
+        "blue": 54
+      }
+    },
+    "87": {
+      "id": 87,
+      "label": "Highway Signs",
+      "is_thing": true,
+      "color": {
+        "red": 59,
+        "green": 212,
+        "blue": 78
+      }
+    },
+    "26": {
+      "id": 26,
+      "label": "Intersection",
+      "is_thing": true,
+      "color": {
+        "red": 90,
+        "green": 37,
+        "blue": 82
+      }
+    },
+    "127": {
+      "id": 127,
+      "label": "Stop Line",
+      "is_thing": true,
+      "color": {
+        "red": 241,
+        "green": 228,
+        "blue": 155
+      }
+    },
+    "137": {
+      "id": 137,
+      "label": "Planters",
+      "is_thing": true,
+      "color": {
+        "red": 202,
+        "green": 143,
+        "blue": 15
+      }
+    },
+    "96": {
+      "id": 96,
+      "label": "Garbage Bags",
+      "is_thing": true,
+      "color": {
+        "red": 92,
+        "green": 164,
+        "blue": 68
+      }
+    },
+    "39": {
+      "id": 39,
+      "label": "Minicompact",
+      "is_thing": true,
+      "color": {
+        "red": 163,
+        "green": 48,
+        "blue": 113
+      }
+    },
+    "69": {
+      "id": 69,
+      "label": "Medical Worker",
+      "is_thing": true,
+      "color": {
+        "red": 65,
+        "green": 194,
+        "blue": 154
+      }
+    },
+    "8": {
+      "id": 8,
+      "label": "Crosswalk",
+      "is_thing": true,
+      "color": {
+        "red": 236,
+        "green": 88,
+        "blue": 85
+      }
+    },
+    "109": {
+      "id": 109,
+      "label": "Traffic Lights",
+      "is_thing": true,
+      "color": {
+        "red": 5,
+        "green": 240,
+        "blue": 78
+      }
+    },
+    "48": {
+      "id": 48,
+      "label": "Box Truck",
+      "is_thing": true,
+      "color": {
+        "red": 212,
+        "green": 168,
+        "blue": 162
+      }
+    },
+    "78": {
+      "id": 78,
+      "label": "Signs",
+      "is_thing": true,
+      "color": {
+        "red": 220,
+        "green": 74,
+        "blue": 136
+      }
+    },
+    "21": {
+      "id": 21,
+      "label": "Road Surface",
+      "is_thing": true,
+      "color": {
+        "red": 27,
+        "green": 35,
+        "blue": 22
+      }
+    },
+    "118": {
+      "id": 118,
+      "label": "Vehicle Hoods",
+      "is_thing": true,
+      "color": {
+        "red": 249,
+        "green": 233,
+        "blue": 79
+      }
+    },
+    "61": {
+      "id": 61,
+      "label": "Emergency Vehicles",
+      "is_thing": true,
+      "color": {
+        "red": 33,
+        "green": 245,
+        "blue": 127
+      }
+    },
+    "128": {
+      "id": 128,
+      "label": "Parking Spot",
+      "is_thing": true,
+      "color": {
+        "red": 179,
+        "green": 80,
+        "blue": 12
+      }
+    },
+    "91": {
+      "id": 91,
+      "label": "Fire Hydrants",
+      "is_thing": true,
+      "color": {
+        "red": 60,
+        "green": 141,
+        "blue": 109
+      }
+    },
+    "30": {
+      "id": 30,
+      "label": "Construction Obstacles",
+      "is_thing": true,
+      "color": {
+        "red": 159,
+        "green": 215,
+        "blue": 239
+      }
+    },
+    "3": {
+      "id": 3,
+      "label": "Dynamic Objects",
+      "is_thing": true,
+      "color": {
+        "red": 105,
+        "green": 152,
+        "blue": 60
+      }
+    },
+    "100": {
+      "id": 100,
+      "label": "Streetlights",
+      "is_thing": true,
+      "color": {
+        "red": 67,
+        "green": 187,
+        "blue": 154
+      }
+    },
+    "43": {
+      "id": 43,
+      "label": "Midsize",
+      "is_thing": true,
+      "color": {
+        "red": 5,
+        "green": 177,
+        "blue": 58
+      }
+    },
+    "12": {
+      "id": 12,
+      "label": "Navigational Marking",
+      "is_thing": true,
+      "color": {
+        "red": 171,
+        "green": 215,
+        "blue": 126
+      }
+    },
+    "73": {
+      "id": 73,
+      "label": "Bicycle",
+      "is_thing": true,
+      "color": {
+        "red": 62,
+        "green": 130,
+        "blue": 4
+      }
+    },
+    "113": {
+      "id": 113,
+      "label": "Vehicle Mirrors",
+      "is_thing": true,
+      "color": {
+        "red": 117,
+        "green": 101,
+        "blue": 56
+      }
+    },
+    "52": {
+      "id": 52,
+      "label": "Pickup Truck",
+      "is_thing": true,
+      "color": {
+        "red": 198,
+        "green": 224,
+        "blue": 3
+      }
+    },
+    "82": {
+      "id": 82,
+      "label": "Construction Signs",
+      "is_thing": true,
+      "color": {
+        "red": 56,
+        "green": 164,
+        "blue": 62
+      }
+    },
+    "25": {
+      "id": 25,
+      "label": "Road Area",
+      "is_thing": true,
+      "color": {
+        "red": 118,
+        "green": 15,
+        "blue": 14
+      }
+    },
+    "122": {
+      "id": 122,
+      "label": "Trailer Components",
+      "is_thing": true,
+      "color": {
+        "red": 153,
+        "green": 60,
+        "blue": 35
+      }
+    },
+    "132": {
+      "id": 132,
+      "label": "Commercial Vehicle",
+      "is_thing": true,
+      "color": {
+        "red": 0,
+        "green": 191,
+        "blue": 186
+      }
+    },
+    "34": {
+      "id": 34,
+      "label": "Shrub",
+      "is_thing": true,
+      "color": {
+        "red": 50,
+        "green": 93,
+        "blue": 228
+      }
+    },
+    "95": {
+      "id": 95,
+      "label": "Electrical Boxes",
+      "is_thing": true,
+      "color": {
+        "red": 219,
+        "green": 127,
+        "blue": 67
+      }
+    },
+    "64": {
+      "id": 64,
+      "label": "Construction Vehicle",
+      "is_thing": true,
+      "color": {
+        "red": 135,
+        "green": 240,
+        "blue": 234
+      }
+    },
+    "7": {
+      "id": 7,
+      "label": "Road Marking",
+      "is_thing": true,
+      "color": {
+        "red": 74,
+        "green": 148,
+        "blue": 232
+      }
+    },
+    "104": {
+      "id": 104,
+      "label": "Small Trailer",
+      "is_thing": true,
+      "color": {
+        "red": 58,
+        "green": 195,
+        "blue": 198
+      }
+    },
+    "47": {
+      "id": 47,
+      "label": "Minivan",
+      "is_thing": true,
+      "color": {
+        "red": 94,
+        "green": 132,
+        "blue": 99
+      }
+    },
+    "16": {
+      "id": 16,
+      "label": "Non-Road Small Structures",
+      "is_thing": true,
+      "color": {
+        "red": 70,
+        "green": 225,
+        "blue": 69
+      }
+    },
+    "77": {
+      "id": 77,
+      "label": "Regulatory Signs",
+      "is_thing": true,
+      "color": {
+        "red": 234,
+        "green": 185,
+        "blue": 99
+      }
+    },
+    "117": {
+      "id": 117,
+      "label": "Vehicle Decals",
+      "is_thing": true,
+      "color": {
+        "red": 137,
+        "green": 140,
+        "blue": 57
+      }
+    },
+    "56": {
+      "id": 56,
+      "label": "Cargo Van",
+      "is_thing": true,
+      "color": {
+        "red": 17,
+        "green": 134,
+        "blue": 168
+      }
+    },
+    "86": {
+      "id": 86,
+      "label": "Animal",
+      "is_thing": true,
+      "color": {
+        "red": 176,
+        "green": 124,
+        "blue": 72
+      }
+    },
+    "29": {
+      "id": 29,
+      "label": "Obstacles",
+      "is_thing": true,
+      "color": {
+        "red": 51,
+        "green": 194,
+        "blue": 220
+      }
+    },
+    "126": {
+      "id": 126,
+      "label": "Curb",
+      "is_thing": true,
+      "color": {
+        "red": 235,
+        "green": 53,
+        "blue": 174
+      }
+    },
+    "136": {
+      "id": 136,
+      "label": "Diffusion Primitive",
+      "is_thing": true,
+      "color": {
+        "red": 229,
+        "green": 10,
+        "blue": 183
+      }
+    },
+    "38": {
+      "id": 38,
+      "label": "3-Wheeler",
+      "is_thing": true,
+      "color": {
+        "red": 88,
+        "green": 228,
+        "blue": 131
+      }
+    },
+    "99": {
+      "id": 99,
+      "label": "Bus Stops",
+      "is_thing": true,
+      "color": {
+        "red": 254,
+        "green": 120,
+        "blue": 148
+      }
+    },
+    "68": {
+      "id": 68,
+      "label": "Construction Worker",
+      "is_thing": true,
+      "color": {
+        "red": 161,
+        "green": 212,
+        "blue": 79
+      }
+    },
+    "11": {
+      "id": 11,
+      "label": "Traffic Guidance Marking",
+      "is_thing": true,
+      "color": {
+        "red": 186,
+        "green": 88,
+        "blue": 27
+      }
+    },
+    "108": {
+      "id": 108,
+      "label": "Self-Driving Vehicles",
+      "is_thing": true,
+      "color": {
+        "red": 230,
+        "green": 63,
+        "blue": 74
+      }
+    },
+    "51": {
+      "id": 51,
+      "label": "Mini Truck",
+      "is_thing": true,
+      "color": {
+        "red": 205,
+        "green": 208,
+        "blue": 83
+      }
+    },
+    "20": {
+      "id": 20,
+      "label": "Zebra Crossing",
+      "is_thing": true,
+      "color": {
+        "red": 248,
+        "green": 39,
+        "blue": 177
+      }
+    },
+    "81": {
+      "id": 81,
+      "label": "Services Signs",
+      "is_thing": true,
+      "color": {
+        "red": 143,
+        "green": 215,
+        "blue": 11
+      }
+    },
+    "121": {
+      "id": 121,
+      "label": "Motorcycle Components",
+      "is_thing": true,
+      "color": {
+        "red": 168,
+        "green": 182,
+        "blue": 52
+      }
+    },
+    "131": {
+      "id": 131,
+      "label": "Bicycle Components",
+      "is_thing": true,
+      "color": {
+        "red": 247,
+        "green": 11,
+        "blue": 167
+      }
+    },
+    "60": {
+      "id": 60,
+      "label": "Police",
+      "is_thing": true,
+      "color": {
+        "red": 65,
+        "green": 134,
+        "blue": 19
+      }
+    },
+    "90": {
+      "id": 90,
+      "label": "Garbage Bins",
+      "is_thing": true,
+      "color": {
+        "red": 175,
+        "green": 204,
+        "blue": 228
+      }
+    },
+    "33": {
+      "id": 33,
+      "label": "Tree",
+      "is_thing": true,
+      "color": {
+        "red": 102,
+        "green": 251,
+        "blue": 106
+      }
+    },
+    "2": {
+      "id": 2,
+      "label": "Static Objects",
+      "is_thing": true,
+      "color": {
+        "red": 198,
+        "green": 35,
+        "blue": 123
+      }
+    },
+    "42": {
+      "id": 42,
+      "label": "Compact",
+      "is_thing": true,
+      "color": {
+        "red": 93,
+        "green": 137,
+        "blue": 140
+      }
+    },
+    "103": {
+      "id": 103,
+      "label": "RVs",
+      "is_thing": true,
+      "color": {
+        "red": 170,
+        "green": 222,
+        "blue": 161
+      }
+    },
+    "72": {
+      "id": 72,
+      "label": "Human",
+      "is_thing": true,
+      "color": {
+        "red": 103,
+        "green": 35,
+        "blue": 7
+      }
+    },
+    "15": {
+      "id": 15,
+      "label": "Non-Road Medium Structures",
+      "is_thing": true,
+      "color": {
+        "red": 227,
+        "green": 169,
+        "blue": 226
+      }
+    },
+    "112": {
+      "id": 112,
+      "label": "Vehicle Doors",
+      "is_thing": true,
+      "color": {
+        "red": 148,
+        "green": 199,
+        "blue": 90
+      }
+    },
+    "55": {
+      "id": 55,
+      "label": "Van",
+      "is_thing": true,
+      "color": {
+        "red": 84,
+        "green": 36,
+        "blue": 243
+      }
+    },
+    "85": {
+      "id": 85,
+      "label": "School Zone Signs",
+      "is_thing": true,
+      "color": {
+        "red": 236,
+        "green": 66,
+        "blue": 35
+      }
+    },
+    "24": {
+      "id": 24,
+      "label": "Bike Lane",
+      "is_thing": true,
+      "color": {
+        "red": 141,
+        "green": 67,
+        "blue": 239
+      }
+    },
+    "125": {
+      "id": 125,
+      "label": "Personal Mobility Devices Accessories",
+      "is_thing": true,
+      "color": {
+        "red": 177,
+        "green": 87,
+        "blue": 12
+      }
+    },
+    "135": {
+      "id": 135,
+      "label": "Wheel Stopper",
+      "is_thing": true,
+      "color": {
+        "red": 58,
+        "green": 130,
+        "blue": 129
+      }
+    },
+    "94": {
+      "id": 94,
+      "label": "Bike Racks",
+      "is_thing": true,
+      "color": {
+        "red": 24,
+        "green": 27,
+        "blue": 233
+      }
+    },
+    "37": {
+      "id": 37,
+      "label": "Motorcycle",
+      "is_thing": true,
+      "color": {
+        "red": 49,
+        "green": 186,
+        "blue": 45
+      }
+    },
+    "67": {
+      "id": 67,
+      "label": "Adult",
+      "is_thing": true,
+      "color": {
+        "red": 62,
+        "green": 200,
+        "blue": 6
+      }
+    },
+    "6": {
+      "id": 6,
+      "label": "Lane Edge Marking",
+      "is_thing": true,
+      "color": {
+        "red": 255,
+        "green": 92,
+        "blue": 73
+      }
+    },
+    "107": {
+      "id": 107,
+      "label": "Large Trailer",
+      "is_thing": true,
+      "color": {
+        "red": 209,
+        "green": 237,
+        "blue": 14
+      }
+    },
+    "46": {
+      "id": 46,
+      "label": "Sports Car",
+      "is_thing": true,
+      "color": {
+        "red": 233,
+        "green": 90,
+        "blue": 29
+      }
+    },
+    "76": {
+      "id": 76,
+      "label": "Wheelchair",
+      "is_thing": true,
+      "color": {
+        "red": 151,
+        "green": 42,
+        "blue": 72
+      }
+    },
+    "19": {
+      "id": 19,
+      "label": "BottsDotts",
+      "is_thing": true,
+      "color": {
+        "red": 84,
+        "green": 8,
+        "blue": 32
+      }
+    },
+    "116": {
+      "id": 116,
+      "label": "Vehicle Wheels",
+      "is_thing": true,
+      "color": {
+        "red": 97,
+        "green": 168,
+        "blue": 91
+      }
+    },
+    "59": {
+      "id": 59,
+      "label": "School Bus",
+      "is_thing": true,
+      "color": {
+        "red": 116,
+        "green": 248,
+        "blue": 149
+      }
+    },
+    "28": {
+      "id": 28,
+      "label": "Barriers",
+      "is_thing": true,
+      "color": {
+        "red": 99,
+        "green": 114,
+        "blue": 237
+      }
+    },
+    "89": {
+      "id": 89,
+      "label": "Powerlines",
+      "is_thing": true,
+      "color": {
+        "red": 50,
+        "green": 154,
+        "blue": 216
+      }
+    },
+    "1": {
+      "id": 1,
+      "label": "Objects",
+      "is_thing": true,
+      "color": {
+        "red": 103,
+        "green": 69,
+        "blue": 139
+      }
+    },
+    "98": {
+      "id": 98,
+      "label": "Poles",
+      "is_thing": true,
+      "color": {
+        "red": 26,
+        "green": 72,
+        "blue": 74
+      }
+    },
+    "41": {
+      "id": 41,
+      "label": "Subcompact",
+      "is_thing": true,
+      "color": {
+        "red": 37,
+        "green": 97,
+        "blue": 108
+      }
+    },
+    "10": {
+      "id": 10,
+      "label": "Info Marking",
+      "is_thing": true,
+      "color": {
+        "red": 205,
+        "green": 124,
+        "blue": 232
+      }
+    },
+    "71": {
+      "id": 71,
+      "label": "Child",
+      "is_thing": true,
+      "color": {
+        "red": 252,
+        "green": 173,
+        "blue": 11
+      }
+    },
+    "111": {
+      "id": 111,
+      "label": "Vehicles",
+      "is_thing": true,
+      "color": {
+        "red": 124,
+        "green": 183,
+        "blue": 155
+      }
+    },
+    "50": {
+      "id": 50,
+      "label": "Semi Truck",
+      "is_thing": true,
+      "color": {
+        "red": 178,
+        "green": 140,
+        "blue": 131
+      }
+    },
+    "80": {
+      "id": 80,
+      "label": "Guide Signs",
+      "is_thing": true,
+      "color": {
+        "red": 150,
+        "green": 119,
+        "blue": 81
+      }
+    },
+    "23": {
+      "id": 23,
+      "label": "Driveway",
+      "is_thing": true,
+      "color": {
+        "red": 231,
+        "green": 205,
+        "blue": 144
+      }
+    },
+    "120": {
+      "id": 120,
+      "label": "Vehicle Emergency Lights",
+      "is_thing": true,
+      "color": {
+        "red": 187,
+        "green": 38,
+        "blue": 18
+      }
+    },
+    "63": {
+      "id": 63,
+      "label": "Fire Dept",
+      "is_thing": true,
+      "color": {
+        "red": 220,
+        "green": 141,
+        "blue": 123
+      }
+    },
+    "130": {
+      "id": 130,
+      "label": "Drone Objects",
+      "is_thing": true,
+      "color": {
+        "red": 239,
+        "green": 93,
+        "blue": 48
+      }
+    },
+    "32": {
+      "id": 32,
+      "label": "Debris",
+      "is_thing": true,
+      "color": {
+        "red": 154,
+        "green": 7,
+        "blue": 104
+      }
+    },
+    "93": {
+      "id": 93,
+      "label": "Benches",
+      "is_thing": true,
+      "color": {
+        "red": 236,
+        "green": 137,
+        "blue": 34
+      }
+    },
+    "5": {
+      "id": 5,
+      "label": "Road Objects",
+      "is_thing": true,
+      "color": {
+        "red": 81,
+        "green": 220,
+        "blue": 176
+      }
+    },
+    "102": {
+      "id": 102,
+      "label": "Fixed Obstacles",
+      "is_thing": true,
+      "color": {
+        "red": 250,
+        "green": 38,
+        "blue": 160
+      }
+    },
+    "45": {
+      "id": 45,
+      "label": "SUV",
+      "is_thing": true,
+      "color": {
+        "red": 88,
+        "green": 168,
+        "blue": 67
+      }
+    },
+    "75": {
+      "id": 75,
+      "label": "Scooter",
+      "is_thing": true,
+      "color": {
+        "red": 126,
+        "green": 198,
+        "blue": 36
+      }
+    },
+    "14": {
+      "id": 14,
+      "label": "Non-Road Large Structures",
+      "is_thing": true,
+      "color": {
+        "red": 251,
+        "green": 30,
+        "blue": 183
+      }
+    },
+    "115": {
+      "id": 115,
+      "label": "Vehicle Roof Attachments",
+      "is_thing": true,
+      "color": {
+        "red": 190,
+        "green": 21,
+        "blue": 1
+      }
+    },
+    "54": {
+      "id": 54,
+      "label": "Passenger Van",
+      "is_thing": true,
+      "color": {
+        "red": 180,
+        "green": 158,
+        "blue": 228
+      }
+    },
+    "84": {
+      "id": 84,
+      "label": "Recreation Signs",
+      "is_thing": true,
+      "color": {
+        "red": 42,
+        "green": 78,
+        "blue": 166
+      }
+    },
+    "27": {
+      "id": 27,
+      "label": "Construction Area",
+      "is_thing": true,
+      "color": {
+        "red": 46,
+        "green": 249,
+        "blue": 156
+      }
+    },
+    "124": {
+      "id": 124,
+      "label": "Human Accessories",
+      "is_thing": true,
+      "color": {
+        "red": 149,
+        "green": 64,
+        "blue": 87
+      }
+    },
+    "134": {
+      "id": 134,
+      "label": "Text",
+      "is_thing": true,
+      "color": {
+        "red": 161,
+        "green": 234,
+        "blue": 72
+      }
+    },
+    "97": {
+      "id": 97,
+      "label": "Parking Meters",
+      "is_thing": true,
+      "color": {
+        "red": 2,
+        "green": 249,
+        "blue": 255
+      }
+    },
+    "36": {
+      "id": 36,
+      "label": "2-Wheeler",
+      "is_thing": true,
+      "color": {
+        "red": 183,
+        "green": 215,
+        "blue": 27
+      }
+    },
+    "66": {
+      "id": 66,
+      "label": "Civilian",
+      "is_thing": true,
+      "color": {
+        "red": 233,
+        "green": 221,
+        "blue": 22
+      }
+    },
+    "9": {
+      "id": 9,
+      "label": "Crosswalk Marking",
+      "is_thing": true,
+      "color": {
+        "red": 41,
+        "green": 31,
+        "blue": 142
+      }
+    },
+    "106": {
+      "id": 106,
+      "label": "Medium Trailer",
+      "is_thing": true,
+      "color": {
+        "red": 41,
+        "green": 165,
+        "blue": 198
+      }
+    },
+    "49": {
+      "id": 49,
+      "label": "Truck",
+      "is_thing": true,
+      "color": {
+        "red": 171,
+        "green": 189,
+        "blue": 237
+      }
+    },
+    "18": {
+      "id": 18,
+      "label": "Speed Marking",
+      "is_thing": true,
+      "color": {
+        "red": 194,
+        "green": 98,
+        "blue": 208
+      }
+    },
+    "79": {
+      "id": 79,
+      "label": "Warning Signs",
+      "is_thing": true,
+      "color": {
+        "red": 107,
+        "green": 211,
+        "blue": 234
+      }
+    },
+    "119": {
+      "id": 119,
+      "label": "Vehicle Trunks",
+      "is_thing": true,
+      "color": {
+        "red": 92,
+        "green": 175,
+        "blue": 181
+      }
+    },
+    "129": {
+      "id": 129,
+      "label": "Parking Marking",
+      "is_thing": true,
+      "color": {
+        "red": 5,
+        "green": 126,
+        "blue": 248
+      }
+    },
+    "58": {
+      "id": 58,
+      "label": "Bus",
+      "is_thing": true,
+      "color": {
+        "red": 130,
+        "green": 29,
+        "blue": 144
+      }
+    },
+    "88": {
+      "id": 88,
+      "label": "Infrastructure Towers",
+      "is_thing": true,
+      "color": {
+        "red": 251,
+        "green": 6,
+        "blue": 90
+      }
+    },
+    "31": {
+      "id": 31,
+      "label": "Movable Obstacles",
+      "is_thing": true,
+      "color": {
+        "red": 201,
+        "green": 196,
+        "blue": 167
+      }
+    },
+    "40": {
+      "id": 40,
+      "label": "Passenger Car",
+      "is_thing": true,
+      "color": {
+        "red": 90,
+        "green": 217,
+        "blue": 187
+      }
+    },
+    "101": {
+      "id": 101,
+      "label": "Fences",
+      "is_thing": true,
+      "color": {
+        "red": 251,
+        "green": 64,
+        "blue": 194
+      }
+    },
+    "70": {
+      "id": 70,
+      "label": "Police Officer",
+      "is_thing": true,
+      "color": {
+        "red": 225,
+        "green": 248,
+        "blue": 119
+      }
+    },
+    "13": {
+      "id": 13,
+      "label": "Vegetation",
+      "is_thing": true,
+      "color": {
+        "red": 242,
+        "green": 65,
+        "blue": 177
+      }
+    },
+    "110": {
+      "id": 110,
+      "label": "Vehicle Components",
+      "is_thing": true,
+      "color": {
+        "red": 60,
+        "green": 193,
+        "blue": 249
+      }
+    },
+    "53": {
+      "id": 53,
+      "label": "Tow Truck",
+      "is_thing": true,
+      "color": {
+        "red": 155,
+        "green": 118,
+        "blue": 154
+      }
+    },
+    "22": {
+      "id": 22,
+      "label": "Drivable Area",
+      "is_thing": true,
+      "color": {
+        "red": 232,
+        "green": 233,
+        "blue": 22
+      }
+    },
+    "83": {
+      "id": 83,
+      "label": "Incident Management Signs",
+      "is_thing": true,
+      "color": {
+        "red": 92,
+        "green": 88,
+        "blue": 85
+      }
+    },
+    "123": {
+      "id": 123,
+      "label": "Channelizing Devices",
+      "is_thing": true,
+      "color": {
+        "red": 15,
+        "green": 182,
+        "blue": 106
+      }
+    },
+    "133": {
+      "id": 133,
+      "label": "Road",
+      "is_thing": true,
+      "color": {
+        "red": 233,
+        "green": 132,
+        "blue": 208
+      }
+    },
+    "62": {
+      "id": 62,
+      "label": "Ambulance",
+      "is_thing": true,
+      "color": {
+        "red": 61,
+        "green": 189,
+        "blue": 61
+      }
+    },
+    "139": {
+      "id": 139,
+      "label": "Ego",
+      "is_thing": true,
+      "color": {
+        "red": 183,
+        "green": 98,
+        "blue": 181
+      }
+    }
+  }
+}

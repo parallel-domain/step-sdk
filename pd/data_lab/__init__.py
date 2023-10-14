@@ -5,12 +5,16 @@
 # separate written license agreement with Parallel Domain, Inc.
 import logging
 from pathlib import Path
-from typing import Generator, Optional, Tuple, TypeVar, Type, List
+from typing import Generator, List, Literal, Optional, Type, TypeVar, Union
 
+from pd.data_lab.context import setup_datalab
+from pd.data_lab.data_lab_instance import DataLabInstance
+from pd.data_lab.label_engine_instance import LabelEngineInstance
 from pd.data_lab.labeled_state_reference import LabeledStateReference, StateReference
-from pd.data_lab.scenario import Scenario, ScenarioSource, DiscreteScenario
-from pd.data_lab.scenario_generator import ScenarioGenerator
+from pd.data_lab.render_instance import RenderInstance
+from pd.data_lab.scenario import DiscreteScenario, Scenario, ScenarioCreator, ScenarioSource, scene_index_to_name
 from pd.data_lab.session_reference import TemporalSessionReference
+from pd.data_lab.sim_instance import SimulationStateProvider
 from pd.data_lab.sim_state import SimState
 from pd.state import state_to_bytes
 
@@ -19,45 +23,57 @@ logger = logging.getLogger(__name__)
 TSimState = TypeVar("TSimState", bound=SimState)
 
 
-def sim_stream_from_discrete_scenario(
-    discrete_scenario: DiscreteScenario,
+def create_sensor_sim_stream(
+    scenario_creator: ScenarioCreator,
+    scene_index: int,
+    number_of_scenes: int,
+    random_seed: int,
+    data_lab_version: str,
+    simulator: Union[bool, SimulationStateProvider, str, None] = None,
+    label_engine: Union[bool, LabelEngineInstance, str, None] = None,
+    renderer: Union[bool, RenderInstance, str, None] = None,
+    instance_name: Optional[str] = None,
+    auto_start_instance: bool = False,
+    shutdown_after_scene: Optional[bool] = None,
     sim_state_type: Type[TSimState] = SimState,
+    fail_on_version_mismatch: bool = True,
+    environment: Literal["prod", "stage", "dev"] = "prod",
     **kwargs,
 ) -> Generator[StateReference, None, None]:
-    with ScenarioGenerator(
-        discrete_scenario=discrete_scenario,
+    try:
+        data_lab_instance = DataLabInstance.from_names(
+            simulator=simulator,
+            data_lab_version=data_lab_version,
+            instance_name=instance_name,
+            renderer=renderer,
+            label_engine=label_engine,
+            shutdown_on_cleanup=shutdown_after_scene,
+            fail_on_version_mismatch=fail_on_version_mismatch,
+            environment=environment,
+        )
+    except ValueError as e:
+        if not auto_start_instance:
+            raise e
+        else:
+            data_lab_instance = DataLabInstance.start(
+                data_lab_version=data_lab_version,
+                shutdown_on_cleanup=shutdown_after_scene,
+                fail_on_version_mismatch=fail_on_version_mismatch,
+                environment=environment,
+                locations=[
+                    scenario_creator.get_location(
+                        random_seed=random_seed, scene_index=scene_index, number_of_scenes=number_of_scenes
+                    )[0]
+                ],
+            )
+
+    yield from data_lab_instance.create_sensor_sim_stream(
+        scenario_creator=scenario_creator,
+        scene_index=scene_index,
+        number_of_scenes=number_of_scenes,
+        random_seed=random_seed,
         sim_state_type=sim_state_type,
         **kwargs,
-    ) as scenario_generator:
-        yield from scenario_generator
-
-
-def create_sensor_sim_stream(
-    scenario: ScenarioSource,
-    scene_index: int,
-    dataset_name: str = "Default Dataset Name",
-    end_skip_frames: Optional[int] = None,
-    frames_per_scene: Optional[int] = None,
-    sim_capture_rate: Optional[int] = None,
-    sim_settle_frames: Optional[int] = None,
-    start_skip_frames: Optional[int] = None,
-    merge_batches: Optional[bool] = None,
-    sim_state_type: Type[TSimState] = SimState,
-    **kwargs,
-) -> Tuple[DiscreteScenario, Generator[StateReference, None, None]]:
-    discrete_scenario = scenario.get_discrete_scenario(
-        dataset_name=dataset_name,
-        end_skip_frames=end_skip_frames,
-        num_frames=frames_per_scene,
-        scene_index=scene_index,
-        sim_capture_rate=sim_capture_rate,
-        sim_settle_frames=sim_settle_frames,
-        start_skip_frames=start_skip_frames,
-        merge_batches=merge_batches,
-    )
-
-    return discrete_scenario, sim_stream_from_discrete_scenario(
-        discrete_scenario=discrete_scenario, sim_state_type=sim_state_type, **kwargs
     )
 
 
@@ -70,8 +86,10 @@ def _store_sim_state(state_reference: StateReference, output_folder: Path, scene
 
 
 def encode_sim_states(
-    scenario: ScenarioSource,
+    scenario_creator: ScenarioCreator,
     output_folder: Path,
+    instance_name: Optional[str] = None,
+    simulator: Union[bool, SimulationStateProvider, str, None] = None,
     scene_indices: List[int] = None,
     start_skip_frames: Optional[int] = 0,
     frames_per_scene: Optional[int] = None,
@@ -87,10 +105,16 @@ def encode_sim_states(
             raise ValueError("A number of scenes > 0 has to be passed!")
         scene_indices = list(range(number_of_scenes))
 
+    number_of_scenes = len(scene_indices)
     for scene_index in scene_indices:
-        discrete_scenario, gen = create_sensor_sim_stream(
-            scenario=scenario,
+        gen = create_sensor_sim_stream(
+            scenario_creator=scenario_creator,
             scene_index=scene_index,
+            instance_name=instance_name,
+            simulator=simulator,
+            number_of_scenes=number_of_scenes,
+            renderer=False,
+            label_engine=False,
             start_skip_frames=start_skip_frames,
             frames_per_scene=frames_per_scene,
             yield_every_sim_state=yield_every_sim_state,
@@ -99,5 +123,7 @@ def encode_sim_states(
 
         for state_reference in gen:
             _store_sim_state(
-                state_reference=state_reference, output_folder=output_folder, scene_name=discrete_scenario.name
+                state_reference=state_reference,
+                output_folder=output_folder,
+                scene_name=scene_index_to_name(scene_index=scene_index),
             )

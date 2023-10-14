@@ -5,7 +5,7 @@
 # separate written license agreement with Parallel Domain, Inc.
 
 import abc
-from typing import List, TypeVar, Generic, Optional, Callable
+from typing import Callable, Generic, List, Optional, TypeVar
 
 from pd.data_lab.generators import BaseGenerator
 from pd.data_lab.generators.custom_simulation_agent import CustomSimulationAgent

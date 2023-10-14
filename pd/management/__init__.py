@@ -36,12 +36,11 @@ For example::
     pd.management.api_url = pd.management._API_URL_DEV
 """
 
-from .ig import Ig, IgVersion, IgStatus, IgQuality, fetch_ig_asset_registry
+from .ig import Ig, IgQuality, IgStatus, IgVersion, fetch_ig_asset_registry
+from .label_engine import LabelEngineVersion
 from .level import Levelpak, LevelpakVersion, fetch_level_umd
 from .sim import SimVersion
 from .utils import create_ig_with_retry
-from .label_engine import LabelEngineVersion
-
 
 username = None
 """*Deprecated* use :data:`api_key` instead"""
@@ -62,9 +61,9 @@ Please visit https://app.paralleldomain.com/settings/api-access to generate an A
 """
 
 
-_API_URL_PROD = 'https://step-api.paralleldomain.com/v1/step'
-_API_URL_STAGE = 'https://step-api-stage.paralleldomain.com/v1/step'
-_API_URL_DEV = 'https://step-api-dev.paralleldomain.com/v1/step'
+_API_URL_PROD = "https://step-api.paralleldomain.com/v1/step"
+_API_URL_STAGE = "https://step-api-stage.paralleldomain.com/v1/step"
+_API_URL_DEV = "https://step-api-dev.paralleldomain.com/v1/step"
 
 api_url = _API_URL_PROD
 """Base url for Step Management API"""

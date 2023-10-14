@@ -10,6 +10,7 @@ import random
 from typing import Any, Callable, Dict, List, Tuple, TypeVar, Union
 
 import numpy as np
+
 from pd.internal.proto.keystone.generated.python import pd_distributions_pb2 as pd_distributions_pb2_base
 from pd.internal.proto.keystone.generated.wrapper import pd_distributions_pb2, pd_unified_generator_pb2
 from pd.internal.proto.keystone.generated.wrapper.utils import register_wrapper
@@ -34,6 +35,14 @@ MinMaxConfigInt = pd_unified_generator_pb2.MinMaxConfigInt
 @register_wrapper(proto_type=pd_distributions_pb2_base.NormalDistribution)
 class NormalDistribution(pd_distributions_pb2.NormalDistribution):
     def sample(self, random_seed: int) -> Union[float, int]:
+        """Sample from a normal distribution with mean and variance.
+
+        Args:
+            random_seed: Random seed.
+
+        Returns:
+            Sampled value.
+        """
         random_state = np.random.RandomState(random_seed)
         return float(random_state.normal(self.mean, math.sqrt(self.variance)))
 
@@ -41,12 +50,24 @@ class NormalDistribution(pd_distributions_pb2.NormalDistribution):
 @register_wrapper(proto_type=pd_distributions_pb2_base.TrucatedNormalDistribution)
 class TrucatedNormalDistribution(pd_distributions_pb2.TrucatedNormalDistribution):
     def sample(self, random_seed: int) -> Union[float, int]:
+        """
+        Raises:
+            :obj:`NotImplementedError` every time.
+        """
         raise NotImplementedError()
 
 
 @register_wrapper(proto_type=pd_distributions_pb2_base.ContinousUniformDistribution)
 class ContinousUniformDistribution(pd_distributions_pb2.ContinousUniformDistribution):
     def sample(self, random_seed: int) -> Union[float, int]:
+        """Sample from a continuous uniform distribution with min and max.
+
+        Args:
+            random_seed: Random seed.
+
+        Returns:
+            Sampled value.
+        """
         random_state = random.Random(random_seed)
 
         diff = self.max - self.min
@@ -95,6 +116,14 @@ class Bucket(pd_distributions_pb2.Bucket):
 @register_wrapper(proto_type=pd_distributions_pb2_base.DiscreteUniformDistribution)
 class DiscreteUniformDistribution(pd_distributions_pb2.DiscreteUniformDistribution):
     def sample(self, random_seed: int) -> Bucket:
+        """Sample from a discrete uniform distribution with buckets.
+
+        Args:
+            random_seed: Random seed.
+
+        Returns:
+            Sampled value.
+        """
         random_state = random.Random(random_seed)
 
         choices = list()
@@ -127,6 +156,14 @@ class CategoricalDistribution(pd_distributions_pb2.CategoricalDistribution):
                 bucket.probability = weight
 
     def sample(self, random_seed: int) -> Bucket:
+        """Sample from a categorical distribution with buckets.
+
+        Args:
+            random_seed: Random seed.
+
+        Returns:
+            Sampled value.
+        """
         random_state = random.Random(random_seed)
 
         choices = list()
@@ -208,6 +245,14 @@ class Distribution(pd_distributions_pb2.Distribution):
             return False
 
     def sample(self, random_seed: int) -> Union[str, int, float, Bucket]:
+        """Sample from a distribution.
+
+        Args:
+            random_seed: Random seed.
+
+        Returns:
+            Sampled value.
+        """
         field = self.proto.WhichOneof("distribution")
         if field == "categorical":
             sampled = self.categorical.sample(random_seed=random_seed)
@@ -219,8 +264,6 @@ class Distribution(pd_distributions_pb2.Distribution):
             sampled = self.constant.value
         else:
             raise ValueError("Missing assigned distribution!")
-        # cloned = self.clone()
-        # cloned.set_constant_value(value=sampled)
         return sampled
 
     @staticmethod

@@ -8,22 +8,21 @@
 Low-level implementation of communication over ZeroMQ
 """
 
+import abc
+import logging
+import queue
+import select
 import socket
 import ssl
-import select
-import queue
-from queue import Queue
-import abc
-from typing import List, Optional
-import time
-import logging
 import threading
+import time
+from queue import Queue
+from typing import List, Optional
 
 import zmq
 from zmq.error import ZMQError
 
 from pd.core import PdError
-
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +47,7 @@ class IZmqTransportListener(abc.ABC):
     """
     Interface for observing Zmq transport messages
     """
+
     @abc.abstractmethod
     def on_connect_request(self, timestamp: float, request_addr: str):
         """
@@ -128,6 +128,7 @@ class IZmqTransport(abc.ABC):
     """
     Interface for a transport that works over the ZeroMQ protocol.
     """
+
     @abc.abstractmethod
     def add_listener(self, listener: IZmqTransportListener):
         """
@@ -180,7 +181,7 @@ class ZmqTransport(IZmqTransport):
     sockets: request or state.
     """
 
-    _TIMEOUT_RECV_MS = 300000
+    _TIMEOUT_RECV_MS = 600_000
     _TIMEOUT_LINGER_MS = 0
 
     def __init__(self, request_addr: str, state_addr: Optional[str] = None):
@@ -207,26 +208,26 @@ class ZmqTransport(IZmqTransport):
         self._request_socket.setsockopt(zmq.RCVTIMEO, self.timeout_recv_ms)
         self._request_socket.setsockopt(zmq.LINGER, self._TIMEOUT_LINGER_MS)
         self._request_socket.connect(self.request_socket_addr)
-        for l in self.listeners:
-            l.on_connect_request(timestamp=time.time(), request_addr=self.request_socket_addr)
+        for ll in self.listeners:
+            ll.on_connect_request(timestamp=time.time(), request_addr=self.request_socket_addr)
         if self.state_socket_addr:
             self._state_socket = context.socket(zmq.PUB)
             self._state_socket.bind(self.state_socket_addr)
-            for l in self.listeners:
-                l.on_connect_state(timestamp=time.time(), state_addr=self.state_socket_addr)
+            for ll in self.listeners:
+                ll.on_connect_state(timestamp=time.time(), state_addr=self.state_socket_addr)
         else:
             self._state_socket = self._request_socket
 
     def _disconnect(self):
         if self.state_socket_addr and self._state_socket:
             self._state_socket.disconnect(self.state_socket_addr)
-            for l in self.listeners:
-                l.on_disconnect_state(timestamp=time.time())
+            for ll in self.listeners:
+                ll.on_disconnect_state(timestamp=time.time())
             self._state_socket.close()
         if self._request_socket:
             self._request_socket.disconnect(self.request_socket_addr)
-            for l in self.listeners:
-                l.on_disconnect_request(timestamp=time.time())
+            for ll in self.listeners:
+                ll.on_disconnect_request(timestamp=time.time())
             self._request_socket.close()
 
     def send_request_msg(self, msg_bytes: bytearray) -> bytes:
@@ -235,24 +236,24 @@ class ZmqTransport(IZmqTransport):
             resp = self._request_socket.recv()
         except ZMQError as e:
             raise PdError(
-                f"Timed out while waiting for the server to respond. "
-                f"Please check that the server is running and the server address is correct. "
-                f"Please contact support@paralleldomain.com for support. "
+                "Timed out while waiting for the server to respond. "
+                "Please check that the server is running and the server address is correct. "
+                "Please contact support@paralleldomain.com for support. "
                 f"Error: {e.strerror} ({e.errno})"
             )
-        for l in self.listeners:
-            l.on_send_request_msg(timestamp=time.time(), data=bytes(msg_bytes))
+        for ll in self.listeners:
+            ll.on_send_request_msg(timestamp=time.time(), data=bytes(msg_bytes))
         return resp
 
     def send_state_msg(self, msg_bytes: bytearray):
         self._state_socket.send(msg_bytes)
-        for l in self.listeners:
-            l.on_send_state_msg(timestamp=time.time(), data=bytes(msg_bytes))
+        for ll in self.listeners:
+            ll.on_send_state_msg(timestamp=time.time(), data=bytes(msg_bytes))
 
     def receive_state_msg(self) -> bytes:
         resp = self._state_socket.recv()
-        for l in self.listeners:
-            l.on_receive_state_msg(timestamp=time.time(), data=resp)
+        for ll in self.listeners:
+            ll.on_receive_state_msg(timestamp=time.time(), data=resp)
         return resp
 
 
@@ -294,11 +295,7 @@ class TlsProxyForZmqTransport(IZmqTransport):
     def _connect(self):
         out_queue = Queue()
         proxy_thread = threading.Thread(
-            target=self.proxy_worker,
-            args=(
-                out_queue,
-                self.server_hostname, self.server_port, self.client_cert_file
-            )
+            target=self.proxy_worker, args=(out_queue, self.server_hostname, self.server_port, self.client_cert_file)
         )
         proxy_thread.daemon = True
         proxy_thread.start()
@@ -308,7 +305,7 @@ class TlsProxyForZmqTransport(IZmqTransport):
         except queue.Empty:
             raise PdError("Connection error: failed to receive client port from TLS proxy")
         logger.debug(f"Tls Zmq transport connecting to proxy on client port {client_port}")
-        self._zmq_transport = ZmqTransport(request_addr=f'tcp://127.0.0.1:{client_port}')
+        self._zmq_transport = ZmqTransport(request_addr=f"tcp://127.0.0.1:{client_port}")
         if self.timeout_recv_ms:
             self._zmq_transport.timeout_recv_ms = self.timeout_recv_ms
 
@@ -330,7 +327,7 @@ class TlsProxyForZmqTransport(IZmqTransport):
 
         # Create client socket and send back the client port number
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.bind(('', 0))
+        client_socket.bind(("", 0))
         client_port = client_socket.getsockname()[1]
         out_queue.put(client_port)
 
@@ -339,7 +336,7 @@ class TlsProxyForZmqTransport(IZmqTransport):
         client_socket.listen()
         client_socket_handle, _ = client_socket.accept()
         client_socket.setblocking(False)
-        logger.debug(f"TLS proxy client connected")
+        logger.debug("TLS proxy client connected")
 
         # Connect to TLS server
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -372,7 +369,6 @@ class TlsProxyForZmqTransport(IZmqTransport):
                 readable, writable, exceptional = select.select(inputs, outputs, inputs)
 
                 for readable_s in readable:
-
                     if readable_s is client_socket_handle:
                         msg_from_client = readable_s.recv(TlsProxyForZmqTransport.__SOCKET_BUFFER_SIZE)
                         logger.debug(f"Received msg from client (size={len(msg_from_client)})")
@@ -385,10 +381,10 @@ class TlsProxyForZmqTransport(IZmqTransport):
                             msg_from_server = readable_s.recv(TlsProxyForZmqTransport.__SOCKET_BUFFER_SIZE)
                             if not msg_from_server:
                                 logger.error(
-                                    f"Error: Failed to establish a secure connection to the server. "
-                                    f"Please check that you have the correct server address and that you're "
-                                    f"using the correct credentials file. "
-                                    f"Please contact support@paralleldomain.com for support."
+                                    "Error: Failed to establish a secure connection to the server. "
+                                    "Please check that you have the correct server address and that you're "
+                                    "using the correct credentials file. "
+                                    "Please contact support@paralleldomain.com for support."
                                 )
                                 server_tls_socket.close()
                                 server_socket.close()
@@ -416,7 +412,6 @@ class TlsProxyForZmqTransport(IZmqTransport):
                                 outputs.append(client_socket_handle)
 
                 for writable_s in writable:
-
                     if writable_s is client_socket_handle:
                         try:
                             msg_from_server = server_to_client_queue.get_nowait()
@@ -474,8 +469,8 @@ class TlsProxyForZmqTransport(IZmqTransport):
 
         except (Exception,) as e:
             logger.error(
-                f"Secure connection with the server was interrupted. "
-                f"Please contact support@paralleldomain.com for support. "
+                "Secure connection with the server was interrupted. "
+                "Please contact support@paralleldomain.com for support. "
                 f"Error: Closing TLS socket due to {e.__class__.__name__} {str(e)}"
             )
             server_tls_socket.close()

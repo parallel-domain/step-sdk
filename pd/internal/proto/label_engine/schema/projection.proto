@@ -10,4 +10,18 @@ message GenerateProjectionConfig
 	string input_instance_map = 2   [(type)=eMeshIDMap, (stream)=eInput];
     string output_path = 3          [(type)=eAnnotation, (stream)=eOutput];
 	repeated SensorType sensor_types = 4;
+    InstancePointProjectionSettings instance_point_projection_settings = 5;
+}
+
+message InstancePointProjectionSettings
+{
+    bool output_offscreen_points = 1;
+    
+    // Different keypoint types have different settings for testing
+    // visibility (e.x. wheel stopper keypoints regularly end up underground,
+    // but we want to label them as visible unless they're really occluded),
+    // so the semantic ID for different keypoint types must be provided
+    uint32 pedestrian_semantic_id = 2;
+    uint32 wheel_semantic_id = 3;
+    uint32 wheel_stopper_semantic_id = 4;
 }

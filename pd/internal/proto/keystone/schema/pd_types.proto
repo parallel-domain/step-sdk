@@ -2,24 +2,60 @@ syntax = "proto3";
 
 package keystone;
 
+/*
+A three element vector of float values.
+*/
 message Float3
 {
-    // Elements of the vector. Not using repeated fields to force correct dimensions.
+    /*
+    First element of the vector.
+    */
     float x = 1;
+
+    /*
+    Second element of the vector.
+    */
     float y = 2;
+
+    /*
+    Third element of the vector.
+    */
     float z = 3;
 }
 
+/*
+A 3x3 matrix of float values.
+*/
 message Float3x3
 {
-    // Rows in the 3x3 matrix. Not using repeated fields to force correct dimensions.
+    /*
+    The first row of the matrix.
+    */
     Float3 r0 = 1;
+
+    /*
+    The second row of the matrix.
+    */
     Float3 r1 = 2;
+
+    /*
+    The third row of the matrix.
+    */
     Float3 r2 = 3;
 }
 
+/*
+Represents a pose in 3D space, including translation and rotation.
+*/
 message Pose
 {
+    /*
+    The 3D position of the :obj:`Pose`.
+    */
     Float3 position = 1;
+
+    /*
+    The 3D rotation of the :obj:`Pose`.
+    */
     Float3x3 orientation = 2;
 }

@@ -9,6 +9,6 @@ message GenerateMotionVectors3DConfig
     string input_point_cloud_positions = 1  [(type)=ePointCloud, (stream)=eInput];
 	string input_mesh_mask_3d = 2           [(type)=ePointCloud, (stream)=eInput];
 	bool enable_child_mesh_rotation = 3;
-	bool backwards = 4;
+	MotionVectorMode mode = 4;
     string output_path = 5                  [(type)=ePointCloud, (stream)=eOutput];
 }

@@ -4,14 +4,26 @@
 # Use of this file is only permitted if you have entered into a
 # separate written license agreement with Parallel Domain, Inc.
 
-from typing import Optional, List, Union
+from typing import List, Optional, Union
 
 from pd.data_lab.labeled_state_reference import StateReference
 from pd.session import StepSession
-from pd.state import State, CameraSensor, LiDARSensor
+from pd.state import CameraSensor, LiDARSensor, State
 
 
-class TemporalSessionReference(StateReference):
+class StepSessionReference(StateReference):
+    def __init__(
+        self,
+        state: State,
+        frame_id: str,
+        sensor_rig: List[Union[CameraSensor, LiDARSensor]],
+        ego_agent_id: int,
+    ):
+        super().__init__(state=state, frame_id=frame_id, ego_agent_id=ego_agent_id)
+        self.sensor_rig = sensor_rig
+
+
+class TemporalSessionReference(StepSessionReference):
     def __init__(
         self,
         session: StepSession,
@@ -20,9 +32,8 @@ class TemporalSessionReference(StateReference):
         sensor_rig: List[Union[CameraSensor, LiDARSensor]],
         ego_agent_id: int,
     ):
-        super().__init__(state=state, frame_id=frame_id, ego_agent_id=ego_agent_id)
+        super().__init__(state=state, frame_id=frame_id, ego_agent_id=ego_agent_id, sensor_rig=sensor_rig)
         self._session = session
-        self.sensor_rig = sensor_rig
 
     @property
     def session(self) -> Optional[StepSession]:

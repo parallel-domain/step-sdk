@@ -142,7 +142,6 @@ message SemanticLabelInfo
 {
     uint32 id = 1;
     string label = 2;
-    bool is_thing = 3;
     Color color = 4;
 };
 
@@ -154,15 +153,29 @@ message SemanticLabelMap
 message GenerateMeshSemanticMapConfig
 {
     string asset_semantic_map_filepath = 1 [(type)=eConfiguration];
-    string output_path = 2 [(type)=eMeshIDMap, (stream)=eOutput];
+	string semantic_label_filepath = 2 [(type)=eConfiguration];
+    string output_path = 3 [(type)=eMeshIDMap, (stream)=eOutput];
+	string output_ontology_path = 4 [(type)=eSemanticLabelMap, (stream)=eOutput];
 };
+
+// GenerateCustomMeshSemanticMapConfig Performs 2 operations:
+// 1. Transforms the semantic map from {mesh_id : semantic_id} to
+//    {mesh_id : mesh_to_semantic_id[mesh_to_root_mesh_of_instance_id[mesh_id]]}
+// 2. [Optional] transforms the map outputted by step 1 from {mesh_id : semantic_id}
+//    to {mesh_id : semantic_id_remapping[semantic_id]}
+// If step 2 is desired, the fields custom_semantic_config_filepath and
+// semantic_label_filepath (the 2 configs) must be provided. All other fields
+// are mandatory.
 
 message GenerateCustomMeshSemanticMapConfig
 {
-    string custom_semantic_config_filepath = 1 [(type)=eConfiguration];
-    string base_semantic_map = 2 [(type)=eMeshIDMap, (stream)=eInput];
-    string input_instance_map = 3 [(type)=eMeshIDMap, (stream)=eInput];
-    string output_path = 4 [(type)=eMeshIDMap, (stream)=eOutput];
+	string input_ontology_path = 1 [(type)=eSemanticLabelMap, (stream)=eInput];
+    string custom_semantic_config_filepath = 2 [(type)=eConfiguration];
+	string semantic_label_filepath = 3 [(type)=eConfiguration];
+    string base_semantic_map = 4 [(type)=eMeshIDMap, (stream)=eInput];
+    string input_instance_map = 5 [(type)=eMeshIDMap, (stream)=eInput];
+    string output_path = 6 [(type)=eMeshIDMap, (stream)=eOutput];
+	string output_ontology_path = 7 [(type)=eSemanticLabelMap, (stream)=eOutput];
 };
 
 message GenerateSemanticMaskConfig

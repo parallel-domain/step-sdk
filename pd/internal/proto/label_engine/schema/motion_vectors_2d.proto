@@ -7,6 +7,7 @@ import "options.proto";
 
 message GenerateMotionVectors2DConfig
 {
-    string output_path = 1           [(type)=eImage, (stream)=eOutput];
-    optional bool backwards = 2;
+    bool enable_child_mesh_rotation = 1;
+	MotionVectorMode mode = 2;
+	string output_path = 3                [(type)=eImage, (stream)=eOutput];
 }

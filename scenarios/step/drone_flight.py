@@ -4,27 +4,24 @@
 # Use of this file is only permitted if you have entered into a
 # separate written license agreement with Parallel Domain, Inc.
 
-import cv2
-from pathlib import Path
-import click
-from typing import Tuple
-import numpy as np
 import logging
-import sys
 import shutil
+import sys
+from pathlib import Path
+from typing import Tuple
 
+import click
+import cv2
+import numpy as np
+
+import pd.management
 import pd.session
 import pd.state
 import pd.umd
-import pd.management
-from pd.util import common_step_options, StepScriptContext
+from pd.util import StepScriptContext, common_step_options
 
-
-DEFAULT_LOCATION = ('SJ_EssexAndBradford', 'v2.0.2')
-LIGHTING_CHOICES = {
-    'day': 'LS_sky_noon_mostlySunny_1250_HDS025',
-    'night': 'LS_sky_twilight_clear_0400_HDS023'
-}
+DEFAULT_LOCATION = ("SJ_EssexAndBradford", "v2.0.2")
+LIGHTING_CHOICES = {"day": "LS_sky_noon_mostlySunny_1250_HDS025", "night": "LS_sky_twilight_clear_0400_HDS023"}
 
 
 START_HEIGHT_METRES = 60.0
@@ -64,7 +61,9 @@ def get_starting_position_from_umd(umd_map, seed: int):
         Location 3-tuple
     """
     # Find all the driveways
-    driveways = [road for road in umd_map.road_segments.values() if road.type == pd.umd.schema.RoadSegment.RoadType.DRIVEWAY]
+    driveways = [
+        road for road in umd_map.road_segments.values() if road.type == pd.umd.schema.RoadSegment.RoadType.DRIVEWAY
+    ]
     driveways = sorted(driveways, key=lambda d: d.id)
     # Select the first driveway
     driveway = driveways[seed % len(driveways)]
@@ -81,11 +80,14 @@ class DroneSimulator:
 
     Simulates a descending drone given a starting position and target height.
     """
-    def __init__(self,
-                 start_pos_metres: Tuple[float, float, float],
-                 target_height_metres: float,
-                 descent_velocity_metres_per_sec: float,
-                 step_interval_sec: float):
+
+    def __init__(
+        self,
+        start_pos_metres: Tuple[float, float, float],
+        target_height_metres: float,
+        descent_velocity_metres_per_sec: float,
+        step_interval_sec: float,
+    ):
         self.world_time = 0.0
         self.current_pos_metres = start_pos_metres
         self._target_height_metres = target_height_metres
@@ -110,20 +112,22 @@ class DroneSimulator:
 
 @click.command()
 @common_step_options()
-@click.option('--preview/--no-preview', default=True, show_default=True, help="Preview rendered frame")
+@click.option("--preview/--no-preview", default=True, show_default=True, help="Preview rendered frame")
 @click.option(
-    '-o', '--output-dir',
+    "-o",
+    "--output-dir",
     type=click.Path(exists=False, file_okay=False, dir_okay=True),
-    default='./output',
+    default="./output",
     help="Output directory for images",
-    show_default=True
+    show_default=True,
 )
-@click.option('--location', default=DEFAULT_LOCATION, help="Location name and version", type=(str, str),
-              show_default=True)
-@click.option('--day/--night', help="Time of day", default=True)
-@click.option('--grayscale', help="Grayscale camera sensor", is_flag=True, default=False)
-@click.option('--seed', default=0, type=int, help="Seed to randomize the starting location", show_default=True)
-@click.option('-f', '--force', help="Force overwrite output", is_flag=True, default=False)
+@click.option(
+    "--location", default=DEFAULT_LOCATION, help="Location name and version", type=(str, str), show_default=True
+)
+@click.option("--day/--night", help="Time of day", default=True)
+@click.option("--grayscale", help="Grayscale camera sensor", is_flag=True, default=False)
+@click.option("--seed", default=0, type=int, help="Seed to randomize the starting location", show_default=True)
+@click.option("-f", "--force", help="Force overwrite output", is_flag=True, default=False)
 def cli(preview, output_dir, location, day, grayscale, seed, force, step_options: StepScriptContext = None):
     """
     Drone flight Step Mode example
@@ -132,9 +136,7 @@ def cli(preview, output_dir, location, day, grayscale, seed, force, step_options
     It illustrates how to connect to and communicate with a server.
     It also shows how the UMD specification can be used to extract location information.
     """
-    logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
-                        level=logging.INFO,
-                        stream=sys.stdout)
+    logging.basicConfig(format="%(asctime)s %(levelname)s %(message)s", level=logging.INFO, stream=sys.stdout)
 
     request_addr = step_options.ig
     client_cert_file = step_options.client_cert_file
@@ -147,7 +149,7 @@ def cli(preview, output_dir, location, day, grayscale, seed, force, step_options
             sys.exit(f"Error: Output directory {output_path} already exists. Please specify a different directory.")
     output_path.mkdir(exist_ok=True)
 
-    lighting = LIGHTING_CHOICES['day'] if day else LIGHTING_CHOICES['night']
+    lighting = LIGHTING_CHOICES["day"] if day else LIGHTING_CHOICES["night"]
 
     level_name, level_version = location
     umd_map = step_options.load_umd_map(level_name, level_version)
@@ -165,10 +167,10 @@ def cli(preview, output_dir, location, day, grayscale, seed, force, step_options
         click.echo("done")
 
         sim = DroneSimulator(
-            start_pos_metres=(start_x+OFFSET_X, start_y+OFFSET_Y, start_z+START_HEIGHT_METRES),
-            target_height_metres=start_z+END_HEIGHT_METRES,
+            start_pos_metres=(start_x + OFFSET_X, start_y + OFFSET_Y, start_z + START_HEIGHT_METRES),
+            target_height_metres=start_z + END_HEIGHT_METRES,
             descent_velocity_metres_per_sec=DESCENT_VELOCITY_METRES_PER_SEC,
-            step_interval_sec=SIM_STEP_INTERVAL_SEC
+            step_interval_sec=SIM_STEP_INTERVAL_SEC,
         )
 
         frame_count = 0
@@ -179,8 +181,7 @@ def cli(preview, output_dir, location, day, grayscale, seed, force, step_options
             sensor = pd.state.CameraSensor(
                 name="Front",
                 pose=pd.state.Pose6D.from_rpy_angles(
-                    x_metres=0.0, y_metres=0.0, z_metres=0.0,
-                    roll_degrees=0.0, pitch_degrees=0.0, yaw_degrees=0.0
+                    x_metres=0.0, y_metres=0.0, z_metres=0.0, roll_degrees=0.0, pitch_degrees=0.0, yaw_degrees=0.0
                 ),
                 width=1920,
                 height=1080,
@@ -192,13 +193,12 @@ def cli(preview, output_dir, location, day, grayscale, seed, force, step_options
                 post_process_params=pd.state.PostProcessParams(
                     motion_blur_amount=0.5,
                 ),
-                transmit_gray=grayscale
+                transmit_gray=grayscale,
             )
             lidar = pd.state.LiDARSensor(
                 name="Altitude",
                 pose=pd.state.Pose6D.from_rpy_angles(
-                    x_metres=0.0, y_metres=0.0, z_metres=0.0,
-                    roll_degrees=0.0, pitch_degrees=0.0, yaw_degrees=0.0
+                    x_metres=0.0, y_metres=0.0, z_metres=0.0, roll_degrees=0.0, pitch_degrees=0.0, yaw_degrees=0.0
                 ),
                 sample_rate=10.0,
                 rotation_rate=1.0,
@@ -207,22 +207,15 @@ def cli(preview, output_dir, location, day, grayscale, seed, force, step_options
             sensor_agent = pd.state.ModelAgent(
                 id=ego_agent_id,
                 pose=pd.state.Pose6D.from_rpy_angles(
-                    x_metres=x, y_metres=y, z_metres=z,
-                    roll_degrees=0.0, pitch_degrees=-90.0, yaw_degrees=0.0
+                    x_metres=x, y_metres=y, z_metres=z, roll_degrees=0.0, pitch_degrees=-90.0, yaw_degrees=0.0
                 ),
                 velocity=(0.0, 0.0, 0.0),
                 asset_name="spotlight_01",
-                sensors=[sensor, lidar]
+                sensors=[sensor, lidar],
             )
-            world_info = pd.state.WorldInfo(
-                street_lights=1.0
-            )
+            world_info = pd.state.WorldInfo(street_lights=1.0)
 
-            state = pd.state.State(
-                simulation_time_sec=sim.world_time,
-                world_info=world_info,
-                agents=[sensor_agent]
-            )
+            state = pd.state.State(simulation_time_sec=sim.world_time, world_info=world_info, agents=[sensor_agent])
 
             # Send the environment state to server
             session.update_state(state)
@@ -235,43 +228,43 @@ def cli(preview, output_dir, location, day, grayscale, seed, force, step_options
             # Query camera sensor data
             sensor_data = session.query_sensor_data(sensor_agent.id, sensor.name, pd.state.SensorBuffer.RGB)
             rgb_data = sensor_data.data_as_rgb
-            save_image(output_path, 'rgb', frame_count, cv2.cvtColor(rgb_data, cv2.COLOR_RGB2BGR))
+            save_image(output_path, "rgb", frame_count, cv2.cvtColor(rgb_data, cv2.COLOR_RGB2BGR))
 
             # Query depth annotation data
             sensor_data = session.query_sensor_data(sensor_agent.id, sensor.name, pd.state.SensorBuffer.DEPTH)
             depth_data = sensor_data.data_as_depth
             center_pixel_depth = depth_data[tuple(np.array(depth_data.shape) // 2)]
             depth_image = depth_data.astype(np.uint8)  # convert to uint8
-            save_image(output_path, 'depth', frame_count, cv2.applyColorMap(depth_image, cv2.COLORMAP_JET))
+            save_image(output_path, "depth", frame_count, cv2.applyColorMap(depth_image, cv2.COLORMAP_JET))
             click.echo(f"Center pixel depth: {center_pixel_depth:.2f}")
 
             # Query semantic segmentation annotation data
             sensor_data = session.query_sensor_data(sensor_agent.id, sensor.name, pd.state.SensorBuffer.SEGMENTATION)
             semseg_image = sensor_data.data_as_segmentation_rgb
             semseg_labels = sensor_data.data_as_segmentation_labels
-            save_image(output_path, 'semseg', frame_count, semseg_image)
+            save_image(output_path, "semseg", frame_count, semseg_image)
             click.echo(f"Semantic labels in scene: {', '.join(np.unique(semseg_labels))}")
 
             # Query instance segmentation annotation data
             sensor_data = session.query_sensor_data(sensor_agent.id, sensor.name, pd.state.SensorBuffer.INSTANCES)
             instances_image = sensor_data.get_data_as_merged_instance_rgb(rgb_data)
             instances_data = sensor_data.data_as_instance_ids
-            save_image(output_path, 'instances', frame_count, cv2.cvtColor(instances_image, cv2.COLOR_RGB2BGR))
+            save_image(output_path, "instances", frame_count, cv2.cvtColor(instances_image, cv2.COLOR_RGB2BGR))
             click.echo(f"Instance ids in scene: {', '.join(map(str, np.unique(instances_data)))}")
 
             if preview:
                 try:
-                    cv2.imshow('img', cv2.cvtColor(rgb_data, cv2.COLOR_RGB2BGR))
+                    cv2.imshow("img", cv2.cvtColor(rgb_data, cv2.COLOR_RGB2BGR))
                     key = cv2.waitKey(1)
                     # Escape key to exit program
                     if key == 27:
                         return
                 except cv2.error:
-                    click.echo(f"Couldn't display GUI window, skipping preview")
+                    click.echo("Couldn't display GUI window, skipping preview")
 
             frame_count += 1
             click.echo("----------------------------------------")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()

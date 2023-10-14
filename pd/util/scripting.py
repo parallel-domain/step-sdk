@@ -8,22 +8,22 @@
 Utilities for scripting, such as handling common inputs.
 """
 import os
-from functools import partial, wraps
 from dataclasses import dataclass
-from typing import Optional, Dict
+from functools import partial, wraps
 from pathlib import Path
-from requests import HTTPError
+from typing import Dict, Optional
 
 import click
+from requests import HTTPError
 
-from pd.core import PdError
-from pd.session import is_server_url
-import pd.management
-from pd.management import Ig
-from pd.assets import init_asset_registry_version, init_asset_registry_file
-from pd.umd import load_umd_map_from_file, load_umd_map
 import pd.internal.umd.UMD_pb2 as schema
+import pd.management
+from pd.assets import init_asset_registry_file, init_asset_registry_version
+from pd.core import PdError
 from pd.internal.proto.umd.generated.wrapper.UMD_pb2 import UniversalMap
+from pd.management import Ig
+from pd.session import is_server_url
+from pd.umd import load_umd_map, load_umd_map_from_file
 
 
 @dataclass
@@ -87,11 +87,7 @@ class StepScriptContext:
         """
         if self.internal_dev:
             map_file = (
-                    Path(os.environ.get("PD_ROOT", ""))
-                    / "generated"
-                    / "locations"
-                    / location_name
-                    / f"{location_name}.umd"
+                Path(os.environ.get("PD_ROOT", "")) / "generated" / "locations" / location_name / f"{location_name}.umd"
             )
             if not map_file.is_file():
                 raise PdError(
@@ -104,8 +100,7 @@ class StepScriptContext:
                 return load_umd_map(name=location_name, version=location_version)
             except PdError as e:
                 raise PdError(
-                    f"Couldn't load map {location_name} {location_version} from management API. "
-                    f"Error: {str(e)}"
+                    f"Couldn't load map {location_name} {location_version} from management API. Error: {str(e)}"
                 )
 
     def load_map(self, location_name: str, location_version: str) -> UniversalMap:
@@ -145,18 +140,19 @@ def common_step_options(require_sim=False, require_label_engine=False):
         def cli(test, step_options: StepScriptContext = None)
             print(step_options.ig)
 
-    This decorator additionally accepts parameters to enforce certain behaviours, like forcing
+    This decorator additionally accepts parameters to enforce certain behaviors, like forcing
     certain options to be required.
 
     Args:
         require_sim: Adds an input for Sim name/address
         require_label_engine: Adds an input for Label Engine name/address
     """
+
     # The following callback function is used to capture the unexposed option values
     def _callback(ctx, param, value):
         ctx.obj = ctx.obj or {}
-        ctx.obj['step_option_values'] = ctx.obj.get('step_option_values', {})
-        ctx.obj['step_option_values'][param.name] = value
+        ctx.obj["step_option_values"] = ctx.obj.get("step_option_values", {})
+        ctx.obj["step_option_values"][param.name] = value
 
     # The following decorator is used to trigger validation on the options
     # and expose the script-specific context object
@@ -164,63 +160,54 @@ def common_step_options(require_sim=False, require_label_engine=False):
         @click.pass_context
         @wraps(_func)
         def _step_options_callback(ctx, *args, **kwargs):
-            update_dict = {'step_options': _validate_step_options(ctx.obj['step_option_values'])}
+            update_dict = {"step_options": _validate_step_options(ctx.obj["step_option_values"])}
             ctx.params.update(update_dict)
             kwargs.update(update_dict)
             _func(*args, **kwargs)
+
         return _step_options_callback
 
     # The following function performs the validation on the step script options
     def _validate_step_options(option_values: Dict[str, str]) -> StepScriptContext:
-        ig = option_values.get('ig', None)
-        sim = option_values.get('sim', None) if require_sim else None
-        label_engine = option_values.get('label_engine', None) if require_label_engine else None
-        org = option_values.get('org', None)
-        api_key = option_values.get('apikey', None)
-        env = option_values.get('env', None)
-        client_cert_file = option_values.get('client_cert_file', None)
+        ig = option_values.get("ig", None)
+        sim = option_values.get("sim", None) if require_sim else None
+        label_engine = option_values.get("label_engine", None) if require_label_engine else None
+        org = option_values.get("org", None)
+        api_key = option_values.get("apikey", None)
+        env = option_values.get("env", None)
+        client_cert_file = option_values.get("client_cert_file", None)
         if is_server_url(ig):
             internal_dev = True
             if sim and not is_server_url(sim):
-                raise ValueError(
-                    f"Since --ig is a url, --sim must also be a url as well."
-                )
+                raise ValueError("Since --ig is a url, --sim must also be a url as well.")
             if label_engine and not is_server_url(label_engine):
-                raise ValueError(
-                    f"Since --ig is a url, --label-engine must also be a url as well."
-                )
-            local_asset_registry_path = Path(os.environ.get("PD_ROOT", "")) / 'assets' / 'asset_registry.db'
+                raise ValueError("Since --ig is a url, --label-engine must also be a url as well.")
+            local_asset_registry_path = Path(os.environ.get("PD_ROOT", "")) / "assets" / "asset_registry.db"
             if not local_asset_registry_path.is_file():
-                raise PdError(f"Couldn't find asset registry at {str(local_asset_registry_path)}. "
-                              "Please make sure env var PD_ROOT is set and asset registry exists at "
-                              "$PD_ROOT/assets/asset_registry.db")
+                raise PdError(
+                    f"Couldn't find asset registry at {str(local_asset_registry_path)}. "
+                    "Please make sure env var PD_ROOT is set and asset registry exists at "
+                    "$PD_ROOT/assets/asset_registry.db"
+                )
             init_asset_registry_file(local_asset_registry_path)
             ig_version = None
         else:
             internal_dev = False
             if sim and sim != ig:
-                raise ValueError(
-                    f"Since --ig is a cloud instance name, --sim must be the same instance name."
-                )
+                raise ValueError("Since --ig is a cloud instance name, --sim must be the same instance name.")
             if label_engine and label_engine != ig:
-                raise ValueError(
-                    f"Since --ig is a cloud instance name, --label-engine must be the same instance name."
-                )
+                raise ValueError("Since --ig is a cloud instance name, --label-engine must be the same instance name.")
             if not org:
-                raise ValueError(
-                    f"--org is required when connecting to a named Ig server"
-                )
+                raise ValueError("--org is required when connecting to a named Ig server")
             if not api_key:
-                raise ValueError(
-                    f"--apikey is required when connecting to a named Ig server"
-                )
+                raise ValueError("--apikey is required when connecting to a named Ig server")
             pd.management.org = org
             pd.management.api_key = api_key
             if env:
                 api_urls = {
-                    'prod': pd.management._API_URL_PROD,
-                    'stage': pd.management._API_URL_STAGE,
-                    'dev': pd.management._API_URL_DEV
+                    "prod": pd.management._API_URL_PROD,
+                    "stage": pd.management._API_URL_STAGE,
+                    "dev": pd.management._API_URL_DEV,
                 }
                 pd.management.api_url = api_urls[env]
             try:
@@ -231,9 +218,7 @@ def common_step_options(require_sim=False, require_label_engine=False):
                 if label_engine:
                     label_engine = ig_instance.le_url
             except HTTPError:
-                raise ValueError(
-                    f"Couldn't find an Ig by the name '{ig}'. Please check the value passed in '--ig'"
-                )
+                raise ValueError(f"Couldn't find an Ig by the name '{ig}'. Please check the value passed in '--ig'")
             init_asset_registry_version(ig_version)
 
         return StepScriptContext(
@@ -244,39 +229,43 @@ def common_step_options(require_sim=False, require_label_engine=False):
             org=org,
             api_key=api_key,
             ig_version=ig_version,
-            client_cert_file=client_cert_file
+            client_cert_file=client_cert_file,
         )
 
     unexposed_option = partial(click.option, expose_value=False, callback=_callback)
     _common_step_options = [
         unexposed_option(
-            '--ig',
-            default='tcp://127.0.0.1:9000',
+            "--ig",
+            default="tcp://127.0.0.1:9000",
             help="Name of the IG server or address of IG server's url",
-            show_default=True
+            show_default=True,
         ),
-        unexposed_option('--client-cert-file', help="Path to .pem certificate file", type=click.Path(exists=True),
-                         envvar='PD_CLIENT_CREDENTIALS_PATH_ENV'),
-        unexposed_option('--org', help="Step Management org name. Required with named IG server.",
-                         envvar='PD_CLIENT_ORG_ENV'),
-        unexposed_option('--apikey', help="Step Management API key. Required with named IG server.",
-                         envvar='PD_CLIENT_STEP_API_KEY_ENV'),
-        unexposed_option('--env', help="Step Environment", type=click.Choice(['prod', 'stage', 'dev'])),
+        unexposed_option(
+            "--client-cert-file",
+            help="Path to .pem certificate file",
+            type=click.Path(exists=True),
+            envvar="PD_CLIENT_CREDENTIALS_PATH_ENV",
+        ),
+        unexposed_option(
+            "--org", help="Step Management org name. Required with named IG server.", envvar="PD_CLIENT_ORG_ENV"
+        ),
+        unexposed_option(
+            "--apikey",
+            help="Step Management API key. Required with named IG server.",
+            envvar="PD_CLIENT_STEP_API_KEY_ENV",
+        ),
+        unexposed_option("--env", help="Step Environment", type=click.Choice(["prod", "stage", "dev"])),
     ]
     if require_sim:
         _common_step_options.append(
-            unexposed_option(
-                '--sim',
-                help="Name of the Sim server or address of Sim server's url",
-                show_default=True
-            )
+            unexposed_option("--sim", help="Name of the Sim server or address of Sim server's url", show_default=True)
         )
     if require_label_engine:
         _common_step_options.append(
             unexposed_option(
-                '--label-engine',
+                "--label-engine",
                 help="Name of the Label Engine server or address of Label Engine server's url",
-                show_default=True
+                show_default=True,
             )
         )
 
@@ -285,4 +274,5 @@ def common_step_options(require_sim=False, require_label_engine=False):
             func = option(func)
         func = _step_options_callback_decorator(func)
         return func
+
     return inner_decorator

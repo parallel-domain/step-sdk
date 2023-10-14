@@ -7,36 +7,31 @@ import "options.proto";
 // Config message for Instance Point 3D annotation data
 message InstancePoint3DAnnotatorConfig
 {
-  string input_instance_map = 1  [(type)=eMeshIDMap, (stream)=eInput];
+  string input_instance_map = 1 [(type)=eMeshIDMap, (stream)=eInput];
   string instance_point_map = 2;
-  string output_path = 3         [(type)=eAnnotation, (stream)=eOutput];
+  string semantic_label_filepath = 3 [(type)=eConfiguration];
+  string output_path = 4 [(type)=eAnnotation, (stream)=eOutput];
+  string output_ontology_path = 5 [(type)=eSemanticLabelMap, (stream)=eOutput];
+  
+  // Wheel keypoints are not output from the IG but created from vehicle keypoints
+  // This fields lets the transform know what semantic ID to label them as
+  uint32 wheel_semantic_id = 6;
 }
 
 message InstancePoint3DMetadata
 {
     uint32 instance_id = 1;
-    InstancePointType instance_point_type = 2; 
+    uint32 semantic_id = 2; 
     string instance_point_name = 3;
 }
 
 message InstancePoint2DMetadata
 {
     uint32 instance_id = 1;
-	InstancePointType instance_point_type = 2; 
+	uint32 semantic_id = 2; 
     string instance_point_name = 3;
     bool visibility = 4;
     float distance_from_ego = 5;
-}
-
-enum InstancePointType {
-	TrailerPoint = 0;
-	VehiclePoint = 1;
-	PedestrianPoint = 2;
-	ParkingSpotPoint = 3;
-	WheelStopperPoint = 4;
-	WheelPoint = 5;
-	DroneAutoLoaderPoint = 6;
-	OtherTypePoint = 7;
 }
 
 message InstancePointConfiguration
@@ -45,9 +40,9 @@ message InstancePointConfiguration
 	// will be searched for first, then a regex pattern prioritized by longest match.
 	// If an entry's regex is invalid, a warning will be raised and only exact matches
 	// will be used for it.
-	string instance_point_key = 1;
+	string instance_point_input_name_pattern = 1;
 	
-	InstancePointType instance_point_type = 2;
+	uint32 instance_point_output_semantic_id = 2;
 	
 	// instance point name to remap to. If blank, instance_point_key is used
 	string instance_point_output_name = 3;

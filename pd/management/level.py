@@ -8,16 +8,16 @@
 Level and related objects
 """
 from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import List, Type, TypeVar, Optional
+from typing import List, Optional, Type, TypeVar
 from uuid import UUID
 
-from dacite import from_dict, Config
+from dacite import Config, from_dict
 
 from pd.management.http_client import get_http_client
 
-
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 @dataclass
@@ -25,6 +25,7 @@ class Levelpak:
     """
     Available Levelpak
     """
+
     name: str
     """Levelpak name"""
 
@@ -34,13 +35,13 @@ class Levelpak:
     versions: List[str]
     """List of versions available"""
 
-    _RESOURCE_NAME = 'levelpaks'
+    _RESOURCE_NAME = "levelpaks"
 
     @classmethod
     def list(cls: Type[T]) -> List[T]:
         http_client = get_http_client()
         url = cls._RESOURCE_NAME
-        _, content = http_client.request('get', url)
+        _, content = http_client.request("get", url)
         levelpaks = [from_dict(data_class=Levelpak, data=v) for v in content]
         return levelpaks
 
@@ -50,6 +51,7 @@ class LevelpakVersion:
     """
     Available Levelpak versions
     """
+
     levelpak: str
     """Levelpak name"""
 
@@ -59,14 +61,14 @@ class LevelpakVersion:
     internal_version: UUID
     """Levelpak internal version"""
 
-    _RESOURCE_NAME = 'levelpaks/versions'
+    _RESOURCE_NAME = "levelpaks/versions"
     _DACITE_CONFIG = Config(cast=[UUID])
 
     @classmethod
     def list(cls) -> List[LevelpakVersion]:
         http_client = get_http_client()
         url = cls._RESOURCE_NAME
-        _, content = http_client.request('get', url)
+        _, content = http_client.request("get", url)
         levelpak_versions = [from_dict(data_class=LevelpakVersion, data=v, config=cls._DACITE_CONFIG) for v in content]
         return levelpak_versions
 
@@ -82,6 +84,6 @@ def fetch_level_umd(internal_version: str) -> bytes:
         Bytes of the Umd file
     """
     http_client = get_http_client()
-    url = f'levelpaks/umd/{internal_version}'
-    _, content = http_client.request('get', url, raw_response=True)
+    url = f"levelpaks/umd/{internal_version}"
+    _, content = http_client.request("get", url, raw_response=True)
     return content

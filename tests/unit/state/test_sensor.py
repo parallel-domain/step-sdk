@@ -1,16 +1,15 @@
 import json
 
-import pytest
 import numpy as np
+import pytest
 
-from pd.state.sensor import CameraSensor, LiDARSensor, sensors_from_json, DenoiseFilter
 from pd.state.pose6d import Pose6D
+from pd.state.sensor import CameraSensor, DenoiseFilter, LiDARSensor, sensors_from_json
 
 
 class TestCameraSensor:
     def test_default_instance(self):
-        sensor = CameraSensor(name="test", pose=Pose6D(),
-                              width=1920, height=1080, field_of_view_degrees=90)
+        sensor = CameraSensor(name="test", pose=Pose6D(), width=1920, height=1080, field_of_view_degrees=90)
         assert sensor.name == "test"
         assert sensor.width == 1920
         assert sensor.height == 1080
@@ -18,8 +17,7 @@ class TestCameraSensor:
 
 class TestLiDARSensor:
     def test_default_instance(self):
-        sensor = LiDARSensor(name="test", pose=Pose6D(),
-                             sample_rate=1.0, rotation_rate=2.0)
+        sensor = LiDARSensor(name="test", pose=Pose6D(), sample_rate=1.0, rotation_rate=2.0)
         assert sensor.name == "test"
         assert sensor.sample_rate == 1.0
         assert sensor.rotation_rate == 2.0
@@ -28,26 +26,31 @@ class TestLiDARSensor:
 @pytest.fixture
 def load_sensor_config(resources):
     """Returns a method to load sensor configs given the config file name"""
+
     def load(filename):
-        with open(resources / 'sensor_rigs' / filename) as file:
+        with open(resources / "sensor_rigs" / filename) as file:
             return json.load(file)
+
     return load
 
 
 def test_load_sensors_from_json_dict_1(load_sensor_config):
-    json_dict = load_sensor_config('minimal.json')
+    json_dict = load_sensor_config("minimal.json")
     sensors = sensors_from_json(json_dict)
     assert len(sensors) == 1
     sensor = sensors[0]
     assert isinstance(sensor, CameraSensor)
-    assert sensor.name == 'Front'
+    assert sensor.name == "Front"
     assert sensor.width == 1920
     assert sensor.height == 1080
     assert sensor.field_of_view_degrees == 65
-    assert sensor.lut == 'Texture2D\'/Game/pd/Textures/LUT/LUT_PD_DashCamMedia.LUT_PD_DashCamMedia\''
+    assert sensor.lut == "Texture2D'/Game/pd/Textures/LUT/LUT_PD_DashCamMedia.LUT_PD_DashCamMedia'"
     assert sensor.lut_weight == 0.5
     assert len(sensor.post_process_materials) == 1
-    assert sensor.post_process_materials[0].material == 'MaterialInstanceConstant\'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens\''
+    assert (
+        sensor.post_process_materials[0].material
+        == "MaterialInstanceConstant'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens'"
+    )
     assert sensor.post_process_materials[0].weight == 1.0
     assert sensor.capture_rgb
     assert sensor.capture_depth
@@ -62,26 +65,28 @@ def test_load_sensors_from_json_dict_1(load_sensor_config):
     assert np.array_equal(
         sensor.pose.as_transformation_matrix(),
         Pose6D.from_rpy_angles(
-            yaw_degrees=0.0, pitch_degrees=0.0, roll_degrees=0.0,
-            x_metres=0.0, y_metres=0.0, z_metres=2.0
-        ).as_transformation_matrix()
+            yaw_degrees=0.0, pitch_degrees=0.0, roll_degrees=0.0, x_metres=0.0, y_metres=0.0, z_metres=2.0
+        ).as_transformation_matrix(),
     )
 
 
 def test_load_sensors_from_json_dict_2(load_sensor_config):
-    json_dict = load_sensor_config('minimal_scanning.json')
+    json_dict = load_sensor_config("minimal_scanning.json")
     sensors = sensors_from_json(json_dict)
     assert len(sensors) == 2
     sensor = sensors[0]
     assert isinstance(sensor, CameraSensor)
-    assert sensor.name == 'Front'
+    assert sensor.name == "Front"
     assert sensor.width == 1920
     assert sensor.height == 1080
     assert sensor.field_of_view_degrees == 65
-    assert sensor.lut == 'Texture2D\'/Game/pd/Textures/LUT/T_LUT_PD_CameraEmulation.T_LUT_PD_CameraEmulation\''
+    assert sensor.lut == "Texture2D'/Game/pd/Textures/LUT/T_LUT_PD_CameraEmulation.T_LUT_PD_CameraEmulation'"
     assert sensor.lut_weight == 0.1
     assert len(sensor.post_process_materials) == 1
-    assert sensor.post_process_materials[0].material == 'MaterialInstanceConstant\'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens\''
+    assert (
+        sensor.post_process_materials[0].material
+        == "MaterialInstanceConstant'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens'"
+    )
     assert sensor.post_process_materials[0].weight == 1.0
     assert sensor.capture_rgb
     assert sensor.capture_depth
@@ -91,7 +96,7 @@ def test_load_sensors_from_json_dict_2(load_sensor_config):
     assert sensor.capture_motionvectors
     sensor = sensors[1]
     assert isinstance(sensor, LiDARSensor)
-    assert sensor.name == 'Front_LiDAR'
+    assert sensor.name == "Front_LiDAR"
     assert sensor.sample_rate == 18000
     assert sensor.rotation_rate == 10
     assert sensor.capture_rgb
@@ -111,19 +116,22 @@ def test_load_sensors_from_json_dict_2(load_sensor_config):
 
 
 def test_load_sensors_from_json_dict_3(load_sensor_config):
-    json_dict = load_sensor_config('time_offset_test.json')
+    json_dict = load_sensor_config("time_offset_test.json")
     sensors = sensors_from_json(json_dict)
     assert len(sensors) == 1
     sensor = sensors[0]
     assert isinstance(sensor, CameraSensor)
-    assert sensor.name == 'Front20'
+    assert sensor.name == "Front20"
     assert sensor.width == 960
     assert sensor.height == 540
     assert sensor.field_of_view_degrees == 65
-    assert sensor.lut == 'Texture2D\'/Game/pd/Textures/LUT/LUT_PD_DashCamMedia.LUT_PD_DashCamMedia\''
+    assert sensor.lut == "Texture2D'/Game/pd/Textures/LUT/LUT_PD_DashCamMedia.LUT_PD_DashCamMedia'"
     assert sensor.lut_weight == 0.5
     assert len(sensor.post_process_materials) == 1
-    assert sensor.post_process_materials[0].material == 'MaterialInstanceConstant\'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens\''
+    assert (
+        sensor.post_process_materials[0].material
+        == "MaterialInstanceConstant'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens'"
+    )
     assert sensor.post_process_materials[0].weight == 1.0
     assert sensor.time_offset == 20
     assert sensor.capture_rgb
@@ -142,25 +150,28 @@ def test_load_sensors_from_json_dict_3(load_sensor_config):
     assert np.array_equal(
         sensor.pose.as_transformation_matrix(),
         Pose6D.from_rpy_angles(
-            yaw_degrees=0.0, pitch_degrees=0.0, roll_degrees=0.0,
-            x_metres=0.0, y_metres=0.0, z_metres=2.0
-        ).as_transformation_matrix()
+            yaw_degrees=0.0, pitch_degrees=0.0, roll_degrees=0.0, x_metres=0.0, y_metres=0.0, z_metres=2.0
+        ).as_transformation_matrix(),
     )
 
 
 def test_load_sensors_from_json_dict_4(load_sensor_config, helpers):
-    json_dict = load_sensor_config('demo_rig_v2_fisheye.json')
+    json_dict = load_sensor_config("demo_rig_v2_fisheye.json")
     sensors = sensors_from_json(json_dict)
     assert len(sensors) == 1
     sensor = sensors[0]
     assert isinstance(sensor, CameraSensor)
-    assert sensor.name == 'FisheyeLeft'
+    assert sensor.name == "FisheyeLeft"
     assert np.array_equal(
         sensor.pose.as_transformation_matrix(),
         Pose6D.from_rpy_angles(
-            yaw_degrees=90.0, pitch_degrees=-25.004856877359472, roll_degrees=-1.501989531760839e-17,
-            x_metres=-1.1, y_metres=1.2, z_metres=1.2
-        ).as_transformation_matrix()
+            yaw_degrees=90.0,
+            pitch_degrees=-25.004856877359472,
+            roll_degrees=-1.501989531760839e-17,
+            x_metres=-1.1,
+            y_metres=1.2,
+            z_metres=1.2,
+        ).as_transformation_matrix(),
     )
     assert sensor.width == 3000
     assert sensor.height == 2000
@@ -171,7 +182,7 @@ def test_load_sensors_from_json_dict_4(load_sensor_config, helpers):
     assert helpers.fisclose(sensor.distortion_params.cy, 1000)
     assert sensor.distortion_params.skew == 0
     assert sensor.fisheye_model == 3
-    assert sensor.distortion_lookup_table == 'customer\\Internal\\sensor_rigs\\fisheye_lookup.csv'
+    assert sensor.distortion_lookup_table == "customer\\Internal\\sensor_rigs\\fisheye_lookup.csv"
     assert sensor.noise_params
     assert sensor.noise_params.enable_bayer
     assert sensor.noise_params.enable_gauss_noise
@@ -179,9 +190,12 @@ def test_load_sensors_from_json_dict_4(load_sensor_config, helpers):
     assert sensor.noise_params.enable_denoise
     assert sensor.noise_params.iso_level == 200
     assert len(sensor.post_process_materials) == 1
-    assert sensor.post_process_materials[0].material == 'MaterialInstanceConstant\'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens\''
+    assert (
+        sensor.post_process_materials[0].material
+        == "MaterialInstanceConstant'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens'"
+    )
     assert sensor.post_process_materials[0].weight == 1.0
-    assert sensor.lut == 'Texture2D\'/Game/pd/Textures/LUT/T_LUT_Aladdin_overcast_01.T_LUT_Aladdin_overcast_01\''
+    assert sensor.lut == "Texture2D'/Game/pd/Textures/LUT/T_LUT_Aladdin_overcast_01.T_LUT_Aladdin_overcast_01'"
     assert sensor.lut_weight == 0.8
     assert sensor.capture_rgb
     assert sensor.capture_depth
@@ -192,12 +206,12 @@ def test_load_sensors_from_json_dict_4(load_sensor_config, helpers):
 
 
 def test_load_sensors_from_json_dict_5(load_sensor_config, helpers):
-    json_dict = load_sensor_config('bev_1.json')
+    json_dict = load_sensor_config("bev_1.json")
     sensors = sensors_from_json(json_dict)
     assert len(sensors) == 1
     sensor = sensors[0]
     assert isinstance(sensor, CameraSensor)
-    assert sensor.name == 'BEV'
+    assert sensor.name == "BEV"
     assert sensor.width == 2000
     assert sensor.height == 2000
     assert sensor.supersample == 1.0
@@ -207,11 +221,14 @@ def test_load_sensors_from_json_dict_5(load_sensor_config, helpers):
     assert sensor.capture_segmentation
     assert sensor.capture_instances
     assert not sensor.capture_motionvectors
-    assert sensor.lut == 'Texture2D\'/Game/pd/Textures/LUT/T_LUT_Aladdin_overcast_01.T_LUT_Aladdin_overcast_01\''
+    assert sensor.lut == "Texture2D'/Game/pd/Textures/LUT/T_LUT_Aladdin_overcast_01.T_LUT_Aladdin_overcast_01'"
     assert sensor.lut_weight == 0.0
     assert sensor.noise_params.denoise_filter == DenoiseFilter.MedianFilter
     assert len(sensor.post_process_materials) == 1
-    assert sensor.post_process_materials[0].material == 'MaterialInstanceConstant\'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens\''
+    assert (
+        sensor.post_process_materials[0].material
+        == "MaterialInstanceConstant'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens'"
+    )
     assert sensor.post_process_materials[0].weight == 1.0
     assert sensor.distortion_params
     assert sensor.distortion_params.k1 == 0

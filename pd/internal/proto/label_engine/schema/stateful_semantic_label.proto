@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "options.proto";
+
+message GenerateStatefulSemanticMapConfig
+{
+  string input_ontology_path = 1 [(type)=eSemanticLabelMap, (stream)=eInput];
+  string input_instance_state = 2 [(type)=eAnnotation, (stream)=eInput];
+  StatefulSemanticMapConfigFlags configuration_flags = 3;
+
+  string input_semantic_map = 4 [(type)=eMeshIDMap, (stream)=eInput];
+  string input_instance_map = 5 [(type)=eMeshIDMap, (stream)=eInput];
+
+  string output_path = 6 [(type)=eMeshIDMap, (stream)=eOutput];
+};
+
+message StatefulSemanticMapConfigFlags{
+  MapEgo ego_ontology = 1;
+}
+
+message MapEgo {
+  int32 semantic_id = 1;
+}

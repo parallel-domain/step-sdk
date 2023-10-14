@@ -4,29 +4,29 @@
 # Use of this file is only permitted if you have entered into a
 # separate written license agreement with Parallel Domain, Inc.
 import contextlib
+import random
+import sys
 import time
+from pathlib import Path
+from typing import List, Optional, Tuple
 
 import click
-import sys
-from typing import List, Tuple, Optional
-import random
-from pathlib import Path
-
-import numpy as np
 import cv2
+import numpy as np
 
 import pd.session
 import pd.state
 import pd.umd
 from pd.core import PdError
-from pd.label_engine import load_pipeline_config, simulation_time_as_timestamp, DataType
-from pd.util.scripting import common_step_options, StepScriptContext
+from pd.internal.proto.label_engine.generated.python.bounding_box_2d_pb2 import (
+    VisibilitySampleMetadata,
+    VisibilitySampleType,
+)
+from pd.label_engine import DataType, load_pipeline_config, simulation_time_as_timestamp
+from pd.util.scripting import StepScriptContext, common_step_options
 
-from pd.internal.proto.label_engine.generated.python.bounding_box_2d_pb2 import VisibilitySampleMetadata, VisibilitySampleType
-
-
-DEFAULT_LOCATION = ('SF_6thAndMission_medium', 'v2.0.1')
-DEFAULT_LIGHTING = 'LS_sky_noon_partlyCloudy_1113_HDS024'
+DEFAULT_LOCATION = ("SF_6thAndMission_medium", "v2.0.1")
+DEFAULT_LIGHTING = "LS_sky_noon_partlyCloudy_1113_HDS024"
 SIM_RATE_PER_SECOND = 100  # Our simulation runs at this rate
 MAX_SIM_TIME_SEC = 25.0
 MAX_SIM_DISTANCE_METRES = 1000
@@ -44,7 +44,6 @@ CAPTURE_FRAME_INTERVAL = 10  # Every Nth render is saved/displayed
 
 # Number of renders frames to skip before capturing the first one
 START_SKIP_FRAMES = 5
-
 
 
 def save_image(base_path: Path, sensor: str, timestamp: str, image):
@@ -77,12 +76,13 @@ def save_proto(base_path: Path, sensor: Optional[str], timestamp: str, data: byt
     proto_path = proto_path / f"{timestamp}.pb.json"
     proto_path.parent.mkdir(parents=True, exist_ok=True)
     click.echo(f"Saving proto: {proto_path}")
-    with proto_path.open('w') as f:
+    with proto_path.open("w") as f:
         f.write(data.decode())
 
 
-def get_velocity(prev_pose: pd.state.Pose6D, curr_pose: pd.state.Pose6D, time_delta_sec: float) \
-        -> Tuple[float, float, float]:
+def get_velocity(
+    prev_pose: pd.state.Pose6D, curr_pose: pd.state.Pose6D, time_delta_sec: float
+) -> Tuple[float, float, float]:
     """Get velocity vector from two displaced Poses and a time delta"""
     velocity = (np.array(curr_pose.translation) - np.array(prev_pose.translation)) / time_delta_sec
     return tuple(velocity)
@@ -110,9 +110,11 @@ def generate_route(umd_map) -> List[Tuple[float, float, float]]:
     roads = filter(lambda r: r.type in valid_road_types, umd_map.road_segments.values())
     # Filter for roads with at least one driveable lane
     roads = filter(
-        lambda r: any(umd_map.lane_segments.get(lane_id).type == pd.umd.schema.LaneSegment.LaneType.DRIVABLE
-                      for lane_id in r.lane_segments),
-        roads
+        lambda r: any(
+            umd_map.lane_segments.get(lane_id).type == pd.umd.schema.LaneSegment.LaneType.DRIVABLE
+            for lane_id in r.lane_segments
+        ),
+        roads,
     )
     roads = sorted(roads, key=lambda r: r.id)  # sort for determinism
     selected_road = random.choice(roads)
@@ -127,7 +129,7 @@ def generate_route(umd_map) -> List[Tuple[float, float, float]]:
     lane_segments_gen = pd.umd.traverse_lane_segments(
         umd_map=umd_map,
         start_lane_segment_id=selected_lane_segment.id,
-        traversal_strategy=lambda prev, successors: random.choice(successors)
+        traversal_strategy=lambda prev, successors: random.choice(successors),
     )
     total_distance_traversed_in_metres = 0.0
     for lane_segment in lane_segments_gen:
@@ -145,19 +147,21 @@ def generate_route(umd_map) -> List[Tuple[float, float, float]]:
 
 @click.command()
 @common_step_options(require_label_engine=True)
-@click.option('--preview/--no-preview', default=True, show_default=True, help="Preview rendered frame")
-@click.option('--location', default=DEFAULT_LOCATION, help="Location name and version", type=(str, str),
-              show_default=True)
-@click.option('--lighting', default=DEFAULT_LIGHTING, help="Name of lightning level", show_default=True)
-@click.option('--streetlights', is_flag=True, help="Enable streetlights", show_default=True)
-@click.option('--sensor', help="Path to custom sensor rig. By default, uses the Barebones sensor rig")
-@click.option('--seed', default=0, type=int, help="Seed to randomize the route", show_default=True)
+@click.option("--preview/--no-preview", default=True, show_default=True, help="Preview rendered frame")
 @click.option(
-    '-o', '--output-dir',
+    "--location", default=DEFAULT_LOCATION, help="Location name and version", type=(str, str), show_default=True
+)
+@click.option("--lighting", default=DEFAULT_LIGHTING, help="Name of lightning level", show_default=True)
+@click.option("--streetlights", is_flag=True, help="Enable streetlights", show_default=True)
+@click.option("--sensor", help="Path to custom sensor rig. By default, uses the Barebones sensor rig")
+@click.option("--seed", default=0, type=int, help="Seed to randomize the route", show_default=True)
+@click.option(
+    "-o",
+    "--output-dir",
     type=click.Path(exists=False, file_okay=False, dir_okay=True),
-    default='./output',
+    default="./output",
     help="Output directory for images",
-    show_default=True
+    show_default=True,
 )
 def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, step_options: StepScriptContext = None):
     """
@@ -175,7 +179,7 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
     # Set up output directory
     output_path = Path(output_dir)
     if output_path.exists():
-        sys.exit(f"Error: Output directory {output_path} already exists. Please specify a different directory.")
+        sys.exit(f"Error: Output directory {output_path.absolute()} already exists. Please specify a different directory.")
     rgb_output_path = output_path / "rgb"
     depth_output_path = output_path / "depth"
     semseg_output_path = output_path / "semantic_segmentation_2d"
@@ -187,6 +191,8 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
     instance_points_3d_output_path = output_path / "instance_points_3d_xyz"
     world_lines_output_path = output_path / "world_lines_xyz"
     instance_states_output_path = output_path / "instance_state_xyz"
+    instance_poses_output_path = output_path / "instance_pose_xyz"
+    ontology_output_path = output_path / "ontology"
 
     # Load route information
     level_name, level_version = location
@@ -207,7 +213,9 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
     click.echo("Connecting to Step server(s)...", nl=False)
     ig_session = pd.session.StepIgSession(request_addr=step_options.ig, client_cert_file=client_cert_file)
     if step_options.label_engine:
-        le_session = pd.session.LabelEngineSession(request_addr=step_options.label_engine, client_cert_file=client_cert_file)
+        le_session = pd.session.LabelEngineSession(
+            request_addr=step_options.label_engine, client_cert_file=client_cert_file
+        )
     else:
         le_session = contextlib.nullcontext()
     with ig_session, le_session:
@@ -216,16 +224,19 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
         click.echo(f"IG version: {ig_version.major}.{ig_version.minor}.{ig_version.patch}-{ig_version.build}")
 
         if step_options.label_engine:
-            le_config_name = 'pipeline_extended'
+            le_config_name = "pipeline_extended"
             click.echo(f"Configuring Label Engine with pipeline '{le_config_name}'")
             le_config = load_pipeline_config(le_config_name)
             le_session.configure(scene_name, le_config)
-            click.echo(f"Sending Umd to Label Engine server")
+            click.echo("Sending Umd to Label Engine server")
             le_session.update_annotation_data(
-                scene_name=scene_name, label='umd', timestamp=None, sensor_id_and_name=None,
-                data_type=DataType.UMD, data=umd_map.SerializeToString()
+                scene_name=scene_name,
+                label="umd",
+                timestamp=None,
+                sensor_id_and_name=None,
+                data_type=DataType.UMD,
+                data=umd_map.SerializeToString(),
             )
-
 
         click.echo(f"Loading map {level_name}...", nl=False)
         ig_session.load_location(level_name, lighting, scene_name)
@@ -246,26 +257,18 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
                 frame_index=frame_count,
                 render_interval=RENDER_FRAME_INTERVAL,
                 capture_interval=CAPTURE_FRAME_INTERVAL,
-                start_skip_frames=START_SKIP_FRAMES
+                start_skip_frames=START_SKIP_FRAMES,
             )
-            click.echo(f"Frame {frame_count}, Time {time_sec:.3f}s, Render {do_render_frame}, Capture {do_capture_frame}")
+            click.echo(
+                f"Frame {frame_count}, Time {time_sec:.3f}s, Render {do_render_frame}, Capture {do_capture_frame}"
+            )
 
             # Create state for current frame
-            ego_agent = pd.state.SensorAgent(
-                id=ego_agent_id,
-                pose=ego_pose,
-                velocity=ego_velocity,
-                sensors=sensor_list
-            )
-            world_info = pd.state.WorldInfo(
-                street_lights=streetlights
-            )
+            ego_agent = pd.state.SensorAgent(id=ego_agent_id, pose=ego_pose, velocity=ego_velocity, sensors=sensor_list)
+            world_info = pd.state.WorldInfo(street_lights=streetlights)
 
             state = pd.state.State(
-                simulation_time_sec=time_sec,
-                world_info=world_info,
-                agents=[ego_agent],
-                capture=do_capture_frame
+                simulation_time_sec=time_sec, world_info=world_info, agents=[ego_agent], capture=do_capture_frame
             )
             frame_timestamp = simulation_time_as_timestamp(state.simulation_time_sec)
 
@@ -285,77 +288,112 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
                         sensor_id_and_name = (ego_agent_id, sensor.name)
 
                         # Wait for Label Engine annotations to be ready
-                        click.echo(f"Waiting for Label Engine annotations to be ready for timestamp '{frame_timestamp}'...")
+                        click.echo(
+                            f"Waiting for Label Engine annotations to be ready for timestamp '{frame_timestamp}'..."
+                        )
                         wait_for_annotations_args = (
-                            ('rgb', frame_timestamp, sensor_id_and_name),
-                            ('depth', frame_timestamp, sensor_id_and_name),
-                            ('semantic_mask_xyz', frame_timestamp, sensor_id_and_name),
-                            ('instance_mask_xyz', frame_timestamp, sensor_id_and_name),
-                            ('normals', frame_timestamp, sensor_id_and_name),
-                            ('bounding_box_2d_xyz', frame_timestamp, sensor_id_and_name),
-                            ('bounding_box_3d_xyz', frame_timestamp),
-                            ('instance_points_2d_xyz', frame_timestamp, sensor_id_and_name),
-                            ('instance_points_3d_xyz', frame_timestamp),
-                            ('world_lines_xyz', ),
-                            ('instance_state_xyz', frame_timestamp),
+                            ("rgb", frame_timestamp, sensor_id_and_name),
+                            ("depth", frame_timestamp, sensor_id_and_name),
+                            ("semantic_mask_xyz", frame_timestamp, sensor_id_and_name),
+                            ("instance_mask_xyz", frame_timestamp, sensor_id_and_name),
+                            ("normals", frame_timestamp, sensor_id_and_name),
+                            ("bounding_box_2d_xyz", frame_timestamp, sensor_id_and_name),
+                            ("bounding_box_3d_xyz", frame_timestamp),
+                            ("instance_points_2d_xyz", frame_timestamp, sensor_id_and_name),
+                            ("instance_points_3d_xyz", frame_timestamp),
+                            ("world_lines_xyz",),
+                            ("instance_state_xyz", frame_timestamp),
+                            ("instance_pose_xyz", frame_timestamp),
+                            ("ontology", frame_timestamp)
                         )
                         while not all(
                             le_session.query_annotation_status(scene_name, *args) for args in wait_for_annotations_args
                         ):
                             time.sleep(0.5)
-    
+
                         # Query RGB
-                        label_data = le_session.request_annotation_data(scene_name=scene_name,
-                                                                        label='rgb',
-                                                                        timestamp=frame_timestamp,
-                                                                        sensor_id_and_name=sensor_id_and_name)
+                        label_data = le_session.request_annotation_data(
+                            scene_name=scene_name,
+                            label="rgb",
+                            timestamp=frame_timestamp,
+                            sensor_id_and_name=sensor_id_and_name,
+                        )
                         rgb_image = label_data.data_as_rgb
-                        save_image(rgb_output_path, sensor.name, frame_timestamp,
-                                   cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR))
-                        preview_rgb_image = rgb_image if preview_rgb_image is None else preview_rgb_image  # save for preview
+                        save_image(
+                            rgb_output_path, sensor.name, frame_timestamp, cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)
+                        )
+                        preview_rgb_image = (
+                            rgb_image if preview_rgb_image is None else preview_rgb_image
+                        )  # save for preview
 
                         # Query depth
-                        label_data = le_session.request_annotation_data(scene_name=scene_name,
-                                                                        label='depth',
-                                                                        timestamp=frame_timestamp,
-                                                                        sensor_id_and_name=sensor_id_and_name)
+                        label_data = le_session.request_annotation_data(
+                            scene_name=scene_name,
+                            label="depth",
+                            timestamp=frame_timestamp,
+                            sensor_id_and_name=sensor_id_and_name,
+                        )
                         depth_data = label_data.data_as_depth
                         depth_image = depth_data.astype(np.uint8)
-                        save_image(depth_output_path, sensor.name, frame_timestamp,
-                                   cv2.applyColorMap(depth_image, cv2.COLORMAP_JET))
-    
+                        save_image(
+                            depth_output_path,
+                            sensor.name,
+                            frame_timestamp,
+                            cv2.applyColorMap(depth_image, cv2.COLORMAP_JET),
+                        )
+
                         # Query semantic segmentation
-                        label_data = le_session.request_annotation_data(scene_name=scene_name,
-                                                                        label='semantic_mask_xyz',
-                                                                        timestamp=frame_timestamp,
-                                                                        sensor_id_and_name=sensor_id_and_name)
+                        label_data = le_session.request_annotation_data(
+                            scene_name=scene_name,
+                            label="semantic_mask_xyz",
+                            timestamp=frame_timestamp,
+                            sensor_id_and_name=sensor_id_and_name,
+                        )
                         semseg_image = label_data.data_as_segmentation_rgb
-                        save_image(semseg_output_path, sensor.name, frame_timestamp,
-                                   cv2.cvtColor(semseg_image, cv2.COLOR_RGB2BGR))
-    
+                        save_image(
+                            semseg_output_path,
+                            sensor.name,
+                            frame_timestamp,
+                            cv2.cvtColor(semseg_image, cv2.COLOR_RGB2BGR),
+                        )
+
                         # Query instance segmentation
-                        label_data = le_session.request_annotation_data(scene_name=scene_name,
-                                                                        label='instance_mask_xyz',
-                                                                        timestamp=frame_timestamp,
-                                                                        sensor_id_and_name=sensor_id_and_name)
+                        label_data = le_session.request_annotation_data(
+                            scene_name=scene_name,
+                            label="instance_mask_xyz",
+                            timestamp=frame_timestamp,
+                            sensor_id_and_name=sensor_id_and_name,
+                        )
                         instance_image = label_data.get_data_as_merged_instance_rgb(rgb_image)
-                        save_image(instance_output_path, sensor.name, frame_timestamp,
-                                   cv2.cvtColor(instance_image, cv2.COLOR_RGB2BGR))
-    
+                        save_image(
+                            instance_output_path,
+                            sensor.name,
+                            frame_timestamp,
+                            cv2.cvtColor(instance_image, cv2.COLOR_RGB2BGR),
+                        )
+
                         # Query normals
-                        label_data = le_session.request_annotation_data(scene_name=scene_name,
-                                                                        label='normals',
-                                                                        timestamp=frame_timestamp,
-                                                                        sensor_id_and_name=sensor_id_and_name)
+                        label_data = le_session.request_annotation_data(
+                            scene_name=scene_name,
+                            label="normals",
+                            timestamp=frame_timestamp,
+                            sensor_id_and_name=sensor_id_and_name,
+                        )
                         normals_2d_image = label_data.data_as_rgb
-                        save_image(normals_2d_output_path, sensor.name, frame_timestamp,
-                                   cv2.cvtColor(normals_2d_image, cv2.COLOR_RGB2BGR))
-    
+                        save_image(
+                            normals_2d_output_path,
+                            sensor.name,
+                            frame_timestamp,
+                            cv2.cvtColor(normals_2d_image, cv2.COLOR_RGB2BGR),
+                        )
+
                         # Query BBox2D
-                        label_data = le_session.request_annotation_data(scene_name=scene_name,
-                                                                        label='bounding_box_2d_xyz',
-                                                                        timestamp=frame_timestamp,
-                                                                        sensor_id_and_name=sensor_id_and_name)
+                        label_data = le_session.request_annotation_data(
+                            scene_name=scene_name,
+                            label="bounding_box_2d_xyz",
+                            timestamp=frame_timestamp,
+                            sensor_id_and_name=sensor_id_and_name,
+                        )
                         bbox_2d_annotation = label_data.data_as_annotation
                         save_proto(bbox2d_output_path, sensor.name, frame_timestamp, label_data.data)
                         num_2d_bboxes = 0
@@ -367,44 +405,64 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
                         click.echo(f"Number of 2D bounding boxes (sensor={sensor.name}) = {num_2d_bboxes}")
 
                         # Query BBox 3D
-                        label_data = le_session.request_annotation_data(scene_name=scene_name,
-                                                                        label='bounding_box_3d_xyz',
-                                                                        timestamp=frame_timestamp)
+                        label_data = le_session.request_annotation_data(
+                            scene_name=scene_name, label="bounding_box_3d_xyz", timestamp=frame_timestamp
+                        )
                         bbox_3d_annotation = label_data.data_as_annotation
                         save_proto(bbox3d_output_path, None, frame_timestamp, label_data.data)
                         num_3d_bboxes = len(bbox_3d_annotation.geometry.primitives)
                         click.echo(f"Number of 3D bounding boxes = {num_3d_bboxes}")
 
                         # Query Instance Points 2D
-                        label_data = le_session.request_annotation_data(scene_name=scene_name,
-                                                                        label='instance_points_2d_xyz',
-                                                                        timestamp=frame_timestamp,
-                                                                        sensor_id_and_name=sensor_id_and_name)
+                        label_data = le_session.request_annotation_data(
+                            scene_name=scene_name,
+                            label="instance_points_2d_xyz",
+                            timestamp=frame_timestamp,
+                            sensor_id_and_name=sensor_id_and_name,
+                        )
                         instance_points_2d_annotation = label_data.data_as_annotation
                         save_proto(instance_points_2d_output_path, None, frame_timestamp, label_data.data)
                         num_2d_points = len(instance_points_2d_annotation.geometry.primitives)
                         click.echo(f"Number of 2D instance points = {num_2d_points}")
 
                         # Query Instance Points 3D
-                        label_data = le_session.request_annotation_data(scene_name=scene_name,
-                                                                        label='instance_points_3d_xyz',
-                                                                        timestamp=frame_timestamp)
+                        label_data = le_session.request_annotation_data(
+                            scene_name=scene_name, label="instance_points_3d_xyz", timestamp=frame_timestamp
+                        )
                         instance_points_3d_annotation = label_data.data_as_annotation
                         save_proto(instance_points_3d_output_path, None, frame_timestamp, label_data.data)
                         num_3d_points = len(instance_points_3d_annotation.geometry.primitives)
                         click.echo(f"Number of 3D instance points = {num_3d_points}")
 
                         # Query Instance State
-                        label_data = le_session.request_annotation_data(scene_name=scene_name,
-                                                                        label='instance_state_xyz',
-                                                                        timestamp=frame_timestamp)
+                        label_data = le_session.request_annotation_data(
+                            scene_name=scene_name, label="instance_state_xyz", timestamp=frame_timestamp
+                        )
                         instance_states_annotation = label_data.data_as_annotation
                         save_proto(instance_states_output_path, None, frame_timestamp, label_data.data)
                         num_instance_states = len(instance_states_annotation.geometry.primitives)
                         click.echo(f"Number of Instance states = {num_instance_states}")
 
+                        # Query Instance Pose
+                        label_data = le_session.request_annotation_data(
+                            scene_name=scene_name, label="instance_pose_xyz", timestamp=frame_timestamp
+                        )
+                        instance_poses_annotation = label_data.data_as_annotation
+                        save_proto(instance_poses_output_path, None, frame_timestamp, label_data.data)
+                        num_instance_poses = len(instance_poses_annotation.geometry.primitives)
+                        click.echo(f"Number of Instance poses = {num_instance_poses}")
+
+                        # Query Ontology
+                        label_data = le_session.request_annotation_data(
+                            scene_name=scene_name, label="ontology", timestamp=frame_timestamp
+                        )
+                        ontology_annotation = label_data.data_as_semantic_label_map
+                        save_proto(ontology_output_path, None, frame_timestamp, label_data.data)
+                        num_ontology_classes = len(ontology_annotation.semantic_label_map)
+                        click.echo(f"Number of Ontology Classes = {num_ontology_classes}")
+
                     # Query World Lines
-                    label_data = le_session.request_annotation_data(scene_name=scene_name, label='world_lines_xyz')
+                    label_data = le_session.request_annotation_data(scene_name=scene_name, label="world_lines_xyz")
                     world_lines_annotation = label_data.data_as_annotation
                     save_proto(world_lines_output_path, None, frame_timestamp, label_data.data)
                     num_world_lines = len(world_lines_annotation.geometry.primitives)
@@ -419,75 +477,104 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
 
                         # Query RGB data
                         try:
-                            sensor_data = ig_session.query_sensor_data(ego_agent.id, sensor.name, pd.state.SensorBuffer.RGB)
+                            sensor_data = ig_session.query_sensor_data(
+                                ego_agent.id, sensor.name, pd.state.SensorBuffer.RGB
+                            )
                         except PdError:
                             sys.exit("Error: Failed to query RGB data from IG")
                         rgb_image = sensor_data.data_as_rgb
-                        save_image(rgb_output_path, sensor.name, frame_timestamp,
-                                   cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR))
-                        preview_rgb_image = rgb_image if preview_rgb_image is None else preview_rgb_image  # save for preview
+                        save_image(
+                            rgb_output_path, sensor.name, frame_timestamp, cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)
+                        )
+                        preview_rgb_image = (
+                            rgb_image if preview_rgb_image is None else preview_rgb_image
+                        )  # save for preview
 
                         # Query depth data
                         if sensor.capture_depth:
                             try:
-                                sensor_data = ig_session.query_sensor_data(ego_agent.id, sensor.name, pd.state.SensorBuffer.DEPTH)
+                                sensor_data = ig_session.query_sensor_data(
+                                    ego_agent.id, sensor.name, pd.state.SensorBuffer.DEPTH
+                                )
                                 depth_data = sensor_data.data_as_depth
                                 depth_image = depth_data.astype(np.uint8)
-                                save_image(depth_output_path, sensor.name, frame_timestamp,
-                                           cv2.applyColorMap(depth_image, cv2.COLORMAP_JET))
+                                save_image(
+                                    depth_output_path,
+                                    sensor.name,
+                                    frame_timestamp,
+                                    cv2.applyColorMap(depth_image, cv2.COLORMAP_JET),
+                                )
                             except PdError:
                                 pass
 
                         # Query semantic segmentation data
                         if sensor.capture_segmentation:
                             try:
-                                sensor_data = ig_session.query_sensor_data(ego_agent.id, sensor.name, pd.state.SensorBuffer.SEGMENTATION)
+                                sensor_data = ig_session.query_sensor_data(
+                                    ego_agent.id, sensor.name, pd.state.SensorBuffer.SEGMENTATION
+                                )
                                 semseg_image = sensor_data.data_as_segmentation_rgb
-                                save_image(semseg_output_path, sensor.name, frame_timestamp,
-                                           cv2.cvtColor(semseg_image, cv2.COLOR_RGB2BGR))
+                                save_image(
+                                    semseg_output_path,
+                                    sensor.name,
+                                    frame_timestamp,
+                                    cv2.cvtColor(semseg_image, cv2.COLOR_RGB2BGR),
+                                )
                             except PdError:
                                 pass
 
                         # Query instance segmentation data
                         if sensor.capture_instances:
                             try:
-                                sensor_data = ig_session.query_sensor_data(ego_agent.id, sensor.name, pd.state.SensorBuffer.INSTANCES)
+                                sensor_data = ig_session.query_sensor_data(
+                                    ego_agent.id, sensor.name, pd.state.SensorBuffer.INSTANCES
+                                )
                                 instance_image = sensor_data.get_data_as_merged_instance_rgb(rgb_image)
-                                save_image(instance_output_path, sensor.name, frame_timestamp,
-                                           cv2.cvtColor(instance_image, cv2.COLOR_RGB2BGR))
+                                save_image(
+                                    instance_output_path,
+                                    sensor.name,
+                                    frame_timestamp,
+                                    cv2.cvtColor(instance_image, cv2.COLOR_RGB2BGR),
+                                )
                             except PdError:
                                 pass
 
                         # Query normals data
                         if sensor.capture_normals:
                             try:
-                                sensor_data = ig_session.query_sensor_data(ego_agent.id, sensor.name, pd.state.SensorBuffer.NORMALS)
+                                sensor_data = ig_session.query_sensor_data(
+                                    ego_agent.id, sensor.name, pd.state.SensorBuffer.NORMALS
+                                )
                                 normals_2d_image = sensor_data.data_as_rgb
-                                save_image(normals_2d_output_path, sensor.name, frame_timestamp,
-                                           cv2.cvtColor(normals_2d_image, cv2.COLOR_RGB2BGR))
+                                save_image(
+                                    normals_2d_output_path,
+                                    sensor.name,
+                                    frame_timestamp,
+                                    cv2.cvtColor(normals_2d_image, cv2.COLOR_RGB2BGR),
+                                )
                             except PdError:
                                 pass
 
                 if preview:
                     try:
-                        cv2.imshow('img', cv2.cvtColor(preview_rgb_image, cv2.COLOR_RGB2BGR))
+                        cv2.imshow("img", cv2.cvtColor(preview_rgb_image, cv2.COLOR_RGB2BGR))
                         key = cv2.waitKey(1)
                         # Escape key to exit program
                         if key == 27:
                             return
                     except cv2.error:
-                        click.echo(f"Couldn't display GUI window, skipping preview")
+                        click.echo("Couldn't display GUI window, skipping preview")
 
             frame_count += 1
             time_sec += time_delta_sec
             ego_speed = 30.0
             try:
                 ego_prev_pose = ego_pose
-                ego_pose = ego_poses.send(ego_speed*time_delta_sec)
+                ego_pose = ego_poses.send(ego_speed * time_delta_sec)
                 ego_velocity = get_velocity(ego_prev_pose, ego_pose, time_delta_sec)
             except StopIteration:
                 break
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()

@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 from . import options_pb2 as options__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14instance_point.proto\x12\x07pd.data\x1a\roptions.proto\"\x81\x01\n\x1eInstancePoint3DAnnotatorConfig\x12$\n\x12input_instance_map\x18\x01 \x01(\tB\x08\x80\xb5\x18\x07\x88\xb5\x18\x00\x12\x1a\n\x12instance_point_map\x18\x02 \x01(\t\x12\x1d\n\x0boutput_path\x18\x03 \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x01\"\x84\x01\n\x17InstancePoint3DMetadata\x12\x13\n\x0binstance_id\x18\x01 \x01(\r\x12\x37\n\x13instance_point_type\x18\x02 \x01(\x0e\x32\x1a.pd.data.InstancePointType\x12\x1b\n\x13instance_point_name\x18\x03 \x01(\t\"\xb3\x01\n\x17InstancePoint2DMetadata\x12\x13\n\x0binstance_id\x18\x01 \x01(\r\x12\x37\n\x13instance_point_type\x18\x02 \x01(\x0e\x32\x1a.pd.data.InstancePointType\x12\x1b\n\x13instance_point_name\x18\x03 \x01(\t\x12\x12\n\nvisibility\x18\x04 \x01(\x08\x12\x19\n\x11\x64istance_from_ego\x18\x05 \x01(\x02\"\x95\x01\n\x1aInstancePointConfiguration\x12\x1a\n\x12instance_point_key\x18\x01 \x01(\t\x12\x37\n\x13instance_point_type\x18\x02 \x01(\x0e\x32\x1a.pd.data.InstancePointType\x12\"\n\x1ainstance_point_output_name\x18\x03 \x01(\t\"X\n\x10InstancePointMap\x12\x44\n\x17instance_point_mappings\x18\x01 \x03(\x0b\x32#.pd.data.InstancePointConfiguration*\xb7\x01\n\x11InstancePointType\x12\x10\n\x0cTrailerPoint\x10\x00\x12\x10\n\x0cVehiclePoint\x10\x01\x12\x13\n\x0fPedestrianPoint\x10\x02\x12\x14\n\x10ParkingSpotPoint\x10\x03\x12\x15\n\x11WheelStopperPoint\x10\x04\x12\x0e\n\nWheelPoint\x10\x05\x12\x18\n\x14\x44roneAutoLoaderPoint\x10\x06\x12\x12\n\x0eOtherTypePoint\x10\x07\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14instance_point.proto\x12\x07pd.data\x1a\roptions.proto\"\xeb\x01\n\x1eInstancePoint3DAnnotatorConfig\x12$\n\x12input_instance_map\x18\x01 \x01(\tB\x08\x80\xb5\x18\x07\x88\xb5\x18\x00\x12\x1a\n\x12instance_point_map\x18\x02 \x01(\t\x12%\n\x17semantic_label_filepath\x18\x03 \x01(\tB\x04\x80\xb5\x18\r\x12\x1d\n\x0boutput_path\x18\x04 \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x01\x12&\n\x14output_ontology_path\x18\x05 \x01(\tB\x08\x80\xb5\x18\x0f\x88\xb5\x18\x01\x12\x19\n\x11wheel_semantic_id\x18\x06 \x01(\r\"`\n\x17InstancePoint3DMetadata\x12\x13\n\x0binstance_id\x18\x01 \x01(\r\x12\x13\n\x0bsemantic_id\x18\x02 \x01(\r\x12\x1b\n\x13instance_point_name\x18\x03 \x01(\t\"\x8f\x01\n\x17InstancePoint2DMetadata\x12\x13\n\x0binstance_id\x18\x01 \x01(\r\x12\x13\n\x0bsemantic_id\x18\x02 \x01(\r\x12\x1b\n\x13instance_point_name\x18\x03 \x01(\t\x12\x12\n\nvisibility\x18\x04 \x01(\x08\x12\x19\n\x11\x64istance_from_ego\x18\x05 \x01(\x02\"\x96\x01\n\x1aInstancePointConfiguration\x12)\n!instance_point_input_name_pattern\x18\x01 \x01(\t\x12)\n!instance_point_output_semantic_id\x18\x02 \x01(\r\x12\"\n\x1ainstance_point_output_name\x18\x03 \x01(\t\"X\n\x10InstancePointMap\x12\x44\n\x17instance_point_mappings\x18\x01 \x03(\x0b\x32#.pd.data.InstancePointConfigurationb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'instance_point_pb2', globals())
@@ -23,18 +23,20 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._options = None
   _INSTANCEPOINT3DANNOTATORCONFIG.fields_by_name['input_instance_map']._options = None
   _INSTANCEPOINT3DANNOTATORCONFIG.fields_by_name['input_instance_map']._serialized_options = b'\200\265\030\007\210\265\030\000'
+  _INSTANCEPOINT3DANNOTATORCONFIG.fields_by_name['semantic_label_filepath']._options = None
+  _INSTANCEPOINT3DANNOTATORCONFIG.fields_by_name['semantic_label_filepath']._serialized_options = b'\200\265\030\r'
   _INSTANCEPOINT3DANNOTATORCONFIG.fields_by_name['output_path']._options = None
   _INSTANCEPOINT3DANNOTATORCONFIG.fields_by_name['output_path']._serialized_options = b'\200\265\030\t\210\265\030\001'
-  _INSTANCEPOINTTYPE._serialized_start=740
-  _INSTANCEPOINTTYPE._serialized_end=923
+  _INSTANCEPOINT3DANNOTATORCONFIG.fields_by_name['output_ontology_path']._options = None
+  _INSTANCEPOINT3DANNOTATORCONFIG.fields_by_name['output_ontology_path']._serialized_options = b'\200\265\030\017\210\265\030\001'
   _INSTANCEPOINT3DANNOTATORCONFIG._serialized_start=49
-  _INSTANCEPOINT3DANNOTATORCONFIG._serialized_end=178
-  _INSTANCEPOINT3DMETADATA._serialized_start=181
-  _INSTANCEPOINT3DMETADATA._serialized_end=313
-  _INSTANCEPOINT2DMETADATA._serialized_start=316
-  _INSTANCEPOINT2DMETADATA._serialized_end=495
-  _INSTANCEPOINTCONFIGURATION._serialized_start=498
-  _INSTANCEPOINTCONFIGURATION._serialized_end=647
-  _INSTANCEPOINTMAP._serialized_start=649
-  _INSTANCEPOINTMAP._serialized_end=737
+  _INSTANCEPOINT3DANNOTATORCONFIG._serialized_end=284
+  _INSTANCEPOINT3DMETADATA._serialized_start=286
+  _INSTANCEPOINT3DMETADATA._serialized_end=382
+  _INSTANCEPOINT2DMETADATA._serialized_start=385
+  _INSTANCEPOINT2DMETADATA._serialized_end=528
+  _INSTANCEPOINTCONFIGURATION._serialized_start=531
+  _INSTANCEPOINTCONFIGURATION._serialized_end=681
+  _INSTANCEPOINTMAP._serialized_start=683
+  _INSTANCEPOINTMAP._serialized_end=771
 # @@protoc_insertion_point(module_scope)

@@ -8,21 +8,17 @@
 Algorithms for reading and traversing UMD data
 """
 
-from typing import List, Generator, Tuple, Callable
 import math
 from itertools import chain
+from typing import Callable, Generator, List, Tuple
 
 import numpy as np
 from shapely.geometry import LineString
 
-import pd.state
 import pd.internal.umd.UMD_pb2 as schema
+import pd.state
 
-
-LaneSegmentTraversalStrategy = Callable[
-    [schema.LaneSegment, List[schema.LaneSegment]],
-    schema.LaneSegment
-]
+LaneSegmentTraversalStrategy = Callable[[schema.LaneSegment, List[schema.LaneSegment]], schema.LaneSegment]
 """
 Callable that defines strategy for selecting next lane segment.
 
@@ -35,10 +31,9 @@ Returns:
 """
 
 
-def traverse_lane_segments(umd_map: schema.UniversalMap,
-                           start_lane_segment_id: int,
-                           traversal_strategy: LaneSegmentTraversalStrategy) \
-        -> Generator[schema.LaneSegment, None, None]:
+def traverse_lane_segments(
+    umd_map: schema.UniversalMap, start_lane_segment_id: int, traversal_strategy: LaneSegmentTraversalStrategy
+) -> Generator[schema.LaneSegment, None, None]:
     """
     Traverse lane segments by providing a strategy to select next lane
 
@@ -69,14 +64,14 @@ def traverse_lane_segments(umd_map: schema.UniversalMap,
     yield lane_segment
     while lane_segment.successors:
         lane_segment = traversal_strategy(
-            lane_segment,
-            [umd_map.lane_segments.get(lane_id) for lane_id in lane_segment.successors]
+            lane_segment, [umd_map.lane_segments.get(lane_id) for lane_id in lane_segment.successors]
         )
         yield lane_segment
 
 
-def move_along_path(path_points: List[Tuple[float, float, float]],
-                    start_offset_metres: float) -> Generator[pd.state.Pose6D, float, None]:
+def move_along_path(
+    path_points: List[Tuple[float, float, float]], start_offset_metres: float
+) -> Generator[pd.state.Pose6D, float, None]:
     """
     Generate Poses along a specified path
 
@@ -103,25 +98,25 @@ def move_along_path(path_points: List[Tuple[float, float, float]],
     Returns:
         A generator that generates Poses
     """
+
     def generate_pose(curr_pos, fut_pos):
         c = np.array(curr_pos)
         f = np.array(fut_pos)
-        forward = (f-c) / np.linalg.norm(f-c)
+        forward = (f - c) / np.linalg.norm(f - c)
         pose = pd.state.Pose6D.from_direction(
-            x_metres=current_pos[0], y_metres=current_pos[1], z_metres=current_pos[2],
-            direction=tuple(forward)
+            x_metres=current_pos[0], y_metres=current_pos[1], z_metres=current_pos[2], direction=tuple(forward)
         )
         return pose
 
     path = LineString(path_points)
     distance = start_offset_metres
     current_pos = path.interpolate(distance).coords[0]
-    future_pos = path.interpolate(distance+1.0).coords[0]
+    future_pos = path.interpolate(distance + 1.0).coords[0]
     while distance < path.length:
         distance_step = yield generate_pose(current_pos, future_pos)
         distance += distance_step
         current_pos = path.interpolate(distance).coords[0]
-        future_pos = path.interpolate(distance+distance_step).coords[0]
+        future_pos = path.interpolate(distance + distance_step).coords[0]
 
 
 def get_edge_length_in_metres(edge: schema.Edge) -> float:
@@ -149,7 +144,6 @@ def get_nearest_point_to(umd_map: schema.UniversalMap, x: float, y: float) -> Tu
         (x, y, z) coordinates of the closest point
     """
     nearest_point = min(
-        chain.from_iterable(e.points for e in umd_map.edges.values()),
-        key=lambda p: math.dist((p.x, p.y), (x, y))
+        chain.from_iterable(e.points for e in umd_map.edges.values()), key=lambda p: math.dist((p.x, p.y), (x, y))
     )
     return nearest_point.x, nearest_point.y, nearest_point.z

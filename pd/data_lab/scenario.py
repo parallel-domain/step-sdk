@@ -6,25 +6,26 @@
 import abc
 import json
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Optional, Type, Union, Tuple, Generator
 
 from google.protobuf.json_format import MessageToDict, ParseDict, ParseError
 
 from pd.core import PdError
 from pd.data_lab.config.build_sim_state import BuildSimState, GeneratorConfigPreset
-from pd.data_lab.config.distribution import Bucket, CategoricalDistribution
 from pd.data_lab.config.environment import Environment, TimeOfDays
-from pd.data_lab.config.location import Location, LatLonLocation
+from pd.data_lab.config.location import LatLonLocation, Location
 from pd.data_lab.generators.custom_generator import CustomAtomicGenerator, DefaultCustomAtomicGenerator
 from pd.data_lab.generators.custom_simulation_agent import CustomSimulationAgent
 from pd.data_lab.generators.helper import decode_generator_preset, encode_atomic_generator
 from pd.data_lab.generators.non_atomics import NonAtomicGeneratorMessage
 from pd.data_lab.state_callback import StateCallback
-from pd.internal.proto.keystone.generated.python import pd_environments_pb2, pd_sim_state_pb2
-from pd.internal.proto.keystone.generated.wrapper import pd_sim_state_pb2
+from pd.internal.proto.keystone.generated.wrapper import pd_environments_pb2, pd_sim_state_pb2
 from pd.internal.proto.keystone.generated.wrapper.pd_sensor_pb2 import SensorRigConfig as SensorRig
 from pd.internal.proto.keystone.generated.wrapper.pd_unified_generator_pb2 import EnvironmentParameters
 from pd.internal.proto.keystone.generated.wrapper.utils import AtomicGeneratorMessage, get_wrapper
+from pd.internal.assets.asset_registry import DataLightingSublevels, UtilTimeOfDayCategories
+from pd.data_lab.config.distribution import Bucket, CategoricalDistribution
+from pd.state import State, bytes_to_state
 
 
 class DiscreteScenario:
@@ -33,12 +34,10 @@ class DiscreteScenario:
         name: str,
         start_skip_frames: int,
         sim_capture_rate: int,
-        state_callbacks: Optional[List[StateCallback]] = None,
     ):
         self.name = name
         self.start_skip_frames = start_skip_frames
         self.sim_capture_rate = sim_capture_rate
-        self.state_callbacks = state_callbacks if state_callbacks is not None else list()
 
 
 class ScenarioSource(abc.ABC):
@@ -46,9 +45,6 @@ class ScenarioSource(abc.ABC):
     Base class to abstract from getting a discrete scenario from stored sim states
     or by sampling from a scenario distribution
     """
-
-    def __init__(self):
-        self.state_callbacks = list()
 
     @abc.abstractmethod
     def get_discrete_scenario(
@@ -64,11 +60,75 @@ class ScenarioSource(abc.ABC):
     ) -> "DiscreteScenario":
         pass
 
+
+Lighting = str
+
+
+class ScenarioCreator:
+    def __init__(self):
+        self.state_callbacks = list()
+
     def add_state_callback(self, state_callback: StateCallback):
         self.state_callbacks.append(state_callback)
 
+    def find_state_callbacks(self, callback_type: Type[StateCallback]) -> List[StateCallback]:
+        state_callbacks = [cb for cb in self.state_callbacks if isinstance(cb, callback_type)]
+        return state_callbacks
 
-class SimulatedScenarioCollection(ScenarioSource):
+    def remove_state_callbacks(self, state_callbacks: List[StateCallback]):
+        for cb in state_callbacks:
+            self.state_callbacks.remove(cb)
+
+    @abc.abstractmethod
+    def create_scenario(
+        self, random_seed: int, scene_index: int, number_of_scenes: int, location: Location, **kwargs
+    ) -> ScenarioSource:
+        pass
+
+    @abc.abstractmethod
+    def get_location(
+        self, random_seed: int, scene_index: int, number_of_scenes: int, **kwargs
+    ) -> Tuple[Location, Lighting]:
+        pass
+
+    def create_scenario_with_set_location(
+        self,
+        random_seed: int,
+        scene_index: int,
+        number_of_scenes: int,
+        lighting: Optional[Lighting],
+        location: Optional[Location],
+    ) -> ScenarioSource:
+        """
+        This will be deprecated with discrete scenario in beta!
+        """
+        if location is None or lighting is None:
+            _location, _lighting = self.get_location(
+                random_seed=random_seed,
+                scene_index=scene_index,
+                number_of_scenes=number_of_scenes,
+            )
+            location = location if location is not None else _location
+            lighting = lighting if lighting is not None else _lighting
+
+        scenario = self.create_scenario(
+            random_seed=random_seed,
+            scene_index=scene_index,
+            number_of_scenes=number_of_scenes,
+            location=location,
+        )
+
+        # TODO: Remove as soon as sim does note need this anymore
+        scenario.random_seed = random_seed
+
+        if isinstance(scenario, Scenario):
+            scenario.set_location(location)
+            scenario.set_lighting(lighting=lighting)
+
+        return scenario
+
+
+class SimulatedScenarioCollection(ScenarioSource, ScenarioCreator):
     """
     References a collection of stored discrete scenarios that have frame-wise state files
     that define position of all agents in the scene. Use this to re-render specific scenarios
@@ -101,17 +161,27 @@ class SimulatedScenarioCollection(ScenarioSource):
         sim_settle_frames: Optional[int] = None,
         start_skip_frames: Optional[int] = 5,
         merge_batches: Optional[bool] = None,
-    ) -> "DiscreteScenario":
+    ) -> "SimulatedScenario":
         scene_folders = {
             scene_name_to_index(scene_name=sf.name): sf for sf in self._storage_folder.iterdir() if sf.is_dir()
         }
         scene_folder = scene_folders[scene_index]
         return SimulatedScenario(
             folder=scene_folder,
-            state_callbacks=[c.clone() for c in self.state_callbacks],
             start_skip_frames=start_skip_frames,
             sim_capture_rate=sim_capture_rate,
         )
+
+    def create_scenario(
+        self, random_seed: int, scene_index: int, number_of_scenes: int, location: Location, **kwargs
+    ) -> ScenarioSource:
+        return self
+
+    def get_location(
+        self, random_seed: int, scene_index: int, number_of_scenes: int, **kwargs
+    ) -> Tuple[Location, Lighting]:
+        scenario = self.get_discrete_scenario(scene_index=scene_index, **kwargs)
+        return scenario.location, scenario.lighting
 
 
 class Scenario(ScenarioSource):
@@ -199,6 +269,21 @@ class Scenario(ScenarioSource):
         else:
             self._location = location
         self._sim_state_message.locations[0].location = location.name
+
+    def set_lighting(self, lighting: Lighting):
+        lighting_levels = DataLightingSublevels.select().where(DataLightingSublevels.name == lighting)
+        if len(lighting_levels) == 0:
+            raise ValueError(
+                f"Lighting level {lighting} can not be found. Please check spelling and confirm it exists in"
+                " `DataLightingSublevels` table."
+            )
+        lighting_level = lighting_levels[0]
+        taget_category = lighting_level.time_of_day_category.name
+
+        for category in UtilTimeOfDayCategories.select().where(UtilTimeOfDayCategories.name != taget_category):
+            self.environment.time_of_day.set_category_weight(category.name, 0.0)
+        self.environment.time_of_day.set_category_weight(taget_category, 1.0)
+        self.environment.clouds.set_constant_value(lighting_level.cloud_coverage)
 
     def add_objects(
         self, generator: Union[AtomicGeneratorMessage, CustomAtomicGenerator, CustomSimulationAgent]
@@ -328,8 +413,6 @@ class Scenario(ScenarioSource):
                 cloned.add_objects(generator=cloned_default)
             else:
                 cloned.add_objects(g.clone())
-        for cb in other.state_callbacks:
-            cloned.add_state_callback(state_callback=cb)
         return cloned
 
     def clone(self) -> "Scenario":
@@ -348,7 +431,7 @@ class Scenario(ScenarioSource):
     ) -> "DiscreteScenario":
         random_seed = self.random_seed + scene_index
 
-        name = f"scene_{scene_index:06}"
+        name = scene_index_to_name(scene_index=scene_index)
 
         cloned = self.clone()
         cloned.random_seed = random_seed
@@ -382,7 +465,6 @@ class Scenario(ScenarioSource):
         return SampledScenario(
             name=name,
             sim_state=cloned.sim_state,
-            state_callbacks=cloned.state_callbacks,
             custom_generators=cloned.custom_generators,
         )
 
@@ -393,7 +475,6 @@ class SampledScenario(DiscreteScenario):
         name: str,
         sim_state: BuildSimState,
         custom_generators: List[CustomAtomicGenerator],
-        state_callbacks: Optional[List[StateCallback]] = None,
     ):
         self.sim_state = sim_state
         self.custom_generators = custom_generators
@@ -401,7 +482,6 @@ class SampledScenario(DiscreteScenario):
             name=name,
             start_skip_frames=self.sim_state.scenario_gen.start_skip_frames,
             sim_capture_rate=self.sim_state.scenario_gen.sim_capture_rate,
-            state_callbacks=state_callbacks,
         )
 
     @property
@@ -449,20 +529,47 @@ class SimulatedScenario(DiscreteScenario):
         start_skip_frames: int,
         sim_capture_rate: int,
         folder: Optional[Path] = None,
-        state_callbacks: Optional[List[StateCallback]] = None,
     ):
         super().__init__(
             name=folder.name,
             start_skip_frames=start_skip_frames,
             sim_capture_rate=sim_capture_rate,
-            state_callbacks=state_callbacks,
         )
         self.folder = folder
+        self._first_state = None
+
+    @property
+    def first_state(self) -> State:
+        if self._first_state is None:
+            self._first_state = next(self.state_generator())
+        return self._first_state
 
     @property
     def scene_index(self) -> int:
         return scene_name_to_index(self.name)
 
+    @property
+    def location(self) -> Location:
+        return Location(name=self.first_state.world_info.location)
+
+    @property
+    def lighting(self) -> Lighting:
+        return self.first_state.world_info.time_of_day
+
+    def state_generator(self) -> Generator[State, None, None]:
+        if self.folder is not None:
+            sorted_state_files = sorted(
+                [i for i in self.folder.iterdir() if i.suffix == ".pd"], key=lambda k: int(k.stem)
+            )
+            for sim_state_file in sorted_state_files:
+                with sim_state_file.open("rb") as file:
+                    sim_state = bytes_to_state(file.read())
+                    yield sim_state
+
 
 def scene_name_to_index(scene_name: str) -> int:
     return int(scene_name.split("_")[-1])
+
+
+def scene_index_to_name(scene_index: int) -> str:
+    return f"scene_{scene_index:06}"

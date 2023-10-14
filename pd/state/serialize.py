@@ -11,41 +11,106 @@ This set of classes serialize and deserialize between State objects and
 their flatbuffer encodings
 """
 
-from typing import Union, Tuple, List, Type, TypeVar, Optional, Dict
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple, Type, TypeVar, Union
 
 import flatbuffers
 import numpy as np
 
-from pd.state.sensor import (
-    PostProcessMaterial, PostProcessParams, NoiseParams, DenoiseFilter, DistortionParams,
-    CameraSensor, LiDARSensor, Sensor, LiDARBeam, LiDARIntensityParams, TonemapCurve
-)
-from pd.state.state import (
-    VehicleAgent, ModelAgent, SensorAgent, WorldInfo, PerformanceMode, State,
-    PhaseBulbValue, PhaseBulbLogicalState, SignalAgent, VehicleIndicatorState, ParkingConfig, LotParkingDelineationType,
-    StreetParkingDelineationType, StreetParkingAngleZeroOverride, ParkingSpaceMaterial, WorldAgent, ObjectDecorations,
-    DecorationPreset, ParkingSpaceDecal, PaintTexture, DecorationObjectType
-)
-from pd.state.pose6d import Pose6D
-
-from pd.internal.fb.generated.python.pdPerformanceFeature import pdPerformanceFeature
 from pd.internal.fb.generated.python import (
-    float3_t, float4x4_t, TransformStateFB, SimpleVehicleStateFB, VehicleModelConfigFB, ModelConfigFB,
-    SignalModuleOutputFB, ControlStateFB, SimpleControlStateFB, PedestrianStateFB,
-    AgentStateFB, WorldInfoFB, SimStateFB, CameraConfigFB, DistortionParamsFB, NoiseParamsFB, pdDenoiseFilter,
-    PostProcessParamsFB, PostProcessMatsFB,
-    LiDARConfigFB, LiDARBeamFB, LiDARIntensityParamsFB,
-    SensorExtrinsicConfigFB, SensorConfigFB, SensorRigConfigFB, StateObjectFB,
-    PhaseBulbValuesFB, BulbValues, TonemapCurveFB, EnvironmentConfigFB, ParkingConfigFB, ObjectDecorationsInfoFB,
-    DecorationData, DecorationDataFB, DecorationPreset as DecorationPresetFB, ParkingSpaceDecal as ParkingSpaceDecalFB,
-    PaintTexture as PaintTextureFB, Text as TextFB, ObjectDecorations as ObjectDecorationsFB, AgentTags, AgentMetadata
+    AgentMetadata,
+    AgentStateFB,
+    AgentTags,
+    BulbValues,
+    CameraConfigFB,
+    ControlStateFB,
+    DecorationData,
+    DecorationDataFB,
+    VehiclePhysicsConfigFB,
+    VehicleConnectionFB,
 )
+from pd.internal.fb.generated.python import DecorationPreset as DecorationPresetFB
+from pd.internal.fb.generated.python import (
+    DistortionParamsFB,
+    EnvironmentConfigFB,
+    LiDARBeamFB,
+    LiDARConfigFB,
+    LiDARIntensityParamsFB,
+    ModelConfigFB,
+    NoiseParamsFB,
+)
+from pd.internal.fb.generated.python import ObjectDecorations as ObjectDecorationsFB
+from pd.internal.fb.generated.python import ObjectDecorationsInfoFB
+from pd.internal.fb.generated.python import PaintTexture as PaintTextureFB
+from pd.internal.fb.generated.python import ParkingConfigFB
+from pd.internal.fb.generated.python import ParkingSpaceDecal as ParkingSpaceDecalFB
+from pd.internal.fb.generated.python import (
+    PedestrianStateFB,
+    PhaseBulbValuesFB,
+    PostProcessMatsFB,
+    PostProcessParamsFB,
+    SensorConfigFB,
+    SensorExtrinsicConfigFB,
+    SensorRigConfigFB,
+    SignalModuleOutputFB,
+    SimpleControlStateFB,
+    SimpleVehicleStateFB,
+    SimStateFB,
+    StateObjectFB,
+)
+from pd.internal.fb.generated.python import Text as TextFB
+from pd.internal.fb.generated.python import (
+    TonemapCurveFB,
+    TransformStateFB,
+    VehicleModelConfigFB,
+    WorldInfoFB,
+    float3_t,
+    float4x4_t,
+    pdDenoiseFilter,
+)
+from pd.internal.fb.generated.python.pdPerformanceFeature import pdPerformanceFeature
 from pd.internal.fb.generated.python.SensorIntrinsicConfigFB import SensorIntrinsicConfigFB
 from pd.internal.fb.generated.python.StateObject import StateObject
+from pd.state.pose6d import Pose6D
+from pd.state.sensor import (
+    CameraSensor,
+    DenoiseFilter,
+    DistortionParams,
+    LiDARBeam,
+    LiDARIntensityParams,
+    LiDARSensor,
+    NoiseParams,
+    PostProcessMaterial,
+    PostProcessParams,
+    Sensor,
+    TonemapCurve,
+)
+from pd.state.state import (
+    DecorationObjectType,
+    DecorationPreset,
+    LotParkingDelineationType,
+    ModelAgent,
+    ObjectDecorations,
+    PaintTexture,
+    ParkingConfig,
+    ParkingSpaceDecal,
+    ParkingSpaceMaterial,
+    PerformanceMode,
+    PhaseBulbLogicalState,
+    PhaseBulbValue,
+    SensorAgent,
+    SignalAgent,
+    State,
+    StreetParkingAngleZeroOverride,
+    StreetParkingDelineationType,
+    VehicleAgent,
+    VehicleIndicatorState,
+    WorldAgent,
+    WorldInfo,
+)
 
-T = TypeVar('T')
+T = TypeVar("T")
 logger = logging.getLogger(__name__)
 
 
@@ -71,10 +136,7 @@ class SerializePostProcessMaterial:
 
     @staticmethod
     def deserialize(fb: PostProcessMatsFB.PostProcessMatsFB) -> PostProcessMaterial:
-        return PostProcessMaterial(
-            material=fb.Mat().decode() or None,
-            weight=fb.Weight()
-        )
+        return PostProcessMaterial(material=fb.Mat().decode() or None, weight=fb.Weight())
 
 
 class SerializeToneCurve:
@@ -91,11 +153,7 @@ class SerializeToneCurve:
     @staticmethod
     def deserialize(fb: TonemapCurveFB.TonemapCurveFB) -> TonemapCurve:
         return TonemapCurve(
-            slope=fb.Slope(),
-            toe=fb.Toe(),
-            shoulder=fb.Shoulder(),
-            black_clip=fb.BlackClip(),
-            white_clip=fb.WhiteClip()
+            slope=fb.Slope(), toe=fb.Toe(), shoulder=fb.Shoulder(), black_clip=fb.BlackClip(), white_clip=fb.WhiteClip()
         )
 
 
@@ -103,9 +161,10 @@ class SerializePostProcessParams:
     @staticmethod
     def serialize(builder: flatbuffers.Builder, obj: PostProcessParams):
         metering_mask_fb = builder.CreateString(obj.exposure_metering_mask) if obj.exposure_metering_mask else None
-        exposure_compensation_curve_fb = builder.CreateString(obj.exposure_compensation_curve) if obj.exposure_compensation_curve else None
-        tone_curve_fb = SerializeToneCurve.serialize(builder, obj.tone_curve) \
-            if obj.tone_curve else None
+        exposure_compensation_curve_fb = (
+            builder.CreateString(obj.exposure_compensation_curve) if obj.exposure_compensation_curve else None
+        )
+        tone_curve_fb = SerializeToneCurve.serialize(builder, obj.tone_curve) if obj.tone_curve else None
 
         PostProcessParamsFB.PostProcessParamsFBStart(builder)
         PostProcessParamsFB.PostProcessParamsFBAddExposureCompensation(builder, obj.exposure_compensation)
@@ -124,10 +183,7 @@ class SerializePostProcessParams:
         PostProcessParamsFB.PostProcessParamsFBAddDofDepthBlurRadius(builder, obj.dof_depth_blur_radius)
         PostProcessParamsFB.PostProcessParamsFBAddVignetteIntensity(builder, obj.vignette_intensity)
         if obj.tone_curve:
-              PostProcessParamsFB.PostProcessParamsFBAddTonemapCurve(
-                builder,
-                tone_curve_fb
-            )
+            PostProcessParamsFB.PostProcessParamsFBAddTonemapCurve(builder, tone_curve_fb)
         return PostProcessParamsFB.PostProcessParamsFBEnd(builder)
 
     @staticmethod
@@ -145,7 +201,7 @@ class SerializePostProcessParams:
             dof_focal_distance=fb.DofFocalDistance(),
             dof_depth_blur_amount=fb.DofDepthBlurAmount(),
             dof_depth_blur_radius=fb.DofDepthBlurRadius(),
-            vignette_intensity=fb.VignetteIntensity()
+            vignette_intensity=fb.VignetteIntensity(),
         )
         tone_curve_fb = fb.TonemapCurve()
         if tone_curve_fb:
@@ -177,7 +233,7 @@ class SerializeNoiseParams:
             enableAutoIso=obj.enable_auto_iso,
             fstop=obj.fstop,
             maxExposureTime=obj.max_exposure_time,
-            quantumEfficiency=obj.quantum_efficiency
+            quantumEfficiency=obj.quantum_efficiency,
         )
 
     @staticmethod
@@ -202,7 +258,7 @@ class SerializeNoiseParams:
             enable_auto_iso=fb.EnableAutoIso(),
             fstop=fb.Fstop(),
             max_exposure_time=fb.MaxExposureTime(),
-            quantum_efficiency=fb.QuantumEfficiency()
+            quantum_efficiency=fb.QuantumEfficiency(),
         )
 
 
@@ -224,7 +280,7 @@ class SerializeDistortionParams:
             fx=obj.fx,
             fy=obj.fy,
             cx=obj.cx,
-            cy=obj.cy
+            cy=obj.cy,
         )
 
     @staticmethod
@@ -243,7 +299,7 @@ class SerializeDistortionParams:
             fx=fb.Fx(),
             fy=fb.Fy(),
             cx=fb.Cx(),
-            cy=fb.Cy()
+            cy=fb.Cy(),
         )
 
 
@@ -251,10 +307,12 @@ class SerializeCameraSensor:
     @staticmethod
     def serialize(builder: flatbuffers.Builder, obj: CameraSensor):
         lut_fb = builder.CreateString(obj.lut) if obj.lut else None
-        distortion_lookup_table_fb = builder.CreateString(obj.distortion_lookup_table) \
-            if obj.distortion_lookup_table else None
-        post_process_params_fb = SerializePostProcessParams.serialize(builder, obj.post_process_params) \
-            if obj.post_process_params else None
+        distortion_lookup_table_fb = (
+            builder.CreateString(obj.distortion_lookup_table) if obj.distortion_lookup_table else None
+        )
+        post_process_params_fb = (
+            SerializePostProcessParams.serialize(builder, obj.post_process_params) if obj.post_process_params else None
+        )
         post_mats_vec_fb = None
         if obj.post_process_materials:
             post_mats_fb_list = []
@@ -292,13 +350,11 @@ class SerializeCameraSensor:
 
         if obj.distortion_params:
             CameraConfigFB.CameraConfigFBAddDistortionParams(
-                builder,
-                SerializeDistortionParams.serialize(builder, obj.distortion_params)
+                builder, SerializeDistortionParams.serialize(builder, obj.distortion_params)
             )
         if obj.noise_params:
             CameraConfigFB.CameraConfigFBAddNoiseParams(
-                builder,
-                SerializeNoiseParams.serialize(builder, obj.noise_params)
+                builder, SerializeNoiseParams.serialize(builder, obj.noise_params)
             )
         if post_process_params_fb:
             CameraConfigFB.CameraConfigFBAddPostProcessParams(builder, post_process_params_fb)
@@ -310,7 +366,7 @@ class SerializeCameraSensor:
     @staticmethod
     def deserialize(fb: CameraConfigFB.CameraConfigFB) -> CameraSensor:
         camera = CameraSensor(
-            name='',  # filled in by SerializeSensor
+            name="",  # filled in by SerializeSensor
             pose=np.empty((4, 4)),  # filled in by SerializeSensor
             width=fb.Width(),
             height=fb.Height(),
@@ -331,7 +387,7 @@ class SerializeCameraSensor:
             transmit_gray=fb.TransmitGray(),
             fisheye_model=fb.FisheyeModel(),
             distortion_lookup_table=fb.DistortionLookupTable().decode() or None,
-            time_offset=fb.TimeOffset()
+            time_offset=fb.TimeOffset(),
         )
         distortion_params_fb = fb.DistortionParams()
         if distortion_params_fb:
@@ -414,10 +470,22 @@ class SerializePose:
 
         return float4x4_t.Createfloat4x4_t(
             builder,
-            mat[0, 0], mat[0, 1], mat[0, 2], mat[0, 3],
-            mat[1, 0], mat[1, 1], mat[1, 2], mat[1, 3],
-            mat[2, 0], mat[2, 1], mat[2, 2], mat[2, 3],
-            mat[3, 0], mat[3, 1], mat[3, 2], mat[3, 3]
+            mat[0, 0],
+            mat[0, 1],
+            mat[0, 2],
+            mat[0, 3],
+            mat[1, 0],
+            mat[1, 1],
+            mat[1, 2],
+            mat[1, 3],
+            mat[2, 0],
+            mat[2, 1],
+            mat[2, 2],
+            mat[2, 3],
+            mat[3, 0],
+            mat[3, 1],
+            mat[3, 2],
+            mat[3, 3],
         )
 
     @staticmethod
@@ -427,12 +495,15 @@ class SerializePose:
         # constraints of a valid transformation matrix.
         # In fact, due to floating point errors introduced by flatbuffers,
         # a valid transformation matrix deserializes to an invalid matrix
-        mat = np.array([
-            [fb.M00(), fb.M01(), fb.M02(), fb.M03()],
-            [fb.M10(), fb.M11(), fb.M12(), fb.M13()],
-            [fb.M20(), fb.M21(), fb.M22(), fb.M23()],
-            [fb.M30(), fb.M31(), fb.M32(), fb.M33()],
-        ], dtype=np.float32).T
+        mat = np.array(
+            [
+                [fb.M00(), fb.M01(), fb.M02(), fb.M03()],
+                [fb.M10(), fb.M11(), fb.M12(), fb.M13()],
+                [fb.M20(), fb.M21(), fb.M22(), fb.M23()],
+                [fb.M30(), fb.M31(), fb.M32(), fb.M33()],
+            ],
+            dtype=np.float32,
+        ).T
         return mat
 
 
@@ -447,11 +518,7 @@ class SerializeLiDARBeam:
 
     @staticmethod
     def deserialize(fb: LiDARBeamFB.LiDARBeamFB) -> LiDARBeam:
-        return LiDARBeam(
-            id=fb.Id(),
-            azimuth=fb.Azimuth(),
-            elevation=fb.Elevation()
-        )
+        return LiDARBeam(id=fb.Id(), azimuth=fb.Azimuth(), elevation=fb.Elevation())
 
 
 class SerializeLiDARIntensityParams:
@@ -459,9 +526,15 @@ class SerializeLiDARIntensityParams:
     def serialize(builder: flatbuffers.Builder, obj: LiDARIntensityParams):
         LiDARIntensityParamsFB.LiDARIntensityParamsFBStart(builder)
         LiDARIntensityParamsFB.LiDARIntensityParamsFBAddRetroRangeNoiseStddev(builder, obj.retro_range_noise_stddev)
-        LiDARIntensityParamsFB.LiDARIntensityParamsFBAddRetroreflectionNoiseMean(builder, obj.retroreflection_noise_mean)
-        LiDARIntensityParamsFB.LiDARIntensityParamsFBAddRetroreflectionNoiseStddev(builder, obj.retroreflection_noise_stddev)
-        LiDARIntensityParamsFB.LiDARIntensityParamsFBAddMaxAttenuationDistance(builder, obj.max_attenuation_distance_metres)
+        LiDARIntensityParamsFB.LiDARIntensityParamsFBAddRetroreflectionNoiseMean(
+            builder, obj.retroreflection_noise_mean
+        )
+        LiDARIntensityParamsFB.LiDARIntensityParamsFBAddRetroreflectionNoiseStddev(
+            builder, obj.retroreflection_noise_stddev
+        )
+        LiDARIntensityParamsFB.LiDARIntensityParamsFBAddMaxAttenuationDistance(
+            builder, obj.max_attenuation_distance_metres
+        )
         LiDARIntensityParamsFB.LiDARIntensityParamsFBAddRetroIntensityEnhance(builder, obj.retro_intensity_enhance)
         LiDARIntensityParamsFB.LiDARIntensityParamsFBAddIntensitySpecularScale(builder, obj.intensity_specular_scale)
         LiDARIntensityParamsFB.LiDARIntensityParamsFBAddIntensityRoughnessScale(builder, obj.intensity_roughness_scale)
@@ -469,7 +542,9 @@ class SerializeLiDARIntensityParams:
         albedo_weights_fb = float3_t.Createfloat3_t(builder, *obj.albedo_weights)
         LiDARIntensityParamsFB.LiDARIntensityParamsFBAddAlbedoWeights(builder, albedo_weights_fb)
         LiDARIntensityParamsFB.LiDARIntensityParamsFBAddMaxAlbedo(builder, obj.max_albedo)
-        LiDARIntensityParamsFB.LiDARIntensityParamsFBAddStrongRetroIntensityEnhance(builder, obj.strong_retro_intensity_enhance)
+        LiDARIntensityParamsFB.LiDARIntensityParamsFBAddStrongRetroIntensityEnhance(
+            builder, obj.strong_retro_intensity_enhance
+        )
         LiDARIntensityParamsFB.LiDARIntensityParamsFBAddIntensityMetallicScale(builder, obj.intensity_metallic_scale)
         LiDARIntensityParamsFB.LiDARIntensityParamsFBAddEmissiveGate(builder, obj.emissive_gate)
         LiDARIntensityParamsFB.LiDARIntensityParamsFBAddMaxEmissiveRate(builder, obj.max_emissive_rate)
@@ -477,8 +552,11 @@ class SerializeLiDARIntensityParams:
 
     @staticmethod
     def deserialize(fb: LiDARIntensityParamsFB.LiDARIntensityParamsFB) -> LiDARIntensityParams:
-        albedo_weights = (fb.AlbedoWeights().X(), fb.AlbedoWeights().Y(), fb.AlbedoWeights().Z()) \
-            if fb.AlbedoWeights() else (0., 0., 0.)
+        albedo_weights = (
+            (fb.AlbedoWeights().X(), fb.AlbedoWeights().Y(), fb.AlbedoWeights().Z())
+            if fb.AlbedoWeights()
+            else (0.0, 0.0, 0.0)
+        )
         return LiDARIntensityParams(
             retro_range_noise_stddev=fb.RetroRangeNoiseStddev(),
             retroreflection_noise_mean=fb.RetroreflectionNoiseMean(),
@@ -493,7 +571,7 @@ class SerializeLiDARIntensityParams:
             strong_retro_intensity_enhance=fb.StrongRetroIntensityEnhance(),
             intensity_metallic_scale=fb.IntensityMetallicScale(),
             emissive_gate=fb.EmissiveGate(),
-            max_emissive_rate=fb.MaxEmissiveRate()
+            max_emissive_rate=fb.MaxEmissiveRate(),
         )
 
 
@@ -547,7 +625,7 @@ class SerializeLiDARSensor:
     @staticmethod
     def deserialize(fb: LiDARConfigFB.LiDARConfigFB) -> LiDARSensor:
         lidar = LiDARSensor(
-            name='',  # filled in by SerializeSensor
+            name="",  # filled in by SerializeSensor
             pose=np.empty((4, 4)),  # filled in by SerializeSensor
             sample_rate=fb.SampleRate(),
             rotation_rate=fb.RotationRate(),
@@ -586,13 +664,7 @@ class SerializePhaseBulbValue:
         PhaseBulbValuesFB.PhaseBulbValuesFBStart(builder)
         PhaseBulbValuesFB.PhaseBulbValuesFBAddPhase(builder, obj.phase)
         PhaseBulbValuesFB.PhaseBulbValuesFBAddValue(
-            builder,
-            BulbValues.CreateBulbValues(
-                builder=builder,
-                red=obj.red,
-                yellow=obj.yellow,
-                green=obj.green
-            )
+            builder, BulbValues.CreateBulbValues(builder=builder, red=obj.red, yellow=obj.yellow, green=obj.green)
         )
         PhaseBulbValuesFB.PhaseBulbValuesFBAddLogicalState(builder, int(obj.logical_state))
         return PhaseBulbValuesFB.PhaseBulbValuesFBEnd(builder)
@@ -604,7 +676,7 @@ class SerializePhaseBulbValue:
             red=fb.Value().Red() if fb.Value() else 0.0,
             yellow=fb.Value().Yellow() if fb.Value() else 0.0,
             green=fb.Value().Green() if fb.Value() else 0.0,
-            logical_state=PhaseBulbLogicalState(fb.LogicalState())
+            logical_state=PhaseBulbLogicalState(fb.LogicalState()),
         )
 
 
@@ -613,9 +685,11 @@ class SerializeWorldInfo:
     def serialize(builder: flatbuffers.Builder, obj: WorldInfo):
         location_fb = builder.CreateString(obj.location) if obj.location else None
         tod_fb = builder.CreateString(obj.time_of_day) if obj.time_of_day else None
-        performance_type = pdPerformanceFeature.PerformanceMode \
-            if obj.performance_mode == PerformanceMode.Performance \
+        performance_type = (
+            pdPerformanceFeature.PerformanceMode
+            if obj.performance_mode == PerformanceMode.Performance
             else pdPerformanceFeature.HighFidelityMode
+        )
 
         agent_metadata_fb = None
         if obj.agent_tags:
@@ -663,8 +737,11 @@ class SerializeWorldInfo:
 
     @staticmethod
     def deserialize(fb: WorldInfoFB.WorldInfoFB) -> WorldInfo:
-        performance_mode = PerformanceMode.Performance \
-            if fb.PerformanceFeature() == pdPerformanceFeature.PerformanceMode else PerformanceMode.HighFidelity
+        performance_mode = (
+            PerformanceMode.Performance
+            if fb.PerformanceFeature() == pdPerformanceFeature.PerformanceMode
+            else PerformanceMode.HighFidelity
+        )
         agent_tags = {}
         if fb.AgentMetadata():
             for i in range(fb.AgentMetadata().AgentTagsLength()):
@@ -683,7 +760,7 @@ class SerializeWorldInfo:
             performance_mode=performance_mode,
             anti_aliasing=fb.AntiAliasing(),
             scenario_seed=fb.ScenarioSeed(),
-            agent_tags=agent_tags
+            agent_tags=agent_tags,
         )
 
 
@@ -721,33 +798,26 @@ class SerializeState:
             if deserialized_agent:
                 agents.append(deserialized_agent)
         world_info = SerializeWorldInfo.deserialize(fb.WorldInfo()) if fb.WorldInfo() else None
-        return State(
-            simulation_time_sec=fb.Time(),
-            world_info=world_info,
-            agents=agents,
-            capture=fb.Capture()
-        )
+        return State(simulation_time_sec=fb.Time(), world_info=world_info, agents=agents, capture=fb.Capture())
 
 
 class SerializeAgent:
     @staticmethod
-    def serialize(builder: flatbuffers.Builder, obj: Union[VehicleAgent, ModelAgent, SensorAgent, SignalAgent, WorldAgent]):
+    def serialize(
+            builder: flatbuffers.Builder, obj: Union[VehicleAgent, ModelAgent, SensorAgent, SignalAgent, WorldAgent]
+    ):
         states_data = []
 
         if isinstance(obj, (VehicleAgent, ModelAgent, SensorAgent)):
             pose_matrix = obj.pose.as_transformation_matrix() if isinstance(obj.pose, Pose6D) else obj.pose
             states_data.append(
                 SerializeTransformState.TransformStateData(
-                    pose=pose_matrix,
-                    velocity=obj.velocity,
-                    angular_velocity=obj.angular_velocity
+                    pose=pose_matrix, velocity=obj.velocity, angular_velocity=obj.angular_velocity
                 )
             )
 
         if isinstance(obj, (VehicleAgent, ModelAgent, SensorAgent)) and obj.sensors:
-            states_data.append(
-                SerializeSensorRig.SensorRigData(obj.sensors)
-            )
+            states_data.append(SerializeSensorRig.SensorRigData(obj.sensors))
 
         if isinstance(obj, VehicleAgent):
             states_data.append(
@@ -763,79 +833,68 @@ class SerializeAgent:
                     wheel_combo=list(obj.wheel_combo),
                     wheel_combo_style=list(obj.wheel_combo_style),
                     accessories=list(obj.accessories),
-                    occupants=list(obj.occupants)
+                    occupants=list(obj.occupants),
                 )
             )
-            states_data.append(
-                SerializeControlState.ControlStateData(
-                    indicator_state=obj.indicator_state
-                )
-            )
+            states_data.append(SerializeControlState.ControlStateData(indicator_state=obj.indicator_state))
             wheels_to_world = []
             if obj.wheel_poses is not None:
                 object_to_world = pose_matrix
                 for wheel_pose in obj.wheel_poses:
-                    wheel_to_object = wheel_pose.as_transformation_matrix() \
-                        if isinstance(wheel_pose, Pose6D) else wheel_pose
+                    wheel_to_object = (
+                        wheel_pose.as_transformation_matrix() if isinstance(wheel_pose, Pose6D) else wheel_pose
+                    )
                     wheels_to_world.append(np.matmul(object_to_world, wheel_to_object))
             states_data.append(
                 SerializeSimpleVehicleState.SimpleVehicleStateData(
                     wheel_to_world=wheels_to_world,
                     emergency_lights_on=obj.emergency_lights_on,
                     brake_light_on=obj.brake_light_on,
-                    headlight_on=obj.headlight_on
+                    headlight_on=obj.headlight_on,
                 )
             )
             if obj.is_parked:
-                states_data.append(
-                    SerializeSimpleControlState.SimpleControlStateData()
-                )
+                states_data.append(SerializeSimpleControlState.SimpleControlStateData())
+            if obj.connections:
+                states_data.append(SerializeVehiclePhysicsConfig.VehiclePhysicsConfigData(
+                    connections=obj.connections
+                ))
         elif isinstance(obj, SensorAgent):
             pass
         elif isinstance(obj, ModelAgent):
             states_data.append(
                 SerializeModelConfig.ModelConfigData(
-                    asset_name=obj.asset_name,
-                    lock_to_ground=obj.lock_to_ground,
-                    ground_offset=obj.ground_offset
+                    asset_name=obj.asset_name, lock_to_ground=obj.lock_to_ground, ground_offset=obj.ground_offset
                 )
             )
             if obj.pedestrian_animation_data is not None:
                 states_data.append(
-                    SerializePedestrianState.PedestrianStateData(
-                        animation_data=obj.pedestrian_animation_data
-                    )
+                    SerializePedestrianState.PedestrianStateData(animation_data=obj.pedestrian_animation_data)
                 )
         elif isinstance(obj, SignalAgent):
             states_data.append(
                 SerializeSignalModuleOutput.SignalModuleOutputData(
-                    elapsed_time=obj.elapsed_time,
-                    phase_bulb_values=obj.phase_bulb_values
+                    elapsed_time=obj.elapsed_time, phase_bulb_values=obj.phase_bulb_values
                 )
             )
         elif isinstance(obj, WorldAgent):
             if obj.parking_config:
-                states_data.append(
-                    SerializeEnvironmentConfig.EnvironmentConfigData(
-                        parking_config=obj.parking_config
-                    )
-                )
+                states_data.append(SerializeEnvironmentConfig.EnvironmentConfigData(parking_config=obj.parking_config))
             if obj.object_decorations:
                 states_data.append(
-                    SerializeObjectDecorationsInfo.ObjectDecorationsInfoData(
-                        object_decorations=obj.object_decorations
-                    )
+                    SerializeObjectDecorationsInfo.ObjectDecorationsInfoData(object_decorations=obj.object_decorations)
                 )
         else:
             raise TypeError(f"Unsupported agent type: {type(obj).__name__}")
 
-        return SerializeAgentState.serialize(builder, SerializeAgentState.AgentStateData(
-            id=obj.id,
-            states_data=states_data
-        ))
+        return SerializeAgentState.serialize(
+            builder, SerializeAgentState.AgentStateData(id=obj.id, states_data=states_data)
+        )
 
     @staticmethod
-    def deserialize(fb: AgentStateFB.AgentStateFB) -> Optional[Union[VehicleAgent, ModelAgent, SensorAgent, SignalAgent, WorldAgent]]:
+    def deserialize(
+            fb: AgentStateFB.AgentStateFB,
+    ) -> Optional[Union[VehicleAgent, ModelAgent, SensorAgent, SignalAgent, WorldAgent]]:
         agent_state_data = SerializeAgentState.deserialize(fb)
 
         def find_state_data(state_type: Type[T]) -> T:
@@ -846,7 +905,9 @@ class SerializeAgent:
                 return None
 
         if not agent_state_data.states_data:
-            logger.debug(f"Skipping deserialization of agent - failed to find any relevant StateObjects. Agent id = {fb.Id()}")
+            logger.debug(
+                f"Skipping deserialization of agent - failed to find any relevant StateObjects. Agent id = {fb.Id()}"
+            )
             return None
 
         sensor_rig_data = find_state_data(SerializeSensorRig.SensorRigData)
@@ -860,18 +921,22 @@ class SerializeAgent:
         pedestrian_state_data = find_state_data(SerializePedestrianState.PedestrianStateData)
         environment_config_data = find_state_data(SerializeEnvironmentConfig.EnvironmentConfigData)
         object_decorations_info_data = find_state_data(SerializeObjectDecorationsInfo.ObjectDecorationsInfoData)
+        vehicle_physics_config_data = find_state_data(SerializeVehiclePhysicsConfig.VehiclePhysicsConfigData)
 
         if environment_config_data or object_decorations_info_data:
             # This is a world agent
             agent = WorldAgent(
                 id=fb.Id(),
                 parking_config=environment_config_data.parking_config if environment_config_data else None,
-                object_decorations=object_decorations_info_data.object_decorations if object_decorations_info_data else {}
+                object_decorations=(
+                    object_decorations_info_data.object_decorations if object_decorations_info_data else {}
+                ),
             )
         elif vehicle_model_config_data and vehicle_state_data and transform_state_data:
             # This is a vehicle agent
-            indicator_state = control_state_data.indicator_state if control_state_data \
-                else VehicleIndicatorState.Inactive
+            indicator_state = (
+                control_state_data.indicator_state if control_state_data else VehicleIndicatorState.Inactive
+            )
             object_to_world = transform_state_data.pose
             wheel_to_object_matrices = []
             for wheel_to_world in vehicle_state_data.wheel_to_world:
@@ -897,9 +962,11 @@ class SerializeAgent:
                 emergency_lights_on=vehicle_state_data.emergency_lights_on,
                 indicator_state=indicator_state,
                 is_parked=simple_control_state_data is not None,
-                headlight_on=vehicle_state_data.headlight_on
+                headlight_on=vehicle_state_data.headlight_on,
             )
             agent.angular_velocity = transform_state_data.angular_velocity
+            if vehicle_physics_config_data:
+                agent.connections = vehicle_physics_config_data.connections
         elif model_config_data and transform_state_data:
             # This is a model agent
             agent = ModelAgent(
@@ -908,7 +975,7 @@ class SerializeAgent:
                 velocity=transform_state_data.velocity,
                 asset_name=model_config_data.asset_name,
                 lock_to_ground=model_config_data.lock_to_ground,
-                ground_offset=model_config_data.ground_offset
+                ground_offset=model_config_data.ground_offset,
             )
             agent.angular_velocity = transform_state_data.angular_velocity
             if pedestrian_state_data:
@@ -916,18 +983,14 @@ class SerializeAgent:
         elif transform_state_data:
             # This is a sensor agent
             # Sensors added later below for every agent type
-            agent = SensorAgent(
-                id=fb.Id(),
-                pose=transform_state_data.pose,
-                velocity=transform_state_data.velocity
-            )
+            agent = SensorAgent(id=fb.Id(), pose=transform_state_data.pose, velocity=transform_state_data.velocity)
             agent.angular_velocity = transform_state_data.angular_velocity
         elif signal_module_output_data:
             # This is a signal agent
             agent = SignalAgent(
                 id=fb.Id(),
                 elapsed_time=signal_module_output_data.elapsed_time,
-                phase_bulb_values=signal_module_output_data.phase_bulb_values
+                phase_bulb_values=signal_module_output_data.phase_bulb_values,
             )
         else:
             logger.warning(f"Failed to determine Agent type for deserialization: agent id = {fb.Id()}")
@@ -943,6 +1006,7 @@ class SerializeAgent:
 # Serialize StateObjects
 #############################
 
+
 class SerializeAgentState:
     state_object_ids = {
         StateObject.TransformStateFB: 12298431360834646861,
@@ -955,7 +1019,8 @@ class SerializeAgentState:
         StateObject.SimpleControlStateFB: 13564387674721412426,
         StateObject.PedestrianStateFB: 15712700117038221379,
         StateObject.ObjectDecorationsInfoFB: 4056133413910570264,
-        StateObject.EnvironmentConfigFB: 14953201660603326163
+        StateObject.EnvironmentConfigFB: 14953201660603326163,
+        StateObject.VehiclePhysicsConfigFB: 4657791570550609985,
     }
 
     @dataclass
@@ -1011,12 +1076,15 @@ class SerializeAgentState:
                 states_data_fb_list.append(
                     (StateObject.ObjectDecorationsInfoFB, SerializeObjectDecorationsInfo.serialize(builder, state_data))
                 )
+            elif isinstance(state_data, SerializeVehiclePhysicsConfig.VehiclePhysicsConfigData):
+                states_data_fb_list.append(
+                    (StateObject.VehiclePhysicsConfigFB, SerializeVehiclePhysicsConfig.serialize(builder, state_data))
+                )
             else:
                 raise TypeError("Unknown state data type")
 
         sorted_states_data_fb_list = sorted(
-            states_data_fb_list,
-            key=lambda s: SerializeAgentState.state_object_ids[s[0]]
+            states_data_fb_list, key=lambda s: SerializeAgentState.state_object_ids[s[0]]
         )
         state_fb_list = []
         for state_type, state_data_fb in sorted_states_data_fb_list:
@@ -1088,36 +1156,38 @@ class SerializeAgentState:
                 object_decorations_info_fb = ObjectDecorationsInfoFB.ObjectDecorationsInfoFB()
                 object_decorations_info_fb.Init(state_obj_fb.Bytes, state_obj_fb.Pos)
                 states_data.append(SerializeObjectDecorationsInfo.deserialize(object_decorations_info_fb))
+            elif state_type == StateObject.VehiclePhysicsConfigFB:
+                vehicle_physics_config_fb = VehiclePhysicsConfigFB.VehiclePhysicsConfigFB()
+                vehicle_physics_config_fb.Init(state_obj_fb.Bytes, state_obj_fb.Pos)
+                states_data.append(SerializeVehiclePhysicsConfig.deserialize(vehicle_physics_config_fb))
             elif state_type in (
-                StateObject.PathDeviationFB,
-                StateObject.PlanningInputFB,
-                StateObject.VehiclePhysicsConfigFB,  # TODO: possibly used in IG
-                StateObject.ControlConfigFB,  # TODO: possibly used in IG
-                StateObject.MotionPlanFB,
-                StateObject.LinearMoverConfigFB,
-                StateObject.SignalModuleConfigFB,  # TODO: possibly used in IG
-                StateObject.SignedIntersectionModuleOutputFB,
-                StateObject.SignedIntersectionModuleConfigFB,
-                StateObject.VehicleEventsFB,
-                StateObject.AssetPlacementFB,
-                StateObject.NavRouteOutputFB,
-                StateObject.RoleOutputFB,
-                StateObject.ParkingPlannerOutputFB,
-                StateObject.VehicleTrafficControlOutputFB,
-                StateObject.VehiclePlannerOutputFB,
-                StateObject.TrajectoryOutputFB,
-                StateObject.AgentEventsFB,
+                    StateObject.PathDeviationFB,
+                    StateObject.PlanningInputFB,
+                    StateObject.ControlConfigFB,  # TODO: possibly used in IG
+                    StateObject.MotionPlanFB,
+                    StateObject.LinearMoverConfigFB,
+                    StateObject.SignalModuleConfigFB,  # TODO: possibly used in IG
+                    StateObject.SignedIntersectionModuleOutputFB,
+                    StateObject.SignedIntersectionModuleConfigFB,
+                    StateObject.VehicleEventsFB,
+                    StateObject.AssetPlacementFB,
+                    StateObject.NavRouteOutputFB,
+                    StateObject.RoleOutputFB,
+                    StateObject.ParkingPlannerOutputFB,
+                    StateObject.VehicleTrafficControlOutputFB,
+                    StateObject.VehiclePlannerOutputFB,
+                    StateObject.TrajectoryOutputFB,
+                    StateObject.AgentEventsFB,
             ):
                 state_type_name = next(k for k, v in StateObject.__dict__.items() if v == state_type)
-                logger.debug(f"Skipping deserialization of StateObject not supported/relevant in Step API: "
-                             f"'{state_type_name}' (agent id={fb.Id()}) ")
+                logger.debug(
+                    "Skipping deserialization of StateObject not supported/relevant in Step API: "
+                    f"'{state_type_name}' (agent id={fb.Id()}) "
+                )
             else:
                 state_type_name = next(k for k, v in StateObject.__dict__.items() if v == state_type)
                 raise TypeError(f"Unsupported State type: '{state_type_name}' ({state_type}) for agent id {fb.Id()}")
-        return SerializeAgentState.AgentStateData(
-            id=fb.Id(),
-            states_data=states_data
-        )
+        return SerializeAgentState.AgentStateData(id=fb.Id(), states_data=states_data)
 
 
 class SerializeSensorRig:
@@ -1169,10 +1239,12 @@ class SerializeTransformState:
 
     @staticmethod
     def deserialize(fb: TransformStateFB.TransformStateFB) -> TransformStateData:
-        velocity = (fb.Velocity().X(), fb.Velocity().Y(), fb.Velocity().Z()) \
-            if fb.Velocity() else (0., 0., 0.)
-        angular_velocity = (fb.AngularVelocity().X(), fb.AngularVelocity().Y(), fb.AngularVelocity().Z()) \
-            if fb.AngularVelocity() else (0., 0., 0.)
+        velocity = (fb.Velocity().X(), fb.Velocity().Y(), fb.Velocity().Z()) if fb.Velocity() else (0.0, 0.0, 0.0)
+        angular_velocity = (
+            (fb.AngularVelocity().X(), fb.AngularVelocity().Y(), fb.AngularVelocity().Z())
+            if fb.AngularVelocity()
+            else (0.0, 0.0, 0.0)
+        )
         return SerializeTransformState.TransformStateData(
             pose=SerializePose.deserialize(fb.ObjectToWorld()) if fb.ObjectToWorld() else np.empty((4, 4)),
             velocity=velocity,
@@ -1202,7 +1274,7 @@ class SerializeModelConfig:
         return SerializeModelConfig.ModelConfigData(
             asset_name=fb.AssetName().decode() or None,
             lock_to_ground=fb.LockToGround(),
-            ground_offset=fb.GroundOffset()
+            ground_offset=fb.GroundOffset(),
         )
 
 
@@ -1338,7 +1410,7 @@ class SerializeSimpleVehicleState:
             wheel_to_world=[],
             emergency_lights_on=bool(fb.EmergencyLightsOn()),
             brake_light_on=bool(fb.BrakeLightOn()),
-            headlight_on=bool(fb.HeadlightOn())
+            headlight_on=bool(fb.HeadlightOn()),
         )
         for i in range(fb.WheelToWorldLength()):
             wheel_to_world_element_fb = fb.WheelToWorld(i)
@@ -1413,8 +1485,7 @@ class SerializeSignalModuleOutput:
     @staticmethod
     def deserialize(fb: SignalModuleOutputFB.SignalModuleOutputFB) -> SignalModuleOutputData:
         signal_module_output = SerializeSignalModuleOutput.SignalModuleOutputData(
-            elapsed_time=fb.ElapsedTime(),
-            phase_bulb_values=[]
+            elapsed_time=fb.ElapsedTime(), phase_bulb_values=[]
         )
         for i in range(fb.PhaseBulbValuesLength()):
             phase_bulb_value_fb = fb.PhaseBulbValues(i)
@@ -1460,12 +1531,24 @@ class SerializeEnvironmentConfig:
             ParkingConfigFB.ParkingConfigFBAddDelineationWearAmount(builder, obj.parking_config.delineation_wear_amount)
             parking_space_tint_fb = float3_t.Createfloat3_t(builder, *obj.parking_config.parking_space_tint)
             ParkingConfigFB.ParkingConfigFBAddParkingSpaceTint(builder, parking_space_tint_fb)
-            ParkingConfigFB.ParkingConfigFBAddParkingSpaceGrungeAmount(builder, obj.parking_config.parking_space_grunge_amount)
-            ParkingConfigFB.ParkingConfigFBAddLotParkingDelineationType(builder, int(obj.parking_config.lot_parking_delineation_type))
-            ParkingConfigFB.ParkingConfigFBAddStreetParkingDelineationType(builder, int(obj.parking_config.street_parking_delineation_type))
-            ParkingConfigFB.ParkingConfigFBAddStreetParkingAngleZeroOverride(builder, int(obj.parking_config.street_parking_angle_zero_override))
-            ParkingConfigFB.ParkingConfigFBAddParkingSpaceMaterial(builder, int(obj.parking_config.parking_space_material))
-            ParkingConfigFB.ParkingConfigFBAddGlobalParkingDecalWear(builder, obj.parking_config.global_parking_decal_wear)
+            ParkingConfigFB.ParkingConfigFBAddParkingSpaceGrungeAmount(
+                builder, obj.parking_config.parking_space_grunge_amount
+            )
+            ParkingConfigFB.ParkingConfigFBAddLotParkingDelineationType(
+                builder, int(obj.parking_config.lot_parking_delineation_type)
+            )
+            ParkingConfigFB.ParkingConfigFBAddStreetParkingDelineationType(
+                builder, int(obj.parking_config.street_parking_delineation_type)
+            )
+            ParkingConfigFB.ParkingConfigFBAddStreetParkingAngleZeroOverride(
+                builder, int(obj.parking_config.street_parking_angle_zero_override)
+            )
+            ParkingConfigFB.ParkingConfigFBAddParkingSpaceMaterial(
+                builder, int(obj.parking_config.parking_space_material)
+            )
+            ParkingConfigFB.ParkingConfigFBAddGlobalParkingDecalWear(
+                builder, obj.parking_config.global_parking_decal_wear
+            )
             parking_config_fb = ParkingConfigFB.ParkingConfigFBEnd(builder)
         EnvironmentConfigFB.EnvironmentConfigFBStart(builder)
         if parking_config_fb:
@@ -1479,15 +1562,23 @@ class SerializeEnvironmentConfig:
         parking_config_fb = fb.ParkingConfig()
         if parking_config_fb:
             delineation_color = (
-                parking_config_fb.DelineationColor().X(),
-                parking_config_fb.DelineationColor().Y(),
-                parking_config_fb.DelineationColor().Z()
-            ) if parking_config_fb.DelineationColor() else (0., 0., 0.)
+                (
+                    parking_config_fb.DelineationColor().X(),
+                    parking_config_fb.DelineationColor().Y(),
+                    parking_config_fb.DelineationColor().Z(),
+                )
+                if parking_config_fb.DelineationColor()
+                else (0.0, 0.0, 0.0)
+            )
             parking_space_tint = (
-                parking_config_fb.ParkingSpaceTint().X(),
-                parking_config_fb.ParkingSpaceTint().Y(),
-                parking_config_fb.ParkingSpaceTint().Z()
-            ) if parking_config_fb.ParkingSpaceTint() else (0., 0., 0.)
+                (
+                    parking_config_fb.ParkingSpaceTint().X(),
+                    parking_config_fb.ParkingSpaceTint().Y(),
+                    parking_config_fb.ParkingSpaceTint().Z(),
+                )
+                if parking_config_fb.ParkingSpaceTint()
+                else (0.0, 0.0, 0.0)
+            )
             parking_config = ParkingConfig(
                 angle=parking_config_fb.Angle(),
                 delineation_color=delineation_color,
@@ -1495,14 +1586,16 @@ class SerializeEnvironmentConfig:
                 parking_space_tint=parking_space_tint,
                 parking_space_grunge_amount=parking_config_fb.ParkingSpaceGrungeAmount(),
                 lot_parking_delineation_type=LotParkingDelineationType(parking_config_fb.LotParkingDelineationType()),
-                street_parking_delineation_type=StreetParkingDelineationType(parking_config_fb.StreetParkingDelineationType()),
-                street_parking_angle_zero_override=StreetParkingAngleZeroOverride(parking_config_fb.StreetParkingAngleZeroOverride()),
+                street_parking_delineation_type=StreetParkingDelineationType(
+                    parking_config_fb.StreetParkingDelineationType()
+                ),
+                street_parking_angle_zero_override=StreetParkingAngleZeroOverride(
+                    parking_config_fb.StreetParkingAngleZeroOverride()
+                ),
                 parking_space_material=ParkingSpaceMaterial(parking_config_fb.ParkingSpaceMaterial()),
-                global_parking_decal_wear=parking_config_fb.GlobalParkingDecalWear()
+                global_parking_decal_wear=parking_config_fb.GlobalParkingDecalWear(),
             )
-        environment_config = SerializeEnvironmentConfig.EnvironmentConfigData(
-            parking_config=parking_config
-        )
+        environment_config = SerializeEnvironmentConfig.EnvironmentConfigData(parking_config=parking_config)
         return environment_config
 
 
@@ -1574,7 +1667,9 @@ class SerializeObjectDecorationsInfo:
 
         object_decorations_vec_fb = None
         if object_decorations_fb_list:
-            ObjectDecorationsInfoFB.ObjectDecorationsInfoFBStartObjectDecorationsVector(builder, len(object_decorations_fb_list))
+            ObjectDecorationsInfoFB.ObjectDecorationsInfoFBStartObjectDecorationsVector(
+                builder, len(object_decorations_fb_list)
+            )
             for object_decorations_fb in reversed(object_decorations_fb_list):
                 builder.PrependUOffsetTRelative(object_decorations_fb)
             object_decorations_vec_fb = builder.EndVector(len(object_decorations_fb_list))
@@ -1595,14 +1690,18 @@ class SerializeObjectDecorationsInfo:
                 decorations_type = decorations_fb.DecorationDataType()
                 if decorations_type == DecorationData.DecorationData.DecorationPreset:
                     decoration_preset_fb = DecorationPresetFB.DecorationPreset()
-                    decoration_preset_fb.Init(decorations_fb.DecorationData().Bytes, decorations_fb.DecorationData().Pos)
+                    decoration_preset_fb.Init(
+                        decorations_fb.DecorationData().Bytes, decorations_fb.DecorationData().Pos
+                    )
                     decorations_obj = DecorationPreset(
                         preset_name=decoration_preset_fb.PresetName().decode() or None,
-                        variant=decoration_preset_fb.Variant()
+                        variant=decoration_preset_fb.Variant(),
                     )
                 elif decorations_type == DecorationData.DecorationData.ParkingSpaceDecal:
                     parking_space_decal_fb = ParkingSpaceDecalFB.ParkingSpaceDecal()
-                    parking_space_decal_fb.Init(decorations_fb.DecorationData().Bytes, decorations_fb.DecorationData().Pos)
+                    parking_space_decal_fb.Init(
+                        decorations_fb.DecorationData().Bytes, decorations_fb.DecorationData().Pos
+                    )
                     decorations_obj = ParkingSpaceDecal(
                         decal_preset=parking_space_decal_fb.DecalPreset().decode() or None
                     )
@@ -1610,14 +1709,15 @@ class SerializeObjectDecorationsInfo:
                     paint_texture_fb = PaintTextureFB.PaintTexture()
                     paint_texture_fb.Init(decorations_fb.DecorationData().Bytes, decorations_fb.DecorationData().Pos)
                     color_rgb = (
-                        paint_texture_fb.ColorRgb().X(),
-                        paint_texture_fb.ColorRgb().Y(),
-                        paint_texture_fb.ColorRgb().Z()
-                    ) if paint_texture_fb.ColorRgb() else (0., 0., 0.)
-                    decorations_obj = PaintTexture(
-                        color_rgb=color_rgb,
-                        wear=paint_texture_fb.Wear()
+                        (
+                            paint_texture_fb.ColorRgb().X(),
+                            paint_texture_fb.ColorRgb().Y(),
+                            paint_texture_fb.ColorRgb().Z(),
+                        )
+                        if paint_texture_fb.ColorRgb()
+                        else (0.0, 0.0, 0.0)
                     )
+                    decorations_obj = PaintTexture(color_rgb=color_rgb, wear=paint_texture_fb.Wear())
                 elif decorations_type == DecorationData.DecorationData.Text:
                     text_fb = TextFB.Text()
                     text_fb.Init(decorations_fb.DecorationData().Bytes, decorations_fb.DecorationData().Pos)
@@ -1628,10 +1728,50 @@ class SerializeObjectDecorationsInfo:
             object_decorations_obj = ObjectDecorations(
                 type=DecorationObjectType(object_decorations_fb.Type()),
                 object_id=object_decorations_fb.ObjectId(),
-                decorations=decorations_dict
+                decorations=decorations_dict,
             )
             object_decorations_dict[object_decorations_fb.Id()] = object_decorations_obj
         object_decorations = SerializeObjectDecorationsInfo.ObjectDecorationsInfoData(
             object_decorations=object_decorations_dict
         )
         return object_decorations
+
+
+class SerializeVehiclePhysicsConfig:
+    @dataclass
+    class VehiclePhysicsConfigData:
+        connections: List[Tuple[int, np.ndarray]]
+
+    @staticmethod
+    def serialize(builder: flatbuffers.Builder, obj: VehiclePhysicsConfigData):
+        connections_vec_fb = None
+        if obj.connections:
+            connections_fb_list = []
+            for other_agent_id, joint_transform in obj.connections:
+                VehicleConnectionFB.VehicleConnectionFBStart(builder)
+                VehicleConnectionFB.VehicleConnectionFBAddOtherAgentId(builder, other_agent_id)
+                joint_transform_fb = SerializePose.serialize(builder, joint_transform)
+                VehicleConnectionFB.VehicleConnectionFBAddJointTransform(builder, joint_transform_fb)
+                connections_fb_list.append(VehicleConnectionFB.VehicleConnectionFBEnd(builder))
+            VehiclePhysicsConfigFB.VehiclePhysicsConfigFBStartConnectionsVector(builder, len(connections_fb_list))
+            for connections_fb in reversed(connections_fb_list):
+                builder.PrependUOffsetTRelative(connections_fb)
+            connections_vec_fb = builder.EndVector(len(connections_fb_list))
+
+        VehiclePhysicsConfigFB.VehiclePhysicsConfigFBStart(builder)
+        if connections_vec_fb:
+            VehiclePhysicsConfigFB.VehiclePhysicsConfigFBAddConnections(builder, connections_vec_fb)
+        return VehiclePhysicsConfigFB.VehiclePhysicsConfigFBEnd(builder)
+
+    @staticmethod
+    def deserialize(fb: VehiclePhysicsConfigFB.VehiclePhysicsConfigFB) -> VehiclePhysicsConfigData:
+        connections = []
+        for i in range(fb.ConnectionsLength()):
+            connection_fb = fb.Connections(i)
+            other_agent_id = connection_fb.OtherAgentId()
+            joint_transform = SerializePose.deserialize(connection_fb.JointTransform())
+            connections.append((other_agent_id, joint_transform))
+        vehicle_physics_config = SerializeVehiclePhysicsConfig.VehiclePhysicsConfigData(
+            connections=connections
+        )
+        return vehicle_physics_config

@@ -5,10 +5,11 @@
 # separate written license agreement with Parallel Domain, Inc.
 
 from datetime import datetime, timezone
+from typing import List, Union
 
 from pd.data_lab.label_engine_instance import LabelEngineInstance
 from pd.label_engine import simulation_time_as_timestamp
-from pd.state import State
+from pd.state import State, CameraSensor, LiDARSensor
 from pd.state.state import Agent
 
 
@@ -35,9 +36,17 @@ class StateReference:
 
 
 class LabeledStateReference(StateReference):
-    def __init__(self, label_engine: LabelEngineInstance, state: State, frame_id: str, ego_agent_id: int):
+    def __init__(
+        self,
+        label_engine: LabelEngineInstance,
+        sensor_rig: List[Union[CameraSensor, LiDARSensor]],
+        state: State,
+        frame_id: str,
+        ego_agent_id: int,
+    ):
         super().__init__(state=state, frame_id=frame_id, ego_agent_id=ego_agent_id)
         self.label_engine = label_engine
+        self.sensor_rig = sensor_rig
 
     @property
     def frame_timestamp(self) -> str:

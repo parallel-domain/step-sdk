@@ -1,38 +1,102 @@
 import flatbuffers
-import pytest
 import numpy as np
-
-from pd.state.serialize import (
-    state_to_bytes, bytes_to_state,
-    SerializePostProcessMaterial, SerializePostProcessParams, SerializeNoiseParams, SerializeDistortionParams,
-    SerializeCameraSensor, SerializeSensor, SerializePose, SerializeLiDARBeam, SerializeLiDARIntensityParams,
-    SerializeLiDARSensor, SerializeSensorRig, SerializeTransformState, SerializeModelConfig, SerializePhaseBulbValue,
-    SerializeVehicleModelConfig, SerializeSimpleVehicleState, SerializeAgent, SerializeWorldInfo, SerializeState,
-    SerializeSignalModuleOutput, SerializeControlState, SerializeToneCurve, SerializeSimpleControlState,
-    SerializePedestrianState, SerializeEnvironmentConfig, SerializeObjectDecorationsInfo
-)
-from pd.state.sensor import (
-    PostProcessMaterial, PostProcessParams, NoiseParams, DenoiseFilter, DistortionParams, CameraSensor, LiDARBeam,
-    LiDARIntensityParams, LiDARSensor, TonemapCurve
-)
-from pd.state.pose6d import Pose6D
-from pd.state.state import (
-    VehicleAgent, ModelAgent, SensorAgent, WorldInfo, PerformanceMode, State,
-    PhaseBulbValue, PhaseBulbLogicalState, SignalAgent, VehicleIndicatorState, ParkingConfig, LotParkingDelineationType,
-    StreetParkingDelineationType, StreetParkingAngleZeroOverride, ParkingSpaceMaterial, WorldAgent, ObjectDecorations,
-    DecorationObjectType, DecorationPreset, ParkingSpaceDecal, PaintTexture
-)
+import pytest
 
 from pd.internal.fb.generated.python import (
-    TransformStateFB, SimpleVehicleStateFB, VehicleModelConfigFB, ModelConfigFB,
-    AgentStateFB, WorldInfoFB, SimStateFB, CameraConfigFB,
-    PostProcessParamsFB, PostProcessMatsFB,
-    LiDARConfigFB, LiDARBeamFB, LiDARIntensityParamsFB,
-    SensorExtrinsicConfigFB, SensorConfigFB, SensorRigConfigFB,
-    PhaseBulbValuesFB, SignalModuleOutputFB, ControlStateFB, TonemapCurveFB,
-    SimpleControlStateFB, PedestrianStateFB, EnvironmentConfigFB, ObjectDecorationsInfoFB
+    AgentStateFB,
+    CameraConfigFB,
+    ControlStateFB,
+    EnvironmentConfigFB,
+    LiDARBeamFB,
+    LiDARConfigFB,
+    LiDARIntensityParamsFB,
+    ModelConfigFB,
+    ObjectDecorationsInfoFB,
+    PedestrianStateFB,
+    PhaseBulbValuesFB,
+    PostProcessMatsFB,
+    PostProcessParamsFB,
+    SensorConfigFB,
+    SensorExtrinsicConfigFB,
+    SensorRigConfigFB,
+    SignalModuleOutputFB,
+    SimpleControlStateFB,
+    SimpleVehicleStateFB,
+    SimStateFB,
+    TonemapCurveFB,
+    TransformStateFB,
+    VehicleModelConfigFB,
+    WorldInfoFB,
+    VehiclePhysicsConfigFB
 )
 from pd.internal.fb.generated.python.SensorIntrinsicConfigFB import SensorIntrinsicConfigFB
+from pd.state.pose6d import Pose6D
+from pd.state.sensor import (
+    CameraSensor,
+    DenoiseFilter,
+    DistortionParams,
+    LiDARBeam,
+    LiDARIntensityParams,
+    LiDARSensor,
+    NoiseParams,
+    PostProcessMaterial,
+    PostProcessParams,
+    TonemapCurve,
+)
+from pd.state.serialize import (
+    SerializeAgent,
+    SerializeCameraSensor,
+    SerializeControlState,
+    SerializeDistortionParams,
+    SerializeEnvironmentConfig,
+    SerializeLiDARBeam,
+    SerializeLiDARIntensityParams,
+    SerializeLiDARSensor,
+    SerializeModelConfig,
+    SerializeNoiseParams,
+    SerializeObjectDecorationsInfo,
+    SerializePedestrianState,
+    SerializePhaseBulbValue,
+    SerializePose,
+    SerializePostProcessMaterial,
+    SerializePostProcessParams,
+    SerializeSensor,
+    SerializeSensorRig,
+    SerializeSignalModuleOutput,
+    SerializeSimpleControlState,
+    SerializeSimpleVehicleState,
+    SerializeState,
+    SerializeToneCurve,
+    SerializeTransformState,
+    SerializeVehicleModelConfig,
+    SerializeWorldInfo,
+    SerializeVehiclePhysicsConfig,
+    bytes_to_state,
+    state_to_bytes,
+)
+from pd.state.state import (
+    DecorationObjectType,
+    DecorationPreset,
+    LotParkingDelineationType,
+    ModelAgent,
+    ObjectDecorations,
+    PaintTexture,
+    ParkingConfig,
+    ParkingSpaceDecal,
+    ParkingSpaceMaterial,
+    PerformanceMode,
+    PhaseBulbLogicalState,
+    PhaseBulbValue,
+    SensorAgent,
+    SignalAgent,
+    State,
+    StreetParkingAngleZeroOverride,
+    StreetParkingDelineationType,
+    VehicleAgent,
+    VehicleIndicatorState,
+    WorldAgent,
+    WorldInfo,
+)
 
 
 @pytest.fixture
@@ -42,15 +106,16 @@ def builder():
 
 def test_deserialize_sample_states(resources):
     """Sample states can be deserialized without errors"""
-    base_path = resources / 'sample_states'
+    base_path = resources / "sample_states"
     sample_state_files_path = [
-        base_path / 'sunnyvale_1.pd',
-        base_path / 'kettman_1.pd',
-        base_path / '20221113-SJ_237AndGreatAmerica_1.pd',
-        base_path / '20221114-SJ_237AndGreatAmerica_1.pd',
-        base_path / '20230322-SF_6thAndMission_medium_1.pd',
-        base_path / '20230503-SJ_237AndZanker_1.pd',
-        base_path / '20230604-SF_6thAndMission_medium_1.pd',
+        base_path / "sunnyvale_1.pd",
+        base_path / "kettman_1.pd",
+        base_path / "20221113-SJ_237AndGreatAmerica_1.pd",
+        base_path / "20221114-SJ_237AndGreatAmerica_1.pd",
+        base_path / "20230322-SF_6thAndMission_medium_1.pd",
+        base_path / "20230503-SJ_237AndZanker_1.pd",
+        base_path / "20230604-SF_6thAndMission_medium_1.pd",
+        base_path / "20230428-SF_GrantAndCalifornia_1.pd"
     ]
     for state_file_path in sample_state_files_path:
         with open(state_file_path, "rb") as f:
@@ -64,38 +129,21 @@ def test_deserialize_sample_states(resources):
 def test_state_to_bytes():
     state = State(
         simulation_time_sec=12.345,
-        world_info=WorldInfo(
-            location='test location',
-            time_of_day='test tod'
-        ),
+        world_info=WorldInfo(location="test location", time_of_day="test tod"),
         agents=[
-            SensorAgent(
-                id=1,
-                pose=Pose6D(),
-                velocity=(0., 0., 0.)
-            ),
-            ModelAgent(
-                id=2,
-                pose=Pose6D(),
-                velocity=(0., 0., 0.),
-                asset_name='test asset'
-            ),
-            VehicleAgent(
-                id=3,
-                pose=Pose6D(),
-                velocity=(0., 0., 0.),
-                vehicle_type='test vehicle type'
-            )
+            SensorAgent(id=1, pose=Pose6D(), velocity=(0.0, 0.0, 0.0)),
+            ModelAgent(id=2, pose=Pose6D(), velocity=(0.0, 0.0, 0.0), asset_name="test asset"),
+            VehicleAgent(id=3, pose=Pose6D(), velocity=(0.0, 0.0, 0.0), vehicle_type="test vehicle type"),
         ],
-        capture=False
+        capture=False,
     )
     state_bytes = state_to_bytes(state)
     result = bytes_to_state(state_bytes)
 
     assert result and isinstance(result, State)
     assert isinstance(result, State)
-    assert result.world_info.location == 'test location'
-    assert result.world_info.time_of_day == 'test tod'
+    assert result.world_info.location == "test location"
+    assert result.world_info.time_of_day == "test tod"
     assert len(result.agents) == 3
     assert isinstance(result.agents[0], SensorAgent)
     assert result.agents[0].id == 1
@@ -108,14 +156,14 @@ def test_state_to_bytes():
 
 class TestSerializePostProcessMaterial:
     def test_serdes(self, builder, helpers):
-        mat = PostProcessMaterial('mat 1', 0.1)
+        mat = PostProcessMaterial("mat 1", 0.1)
         builder.Finish(SerializePostProcessMaterial.serialize(builder, mat))
         fb = PostProcessMatsFB.PostProcessMatsFB.GetRootAsPostProcessMatsFB(builder.Output(), 0)
         result = SerializePostProcessMaterial.deserialize(fb)
 
         assert result
         assert isinstance(result, PostProcessMaterial)
-        assert result.material == 'mat 1'
+        assert result.material == "mat 1"
         assert helpers.fisclose(result.weight, 0.1)
 
     def test_deserialize_default(self, builder):
@@ -131,13 +179,7 @@ class TestSerializePostProcessMaterial:
 
 class TestSerializeTonemapCurve:
     def test_serdes(self, builder, helpers):
-        tone_curve = TonemapCurve(
-            slope=0.12,
-            toe=0.34,
-            shoulder=0.56,
-            black_clip=0.78,
-            white_clip=0.91
-        )
+        tone_curve = TonemapCurve(slope=0.12, toe=0.34, shoulder=0.56, black_clip=0.78, white_clip=0.91)
         builder.Finish(SerializeToneCurve.serialize(builder, tone_curve))
         fb = TonemapCurveFB.TonemapCurveFB.GetRootAsTonemapCurveFB(builder.Output(), 0)
         result = SerializeToneCurve.deserialize(fb)
@@ -171,7 +213,7 @@ class TestSerializePostProcessParams:
             exposure_speed_down=0.3,
             exposure_min_ev100=0.4,
             exposure_max_ev100=0.5,
-            exposure_metering_mask='test mask',
+            exposure_metering_mask="test mask",
             motion_blur_amount=0.6,
             motion_blur_max=0.7,
             dof_focal_distance=0.8,
@@ -179,7 +221,7 @@ class TestSerializePostProcessParams:
             dof_depth_blur_radius=1.1,
             vignette_intensity=1.2,
             tone_curve=TonemapCurve(slope=0.123),
-            exposure_compensation_curve='exposure-curve',
+            exposure_compensation_curve="exposure-curve",
         )
         builder.Finish(SerializePostProcessParams.serialize(builder, mat))
         fb = PostProcessParamsFB.PostProcessParamsFB.GetRootAsPostProcessParamsFB(builder.Output(), 0)
@@ -191,7 +233,7 @@ class TestSerializePostProcessParams:
         assert helpers.fisclose(result.exposure_speed_down, 0.3)
         assert helpers.fisclose(result.exposure_min_ev100, 0.4)
         assert helpers.fisclose(result.exposure_max_ev100, 0.5)
-        assert result.exposure_metering_mask == 'test mask'
+        assert result.exposure_metering_mask == "test mask"
         assert helpers.fisclose(result.motion_blur_amount, 0.6)
         assert helpers.fisclose(result.motion_blur_max, 0.7)
         assert helpers.fisclose(result.dof_focal_distance, 0.8)
@@ -200,7 +242,7 @@ class TestSerializePostProcessParams:
         assert helpers.fisclose(result.vignette_intensity, 1.2)
         assert result.tone_curve
         assert helpers.fisclose(result.tone_curve.slope, 0.123)
-        assert result.exposure_compensation_curve == 'exposure-curve'
+        assert result.exposure_compensation_curve == "exposure-curve"
 
     def test_deserialize_default(self, builder, helpers):
         PostProcessParamsFB.PostProcessParamsFBStart(builder)
@@ -247,7 +289,7 @@ class TestSerializeNoiseParams:
             enable_auto_iso=True,
             fstop=0.84,
             max_exposure_time=0.85,
-            quantum_efficiency=0.86
+            quantum_efficiency=0.86,
         )
         # FB struct must be part of parent table
         CameraConfigFB.CameraConfigFBStart(builder)
@@ -301,18 +343,25 @@ class TestSerializeNoiseParams:
 class TestSerializeDistortionParams:
     def test_serdes(self, builder, helpers):
         distortion_params = DistortionParams(
-            k1=0.1, k2=0.2, k3=0.3, k4=0.4, k5=0.5, k6=0.6,
-            p1=0.11, p2=0.12,
+            k1=0.1,
+            k2=0.2,
+            k3=0.3,
+            k4=0.4,
+            k5=0.5,
+            k6=0.6,
+            p1=0.11,
+            p2=0.12,
             skew=0.2,
             is_fisheye=True,
-            fx=0.31, fy=0.32,
-            cx=0.41, cy=0.42
+            fx=0.31,
+            fy=0.32,
+            cx=0.41,
+            cy=0.42,
         )
         # FB struct must be part of parent table
         CameraConfigFB.CameraConfigFBStart(builder)
         CameraConfigFB.CameraConfigFBAddDistortionParams(
-            builder,
-            SerializeDistortionParams.serialize(builder, distortion_params)
+            builder, SerializeDistortionParams.serialize(builder, distortion_params)
         )
         builder.Finish(CameraConfigFB.CameraConfigFBEnd(builder))
         fb_camera = CameraConfigFB.CameraConfigFB.GetRootAsCameraConfigFB(builder.Output(), 0)
@@ -339,7 +388,7 @@ class TestSerializeDistortionParams:
 class TestSerializeCameraSensor:
     def test_serdes(self, builder, helpers):
         camera = CameraSensor(
-            name='test camera',
+            name="test camera",
             pose=Pose6D(),
             width=1024,
             height=960,
@@ -354,20 +403,20 @@ class TestSerializeCameraSensor:
             capture_basecolor=True,
             capture_properties=True,
             enable_streaming=True,
-            lut='test lut',
+            lut="test lut",
             lut_weight=0.22,
             distortion_params=DistortionParams(k1=3.14),
             noise_params=NoiseParams(max_exposure_time=1.23),
             post_process_params=PostProcessParams(exposure_compensation=123.4),
             post_process_materials=[
-                PostProcessMaterial('mat 1', 0.1),
-                PostProcessMaterial('mat 2', 0.2),
-                PostProcessMaterial('mat 3', 0.3),
+                PostProcessMaterial("mat 1", 0.1),
+                PostProcessMaterial("mat 2", 0.2),
+                PostProcessMaterial("mat 3", 0.3),
             ],
             transmit_gray=True,
             fisheye_model=3,
-            distortion_lookup_table='test distortion lookup table',
-            time_offset=0.35
+            distortion_lookup_table="test distortion lookup table",
+            time_offset=0.35,
         )
         builder.Finish(SerializeCameraSensor.serialize(builder, camera))
         fb = CameraConfigFB.CameraConfigFB.GetRootAsCameraConfigFB(builder.Output(), 0)
@@ -387,11 +436,11 @@ class TestSerializeCameraSensor:
         assert result.capture_basecolor
         assert result.capture_properties
         assert result.enable_streaming
-        assert result.lut == 'test lut'
+        assert result.lut == "test lut"
         assert helpers.fisclose(result.lut_weight, 0.22)
         assert result.transmit_gray
         assert result.fisheye_model == 3
-        assert result.distortion_lookup_table == 'test distortion lookup table'
+        assert result.distortion_lookup_table == "test distortion lookup table"
         assert helpers.fisclose(result.time_offset, 0.35)
         assert result.distortion_params
         assert helpers.fisclose(result.distortion_params.k1, 3.14)
@@ -399,11 +448,11 @@ class TestSerializeCameraSensor:
         assert helpers.fisclose(result.noise_params.max_exposure_time, 1.23)
         assert helpers.fisclose(result.post_process_params.exposure_compensation, 123.4)
         assert len(result.post_process_materials) == 3
-        assert result.post_process_materials[0].material == 'mat 1'
+        assert result.post_process_materials[0].material == "mat 1"
         assert helpers.fisclose(result.post_process_materials[0].weight, 0.1)
-        assert result.post_process_materials[1].material == 'mat 2'
+        assert result.post_process_materials[1].material == "mat 2"
         assert helpers.fisclose(result.post_process_materials[1].weight, 0.2)
-        assert result.post_process_materials[2].material == 'mat 3'
+        assert result.post_process_materials[2].material == "mat 3"
         assert helpers.fisclose(result.post_process_materials[2].weight, 0.3)
 
     def test_deserialize_default(self, builder, helpers):
@@ -440,14 +489,9 @@ class TestSerializeCameraSensor:
 
 class TestSerializeSensor:
     def test_serdes_camera(self, builder):
-        camera = CameraSensor(
-            name='test camera',
-            pose=Pose6D.from_translation(1.0, 2.0, 3.0),
-            width=1024,
-            height=960
-        )
+        camera = CameraSensor(name="test camera", pose=Pose6D.from_translation(1.0, 2.0, 3.0), width=1024, height=960)
         camera.lock_to_yaw = True
-        camera.attach_socket = 'test-socket'
+        camera.attach_socket = "test-socket"
         camera.follow_rotation = False
         builder.Finish(SerializeSensor.serialize(builder, camera))
         fb = SensorConfigFB.SensorConfigFB.GetRootAsSensorConfigFB(builder.Output(), 0)
@@ -455,13 +499,13 @@ class TestSerializeSensor:
 
         assert result
         assert isinstance(result, CameraSensor)
-        assert result.name == 'test camera'
+        assert result.name == "test camera"
         assert isinstance(result.pose, np.ndarray)
         assert np.allclose(result.pose, Pose6D.from_translation(1.0, 2.0, 3.0).as_transformation_matrix())
         assert result.width == 1024
         assert result.height == 960
         assert result.lock_to_yaw
-        assert result.attach_socket == 'test-socket'
+        assert result.attach_socket == "test-socket"
         assert result.follow_rotation is False
 
     def test_deserialize_default_camera(self, builder):
@@ -484,13 +528,10 @@ class TestSerializeSensor:
 
     def test_serdes_lidar(self, builder, helpers):
         lidar = LiDARSensor(
-            name='test lidar',
-            pose=Pose6D.from_translation(1.0, 2.0, 3.0),
-            sample_rate=1.2,
-            rotation_rate=1.3
+            name="test lidar", pose=Pose6D.from_translation(1.0, 2.0, 3.0), sample_rate=1.2, rotation_rate=1.3
         )
         lidar.lock_to_yaw = True
-        lidar.attach_socket = 'test-socket'
+        lidar.attach_socket = "test-socket"
         lidar.follow_rotation = False
         builder.Finish(SerializeSensor.serialize(builder, lidar))
         fb = SensorConfigFB.SensorConfigFB.GetRootAsSensorConfigFB(builder.Output(), 0)
@@ -498,13 +539,13 @@ class TestSerializeSensor:
 
         assert result
         assert isinstance(result, LiDARSensor)
-        assert result.name == 'test lidar'
+        assert result.name == "test lidar"
         assert isinstance(result.pose, np.ndarray)
         assert np.allclose(result.pose, Pose6D.from_translation(1.0, 2.0, 3.0).as_transformation_matrix())
         assert helpers.fisclose(result.sample_rate, 1.2)
         assert helpers.fisclose(result.rotation_rate, 1.3)
         assert result.lock_to_yaw
-        assert result.attach_socket == 'test-socket'
+        assert result.attach_socket == "test-socket"
         assert result.follow_rotation is False
 
     def test_deserialize_default_lidar(self, builder):
@@ -529,21 +570,19 @@ class TestSerializeSensor:
         SensorConfigFB.SensorConfigFBStart(builder)
         builder.Finish(SensorConfigFB.SensorConfigFBEnd(builder))
         fb = SensorConfigFB.SensorConfigFB.GetRootAsSensorConfigFB(builder.Output(), 0)
-        with pytest.raises(TypeError, match=r'.*Unsupported sensor type.*'):
+        with pytest.raises(TypeError, match=r".*Unsupported sensor type.*"):
             SerializeSensor.deserialize(fb)
 
 
 class TestSerializePose:
     def test_serdes_from_pose6d(self, builder):
         pose = Pose6D.from_euler_angles(
-            x_metres=1.0, y_metres=2.0, z_metres=3.0,
-            alpha_radians=1.0, beta_radians=2.0, gamma_radians=3.0
+            x_metres=1.0, y_metres=2.0, z_metres=3.0, alpha_radians=1.0, beta_radians=2.0, gamma_radians=3.0
         )
         # FB struct must be part of parent table
         SensorExtrinsicConfigFB.SensorExtrinsicConfigFBStart(builder)
         SensorExtrinsicConfigFB.SensorExtrinsicConfigFBAddSensorToVehicle(
-            builder,
-            SerializePose.serialize(builder, pose)
+            builder, SerializePose.serialize(builder, pose)
         )
         builder.Finish(SensorExtrinsicConfigFB.SensorExtrinsicConfigFBEnd(builder))
         fb_extrinsic = SensorExtrinsicConfigFB.SensorExtrinsicConfigFB.GetRootAsSensorExtrinsicConfigFB(
@@ -557,17 +596,19 @@ class TestSerializePose:
         assert np.allclose(result, pose.as_transformation_matrix())
 
     def test_serdes_from_ndarray(self, builder):
-        mat = np.array([
-            [1.1, 1.2, 1.3, 1.4],
-            [2.1, 2.2, 2.3, 2.4],
-            [3.1, 3.2, 3.3, 3.4],
-            [4.1, 4.2, 4.3, 4.4],
-        ], dtype=np.float32)
+        mat = np.array(
+            [
+                [1.1, 1.2, 1.3, 1.4],
+                [2.1, 2.2, 2.3, 2.4],
+                [3.1, 3.2, 3.3, 3.4],
+                [4.1, 4.2, 4.3, 4.4],
+            ],
+            dtype=np.float32,
+        )
         # FB struct must be part of parent table
         SensorExtrinsicConfigFB.SensorExtrinsicConfigFBStart(builder)
         SensorExtrinsicConfigFB.SensorExtrinsicConfigFBAddSensorToVehicle(
-            builder,
-            SerializePose.serialize(builder, mat)
+            builder, SerializePose.serialize(builder, mat)
         )
         builder.Finish(SensorExtrinsicConfigFB.SensorExtrinsicConfigFBEnd(builder))
         fb_extrinsic = SensorExtrinsicConfigFB.SensorExtrinsicConfigFB.GetRootAsSensorExtrinsicConfigFB(
@@ -603,8 +644,8 @@ class TestSerializeLiDARBeam:
         assert default
         assert isinstance(default, LiDARBeam)
         assert default.id == 0
-        assert helpers.fisclose(default.azimuth, 0.)
-        assert helpers.fisclose(default.elevation, 0.)
+        assert helpers.fisclose(default.azimuth, 0.0)
+        assert helpers.fisclose(default.elevation, 0.0)
 
 
 class TestSerializeLiDARIntensityParams:
@@ -623,7 +664,7 @@ class TestSerializeLiDARIntensityParams:
             strong_retro_intensity_enhance=11.0,
             intensity_metallic_scale=12.0,
             emissive_gate=13.0,
-            max_emissive_rate=14.0
+            max_emissive_rate=14.0,
         )
         builder.Finish(SerializeLiDARIntensityParams.serialize(builder, params))
         fb = LiDARIntensityParamsFB.LiDARIntensityParamsFB.GetRootAsLiDARIntensityParamsFB(builder.Output(), 0)
@@ -657,16 +698,16 @@ class TestSerializeLiDARIntensityParams:
         assert default
         assert isinstance(default, LiDARIntensityParams)
         assert helpers.fisclose(default.retro_range_noise_stddev, 0.1)
-        assert helpers.fisclose(default.retroreflection_noise_mean, 0.)
+        assert helpers.fisclose(default.retroreflection_noise_mean, 0.0)
         assert helpers.fisclose(default.retroreflection_noise_stddev, 0.1)
         assert helpers.fisclose(default.max_attenuation_distance_metres, 220.0)
         assert helpers.fisclose(default.retro_intensity_enhance, 1.5)
         assert helpers.fisclose(default.intensity_specular_scale, 2.0)
         assert helpers.fisclose(default.intensity_roughness_scale, 1.5)
         assert helpers.fisclose(default.beam_intensity, 2.0)
-        assert helpers.fisclose(default.albedo_weights[0], 0.)
-        assert helpers.fisclose(default.albedo_weights[1], 0.)
-        assert helpers.fisclose(default.albedo_weights[2], 0.)
+        assert helpers.fisclose(default.albedo_weights[0], 0.0)
+        assert helpers.fisclose(default.albedo_weights[1], 0.0)
+        assert helpers.fisclose(default.albedo_weights[2], 0.0)
         assert helpers.fisclose(default.max_albedo, 2.2)
         assert helpers.fisclose(default.strong_retro_intensity_enhance, 0.9)
         assert helpers.fisclose(default.intensity_metallic_scale, 1.0)
@@ -677,7 +718,7 @@ class TestSerializeLiDARIntensityParams:
 class TestSerializeLiDARSensor:
     def test_serdes(self, builder, helpers):
         lidar = LiDARSensor(
-            name='test lidar',
+            name="test lidar",
             pose=Pose6D(),
             sample_rate=0.1,
             rotation_rate=0.2,
@@ -707,7 +748,7 @@ class TestSerializeLiDARSensor:
             intensity_params=LiDARIntensityParams(
                 retro_range_noise_stddev=3.1,
             ),
-            pattern='lidar pattern',
+            pattern="lidar pattern",
             time_offset_ms=1.6,
         )
         builder.Finish(SerializeLiDARSensor.serialize(builder, lidar))
@@ -747,19 +788,13 @@ class TestSerializeLiDARSensor:
         assert helpers.fisclose(lidar.range_noise_mean, 1.4)
         assert helpers.fisclose(lidar.range_noise_stddev, 1.5)
         assert helpers.fisclose(lidar.intensity_params.retro_range_noise_stddev, 3.1)
-        assert lidar.pattern == 'lidar pattern'
+        assert lidar.pattern == "lidar pattern"
         assert helpers.fisclose(lidar.time_offset_ms, 1.6)
 
 
 class TestSerializePhaseBulbValue:
     def test_serdes(self, builder, helpers):
-        bulb = PhaseBulbValue(
-            phase=42,
-            red=1.1,
-            yellow=1.2,
-            green=1.3,
-            logical_state=PhaseBulbLogicalState.RedFlashing
-        )
+        bulb = PhaseBulbValue(phase=42, red=1.1, yellow=1.2, green=1.3, logical_state=PhaseBulbLogicalState.RedFlashing)
         builder.Finish(SerializePhaseBulbValue.serialize(builder, bulb))
         fb = PhaseBulbValuesFB.PhaseBulbValuesFB.GetRootAsPhaseBulbValuesFB(builder.Output(), 0)
         result = SerializePhaseBulbValue.deserialize(fb)
@@ -773,9 +808,7 @@ class TestSerializePhaseBulbValue:
         assert result.logical_state == PhaseBulbLogicalState.RedFlashing
 
     def test_serdes_enums_as_int(self, builder, helpers):
-        bulb = PhaseBulbValue(
-            logical_state=6
-        )
+        bulb = PhaseBulbValue(logical_state=6)
         builder.Finish(SerializePhaseBulbValue.serialize(builder, bulb))
         fb = PhaseBulbValuesFB.PhaseBulbValuesFB.GetRootAsPhaseBulbValuesFB(builder.Output(), 0)
         result = SerializePhaseBulbValue.deserialize(fb)
@@ -801,8 +834,8 @@ class TestSerializePhaseBulbValue:
 class TestSerializeWorldInfo:
     def test_serdes(self, builder, helpers):
         world_info = WorldInfo(
-            location='test location',
-            time_of_day='test time of day',
+            location="test location",
+            time_of_day="test time of day",
             wetness=0.1,
             rain_intensity=0.2,
             street_lights=0.3,
@@ -811,11 +844,7 @@ class TestSerializeWorldInfo:
             performance_mode=PerformanceMode.Performance,
             anti_aliasing=42,
             scenario_seed=25487,
-            agent_tags={
-                1: ['aaa', 'bbb'],
-                343: ['ccc'],
-                99: ['ddd', 'eee', 'fff']
-            }
+            agent_tags={1: ["aaa", "bbb"], 343: ["ccc"], 99: ["ddd", "eee", "fff"]},
         )
         builder.Finish(SerializeWorldInfo.serialize(builder, world_info))
         fb = WorldInfoFB.WorldInfoFB.GetRootAsWorldInfoFB(builder.Output(), 0)
@@ -823,8 +852,8 @@ class TestSerializeWorldInfo:
 
         assert result
         assert isinstance(result, WorldInfo)
-        assert result.location == 'test location'
-        assert result.time_of_day == 'test time of day'
+        assert result.location == "test location"
+        assert result.time_of_day == "test time of day"
         assert helpers.fisclose(result.wetness, 0.1)
         assert helpers.fisclose(result.rain_intensity, 0.2)
         assert helpers.fisclose(result.street_lights, 0.3)
@@ -834,9 +863,9 @@ class TestSerializeWorldInfo:
         assert result.anti_aliasing == 42
         assert result.scenario_seed == 25487
         assert len(result.agent_tags.items()) == 3
-        assert result.agent_tags[1] == ['aaa', 'bbb']
-        assert result.agent_tags[343] == ['ccc']
-        assert result.agent_tags[99] == ['ddd', 'eee', 'fff']
+        assert result.agent_tags[1] == ["aaa", "bbb"]
+        assert result.agent_tags[343] == ["ccc"]
+        assert result.agent_tags[99] == ["ddd", "eee", "fff"]
 
     def test_serdes_null_location(self, builder):
         world_info = WorldInfo()
@@ -874,35 +903,14 @@ class TestSerializeState:
     def test_serdes(self, builder):
         state = State(
             simulation_time_sec=12.345,
-            world_info=WorldInfo(
-                location='test location',
-                time_of_day='test tod'
-            ),
+            world_info=WorldInfo(location="test location", time_of_day="test tod"),
             agents=[
-                SensorAgent(
-                    id=1,
-                    pose=Pose6D(),
-                    velocity=(0., 0., 0.)
-                ),
-                ModelAgent(
-                    id=2,
-                    pose=Pose6D(),
-                    velocity=(0., 0., 0.),
-                    asset_name='test asset'
-                ),
-                VehicleAgent(
-                    id=3,
-                    pose=Pose6D(),
-                    velocity=(0., 0., 0.),
-                    vehicle_type='test vehicle type'
-                ),
-                SignalAgent(
-                    id=4,
-                    elapsed_time=1.1,
-                    phase_bulb_values=[]
-                )
+                SensorAgent(id=1, pose=Pose6D(), velocity=(0.0, 0.0, 0.0)),
+                ModelAgent(id=2, pose=Pose6D(), velocity=(0.0, 0.0, 0.0), asset_name="test asset"),
+                VehicleAgent(id=3, pose=Pose6D(), velocity=(0.0, 0.0, 0.0), vehicle_type="test vehicle type"),
+                SignalAgent(id=4, elapsed_time=1.1, phase_bulb_values=[]),
             ],
-            capture=False
+            capture=False,
         )
         builder.Finish(SerializeState.serialize(builder, state))
         fb = SimStateFB.SimStateFB.GetRootAsSimStateFB(builder.Output(), 0)
@@ -910,8 +918,8 @@ class TestSerializeState:
 
         assert result
         assert isinstance(result, State)
-        assert result.world_info.location == 'test location'
-        assert result.world_info.time_of_day == 'test tod'
+        assert result.world_info.location == "test location"
+        assert result.world_info.time_of_day == "test tod"
         assert len(result.agents) == 4
         assert isinstance(result.agents[0], SensorAgent)
         assert result.agents[0].id == 1
@@ -940,15 +948,9 @@ class TestSerializeState:
 class TestSerializeAgent:
     def test_serdes_vehicle_agent_pose_matrix(self, builder):
         pose_matrix = Pose6D.from_euler_angles(
-            x_metres=1.0, y_metres=2.0, z_metres=3.0,
-            alpha_radians=1.0, beta_radians=2.0, gamma_radians=3.0
+            x_metres=1.0, y_metres=2.0, z_metres=3.0, alpha_radians=1.0, beta_radians=2.0, gamma_radians=3.0
         ).as_transformation_matrix()
-        vehicle_agent = VehicleAgent(
-            id=1,
-            pose=pose_matrix,
-            velocity=(0., 0., 0.),
-            vehicle_type='test vehicle'
-        )
+        vehicle_agent = VehicleAgent(id=1, pose=pose_matrix, velocity=(0.0, 0.0, 0.0), vehicle_type="test vehicle")
         builder.Finish(SerializeAgent.serialize(builder, vehicle_agent))
         fb = AgentStateFB.AgentStateFB.GetRootAsAgentStateFB(builder.Output(), 0)
         result = SerializeAgent.deserialize(fb)
@@ -961,11 +963,7 @@ class TestSerializeAgent:
     def test_serdes_vehicle_agent_parked(self, builder):
         # Not parked
         vehicle_agent = VehicleAgent(
-            id=1,
-            pose=Pose6D(),
-            velocity=(0., 0., 0.),
-            vehicle_type='test vehicle',
-            is_parked=False
+            id=1, pose=Pose6D(), velocity=(0.0, 0.0, 0.0), vehicle_type="test vehicle", is_parked=False
         )
         builder.Finish(SerializeAgent.serialize(builder, vehicle_agent))
         fb = AgentStateFB.AgentStateFB.GetRootAsAgentStateFB(builder.Output(), 0)
@@ -985,16 +983,28 @@ class TestSerializeAgent:
         assert isinstance(result, VehicleAgent)
         assert result.is_parked
 
-    def test_serdes_vehicle_agent_pose_matrix(self, builder):
-        pose_matrix = Pose6D.from_euler_angles(
-            x_metres=1.0, y_metres=2.0, z_metres=3.0,
-            alpha_radians=1.0, beta_radians=2.0, gamma_radians=3.0
-        ).as_transformation_matrix()
+    def test_serdes_vehicle_agent_connections(self, builder):
+        mat1 = np.array(
+            [
+                [1.1, 1.2, 1.3, 1.4],
+                [2.1, 2.2, 2.3, 2.4],
+                [3.1, 3.2, 3.3, 3.4],
+                [4.1, 4.2, 4.3, 4.4],
+            ],
+            dtype=np.float32,
+        )
+        mat2 = np.array(
+            [
+                [1.0, 2.0, 3.0, 4.0],
+                [5.0, 6.0, 7.0, 8.0],
+                [9.0, 10.0, 11.0, 12.0],
+                [13.0, 14.0, 15.0, 16.0],
+            ],
+            dtype=np.float32,
+        )
         vehicle_agent = VehicleAgent(
-            id=1,
-            pose=pose_matrix,
-            velocity=(0., 0., 0.),
-            vehicle_type='test vehicle'
+            id=1, pose=Pose6D(), velocity=(0.0, 0.0, 0.0), vehicle_type="test vehicle",
+            connections=[(42, mat1), (1234, mat2)]
         )
         builder.Finish(SerializeAgent.serialize(builder, vehicle_agent))
         fb = AgentStateFB.AgentStateFB.GetRootAsAgentStateFB(builder.Output(), 0)
@@ -1002,50 +1012,45 @@ class TestSerializeAgent:
 
         assert result
         assert isinstance(result, VehicleAgent)
-        assert isinstance(result.pose, np.ndarray)
-        assert np.allclose(result.pose, pose_matrix)
+        assert len(result.connections) == 2
+        assert result.connections[0][0] == 42
+        assert isinstance(result.connections[0][1], np.ndarray)
+        assert np.allclose(result.connections[0][1], mat1)
+        assert result.connections[1][0] == 1234
+        assert isinstance(result.connections[1][1], np.ndarray)
+        assert np.allclose(result.connections[1][1], mat2)
 
     def test_serdes_vehicle_agent(self, builder, helpers):
         vehicle_agent = VehicleAgent(
             id=22,
             pose=Pose6D.from_translation(0.1, 0.2, 0.3),
             velocity=(3.1, 3.2, 3.3),
-            vehicle_type='test vehicle',
-            vehicle_color='test color',
-            vehicle_accessory='test accessory',
+            vehicle_type="test vehicle",
+            vehicle_color="test color",
+            vehicle_accessory="test accessory",
             vehicle_wear=0.25,
-            vehicle_actor='test actor',
-            wheel_type='test wheel type',
+            vehicle_actor="test actor",
+            wheel_type="test wheel type",
             wheel_poses=[
                 Pose6D.from_translation(1.1, 2.2, 3.3),
                 Pose6D.from_translation(4.4, 5.5, 6.6),
-                Pose6D.from_translation(7.7, 8.8, 9.9)
+                Pose6D.from_translation(7.7, 8.8, 9.9),
             ],
             lock_to_ground=True,
             ground_offset=0.58,
-            wheel_combo=['wc1', 'wc2'],
-            wheel_combo_style=['wcs1', 'wcs2'],
-            accessories=['a1', 'a2'],
-            occupants=['o1', 'o2'],
+            wheel_combo=["wc1", "wc2"],
+            wheel_combo_style=["wcs1", "wcs2"],
+            accessories=["a1", "a2"],
+            occupants=["o1", "o2"],
             brake_light_on=True,
             emergency_lights_on=True,
             indicator_state=VehicleIndicatorState.Hazards,
             sensors=[
-                CameraSensor(
-                    name='camera1',
-                    pose=Pose6D(),
-                    width=1080,
-                    height=720
-                ),
-                LiDARSensor(
-                    name='lidar',
-                    pose=Pose6D(),
-                    sample_rate=0.1,
-                    rotation_rate=0.2
-                )
+                CameraSensor(name="camera1", pose=Pose6D(), width=1080, height=720),
+                LiDARSensor(name="lidar", pose=Pose6D(), sample_rate=0.1, rotation_rate=0.2),
             ],
             is_parked=False,
-            headlight_on=True
+            headlight_on=True,
         )
         builder.Finish(SerializeAgent.serialize(builder, vehicle_agent))
         fb = AgentStateFB.AgentStateFB.GetRootAsAgentStateFB(builder.Output(), 0)
@@ -1059,18 +1064,18 @@ class TestSerializeAgent:
         assert helpers.fisclose(result.velocity[0], 3.1)
         assert helpers.fisclose(result.velocity[1], 3.2)
         assert helpers.fisclose(result.velocity[2], 3.3)
-        assert result.vehicle_type == 'test vehicle'
-        assert result.vehicle_color == 'test color'
-        assert result.vehicle_accessory == 'test accessory'
+        assert result.vehicle_type == "test vehicle"
+        assert result.vehicle_color == "test color"
+        assert result.vehicle_accessory == "test accessory"
         assert helpers.fisclose(result.vehicle_wear, 0.25)
-        assert result.vehicle_actor == 'test actor'
-        assert result.wheel_type == 'test wheel type'
+        assert result.vehicle_actor == "test actor"
+        assert result.wheel_type == "test wheel type"
         assert result.lock_to_ground
         assert helpers.fisclose(result.ground_offset, 0.58)
-        assert result.wheel_combo == ['wc1', 'wc2']
+        assert result.wheel_combo == ["wc1", "wc2"]
         assert len(result.sensors) == 2
-        assert result.sensors[0].name == 'camera1'
-        assert result.sensors[1].name == 'lidar'
+        assert result.sensors[0].name == "camera1"
+        assert result.sensors[1].name == "lidar"
         assert len(result.wheel_poses) == 3
         assert isinstance(result.wheel_poses[0], np.ndarray)
         assert np.allclose(result.wheel_poses[0], Pose6D.from_translation(1.1, 2.2, 3.3).as_transformation_matrix())
@@ -1089,7 +1094,7 @@ class TestSerializeAgent:
             id=22,
             pose=Pose6D.from_translation(0.1, 0.2, 0.3),
             velocity=(3.1, 3.2, 3.3),
-            vehicle_type='test vehicle',
+            vehicle_type="test vehicle",
             indicator_state=2,
         )
         builder.Finish(SerializeAgent.serialize(builder, vehicle_agent))
@@ -1105,19 +1110,9 @@ class TestSerializeAgent:
             pose=Pose6D.from_translation(0.1, 0.2, 0.3),
             velocity=(3.1, 3.2, 3.3),
             sensors=[
-                CameraSensor(
-                    name='camera1',
-                    pose=Pose6D(),
-                    width=1080,
-                    height=720
-                ),
-                LiDARSensor(
-                    name='lidar',
-                    pose=Pose6D(),
-                    sample_rate=0.1,
-                    rotation_rate=0.2
-                )
-            ]
+                CameraSensor(name="camera1", pose=Pose6D(), width=1080, height=720),
+                LiDARSensor(name="lidar", pose=Pose6D(), sample_rate=0.1, rotation_rate=0.2),
+            ],
         )
         builder.Finish(SerializeAgent.serialize(builder, sensor_agent))
         fb = AgentStateFB.AgentStateFB.GetRootAsAgentStateFB(builder.Output(), 0)
@@ -1132,31 +1127,21 @@ class TestSerializeAgent:
         assert helpers.fisclose(result.velocity[1], 3.2)
         assert helpers.fisclose(result.velocity[2], 3.3)
         assert len(result.sensors) == 2
-        assert result.sensors[0].name == 'camera1'
-        assert result.sensors[1].name == 'lidar'
+        assert result.sensors[0].name == "camera1"
+        assert result.sensors[1].name == "lidar"
 
     def test_serdes_model_agent(self, builder, helpers):
         model_agent = ModelAgent(
             id=44,
             pose=Pose6D.from_translation(0.1, 0.2, 0.3),
             velocity=(3.1, 3.2, 3.3),
-            asset_name='test asset',
+            asset_name="test asset",
             lock_to_ground=True,
             ground_offset=0.57,
             sensors=[
-                CameraSensor(
-                    name='camera1',
-                    pose=Pose6D(),
-                    width=1080,
-                    height=720
-                ),
-                LiDARSensor(
-                    name='lidar',
-                    pose=Pose6D(),
-                    sample_rate=0.1,
-                    rotation_rate=0.2
-                )
-            ]
+                CameraSensor(name="camera1", pose=Pose6D(), width=1080, height=720),
+                LiDARSensor(name="lidar", pose=Pose6D(), sample_rate=0.1, rotation_rate=0.2),
+            ],
         )
         builder.Finish(SerializeAgent.serialize(builder, model_agent))
         fb = AgentStateFB.AgentStateFB.GetRootAsAgentStateFB(builder.Output(), 0)
@@ -1170,20 +1155,20 @@ class TestSerializeAgent:
         assert helpers.fisclose(result.velocity[0], 3.1)
         assert helpers.fisclose(result.velocity[1], 3.2)
         assert helpers.fisclose(result.velocity[2], 3.3)
-        assert result.asset_name == 'test asset'
+        assert result.asset_name == "test asset"
         assert result.lock_to_ground
         assert helpers.fisclose(result.ground_offset, 0.57)
         assert len(result.sensors) == 2
-        assert result.sensors[0].name == 'camera1'
-        assert result.sensors[1].name == 'lidar'
+        assert result.sensors[0].name == "camera1"
+        assert result.sensors[1].name == "lidar"
 
     def test_serdes_model_agent_pedestrian(self, builder, helpers):
         model_agent = ModelAgent(
             id=44,
             pose=Pose6D.from_translation(0.1, 0.2, 0.3),
             velocity=(3.1, 3.2, 3.3),
-            asset_name='test asset',
-            pedestrian_animation_data='test pedestrian animation'
+            asset_name="test asset",
+            pedestrian_animation_data="test pedestrian animation",
         )
         builder.Finish(SerializeAgent.serialize(builder, model_agent))
         fb = AgentStateFB.AgentStateFB.GetRootAsAgentStateFB(builder.Output(), 0)
@@ -1192,7 +1177,7 @@ class TestSerializeAgent:
         assert result
         assert isinstance(result, ModelAgent)
         assert result.id == 44
-        assert result.pedestrian_animation_data == 'test pedestrian animation'
+        assert result.pedestrian_animation_data == "test pedestrian animation"
 
     def test_serdes_signal_agent(self, builder, helpers):
         signal_agent = SignalAgent(
@@ -1200,20 +1185,10 @@ class TestSerializeAgent:
             elapsed_time=56.78,
             phase_bulb_values=[
                 PhaseBulbValue(
-                    phase=42,
-                    red=1.1,
-                    yellow=1.2,
-                    green=1.3,
-                    logical_state=PhaseBulbLogicalState.RedFlashing
+                    phase=42, red=1.1, yellow=1.2, green=1.3, logical_state=PhaseBulbLogicalState.RedFlashing
                 ),
-                PhaseBulbValue(
-                    phase=43,
-                    red=2.1,
-                    yellow=2.2,
-                    green=2.3,
-                    logical_state=PhaseBulbLogicalState.Green
-                ),
-            ]
+                PhaseBulbValue(phase=43, red=2.1, yellow=2.2, green=2.3, logical_state=PhaseBulbLogicalState.Green),
+            ],
         )
         builder.Finish(SerializeAgent.serialize(builder, signal_agent))
         fb = AgentStateFB.AgentStateFB.GetRootAsAgentStateFB(builder.Output(), 0)
@@ -1263,7 +1238,7 @@ class TestSerializeAgent:
                 street_parking_delineation_type=StreetParkingDelineationType.DoubleOpen,
                 street_parking_angle_zero_override=StreetParkingAngleZeroOverride.Dashed,
                 parking_space_material=ParkingSpaceMaterial.MI_ParkingTiles_CobbleStone_01,
-                global_parking_decal_wear=.456
+                global_parking_decal_wear=0.456,
             ),
             object_decorations={
                 10756: ObjectDecorations(
@@ -1271,10 +1246,10 @@ class TestSerializeAgent:
                     object_id=56,
                     decorations={
                         20: DecorationPreset(preset_name="test preset", variant=4567),
-                        13: ParkingSpaceDecal(decal_preset="test decal preset")
-                    }
+                        13: ParkingSpaceDecal(decal_preset="test decal preset"),
+                    },
                 )
-            }
+            },
         )
         builder.Finish(SerializeAgent.serialize(builder, world_agent))
         fb = AgentStateFB.AgentStateFB.GetRootAsAgentStateFB(builder.Output(), 0)
@@ -1298,7 +1273,6 @@ class TestSerializeAgent:
         assert result.parking_config.street_parking_angle_zero_override == StreetParkingAngleZeroOverride.Dashed
         assert result.parking_config.parking_space_material == ParkingSpaceMaterial.MI_ParkingTiles_CobbleStone_01
         assert helpers.fisclose(result.parking_config.global_parking_decal_wear, 0.456)
- 
 
         assert result.object_decorations
         assert len(result.object_decorations.items()) == 1
@@ -1328,7 +1302,7 @@ class TestSerializeAgent:
                 lot_parking_delineation_type=4,
                 street_parking_delineation_type=5,
                 street_parking_angle_zero_override=5,
-                parking_space_material=6
+                parking_space_material=6,
             ),
         )
         builder.Finish(SerializeAgent.serialize(builder, world_agent))
@@ -1352,18 +1326,8 @@ class TestSerializeAgent:
 class TestSerializeSensorRig:
     def test_serdes(self, builder, helpers):
         sensors = [
-            CameraSensor(
-                name='test camera',
-                pose=Pose6D(),
-                width=1920,
-                height=1080
-            ),
-            LiDARSensor(
-                name='test lidar',
-                pose=Pose6D(),
-                sample_rate=2.2,
-                rotation_rate=2.3
-            )
+            CameraSensor(name="test camera", pose=Pose6D(), width=1920, height=1080),
+            LiDARSensor(name="test lidar", pose=Pose6D(), sample_rate=2.2, rotation_rate=2.3),
         ]
         builder.Finish(SerializeSensorRig.serialize(builder, SerializeSensorRig.SensorRigData(sensors)))
         fb = SensorRigConfigFB.SensorRigConfigFB.GetRootAsSensorRigConfigFB(builder.Output(), 0)
@@ -1373,11 +1337,11 @@ class TestSerializeSensorRig:
         assert isinstance(result, SerializeSensorRig.SensorRigData)
         assert len(result.sensors) == 2
         assert isinstance(result.sensors[0], CameraSensor)
-        assert result.sensors[0].name == 'test camera'
+        assert result.sensors[0].name == "test camera"
         assert result.sensors[0].width == 1920
         assert result.sensors[0].height == 1080
         assert isinstance(result.sensors[1], LiDARSensor)
-        assert result.sensors[1].name == 'test lidar'
+        assert result.sensors[1].name == "test lidar"
         assert helpers.fisclose(result.sensors[1].sample_rate, 2.2)
         assert helpers.fisclose(result.sensors[1].rotation_rate, 2.3)
 
@@ -1396,7 +1360,7 @@ class TestSerializeTransformState:
         transform_state = SerializeTransformState.TransformStateData(
             pose=Pose6D.from_translation(1.0, 2.0, 3.0).as_transformation_matrix(),
             velocity=(1.1, 1.2, 1.3),
-            angular_velocity=(2.1, 2.2, 2.3)
+            angular_velocity=(2.1, 2.2, 2.3),
         )
         builder.Finish(SerializeTransformState.serialize(builder, transform_state))
         fb = TransformStateFB.TransformStateFB.GetRootAsTransformStateFB(builder.Output(), 0)
@@ -1421,16 +1385,14 @@ class TestSerializeTransformState:
         assert default
         assert isinstance(default, SerializeTransformState.TransformStateData)
         assert isinstance(default.pose, np.ndarray)
-        assert default.velocity == (0., 0., 0.)
-        assert default.angular_velocity == (0., 0., 0.)
+        assert default.velocity == (0.0, 0.0, 0.0)
+        assert default.angular_velocity == (0.0, 0.0, 0.0)
 
 
 class TestSerializeModelConfig:
     def test_serdes(self, builder, helpers):
         model_config = SerializeModelConfig.ModelConfigData(
-            asset_name='test asset',
-            lock_to_ground=True,
-            ground_offset=2.5
+            asset_name="test asset", lock_to_ground=True, ground_offset=2.5
         )
         builder.Finish(SerializeModelConfig.serialize(builder, model_config))
         fb = ModelConfigFB.ModelConfigFB.GetRootAsModelConfigFB(builder.Output(), 0)
@@ -1438,7 +1400,7 @@ class TestSerializeModelConfig:
 
         assert result
         assert isinstance(result, SerializeModelConfig.ModelConfigData)
-        assert result.asset_name == 'test asset'
+        assert result.asset_name == "test asset"
         assert result.lock_to_ground
         assert helpers.fisclose(result.ground_offset, 2.5)
 
@@ -1452,24 +1414,24 @@ class TestSerializeModelConfig:
         assert isinstance(default, SerializeModelConfig.ModelConfigData)
         assert default.asset_name is None
         assert not default.lock_to_ground
-        assert helpers.fisclose(default.ground_offset, 0.)
+        assert helpers.fisclose(default.ground_offset, 0.0)
 
 
 class TestSerializeVehicleModelConfig:
     def test_serdes(self, builder, helpers):
         vehicle_model_config = SerializeVehicleModelConfig.VehicleModelConfigData(
-            vehicle_type='type',
-            vehicle_color='color',
-            vehicle_accessory='accessory',
+            vehicle_type="type",
+            vehicle_color="color",
+            vehicle_accessory="accessory",
             vehicle_wear=0.5,
-            wheel_type='wheel_type',
-            vehicle_actor='actor',
+            wheel_type="wheel_type",
+            vehicle_actor="actor",
             lock_to_ground=True,
             ground_offset=0.12,
-            wheel_combo=['wc1', 'wc2'],
-            wheel_combo_style=['wcs1', 'wcs2', 'wcs3'],
-            accessories=['a1', 'a2', 'a3', 'a4'],
-            occupants=['o1', 'o2', 'o3', 'o4', 'o5']
+            wheel_combo=["wc1", "wc2"],
+            wheel_combo_style=["wcs1", "wcs2", "wcs3"],
+            accessories=["a1", "a2", "a3", "a4"],
+            occupants=["o1", "o2", "o3", "o4", "o5"],
         )
         builder.Finish(SerializeVehicleModelConfig.serialize(builder, vehicle_model_config))
         fb = VehicleModelConfigFB.VehicleModelConfigFB.GetRootAsVehicleModelConfigFB(builder.Output(), 0)
@@ -1477,18 +1439,18 @@ class TestSerializeVehicleModelConfig:
 
         assert result
         assert isinstance(result, SerializeVehicleModelConfig.VehicleModelConfigData)
-        assert result.vehicle_type == 'type'
-        assert result.vehicle_color == 'color'
-        assert result.vehicle_accessory == 'accessory'
+        assert result.vehicle_type == "type"
+        assert result.vehicle_color == "color"
+        assert result.vehicle_accessory == "accessory"
         assert helpers.fisclose(result.vehicle_wear, 0.5)
-        assert result.wheel_type == 'wheel_type'
-        assert result.vehicle_actor == 'actor'
+        assert result.wheel_type == "wheel_type"
+        assert result.vehicle_actor == "actor"
         assert result.lock_to_ground
         assert helpers.fisclose(result.ground_offset, 0.12)
-        assert result.wheel_combo == ['wc1', 'wc2']
-        assert result.wheel_combo_style == ['wcs1', 'wcs2', 'wcs3']
-        assert result.accessories == ['a1', 'a2', 'a3', 'a4']
-        assert result.occupants == ['o1', 'o2', 'o3', 'o4', 'o5']
+        assert result.wheel_combo == ["wc1", "wc2"]
+        assert result.wheel_combo_style == ["wcs1", "wcs2", "wcs3"]
+        assert result.accessories == ["a1", "a2", "a3", "a4"]
+        assert result.occupants == ["o1", "o2", "o3", "o4", "o5"]
 
     def test_deserialize_default(self, builder, helpers):
         VehicleModelConfigFB.VehicleModelConfigFBStart(builder)
@@ -1501,11 +1463,11 @@ class TestSerializeVehicleModelConfig:
         assert default.vehicle_type is None
         assert default.vehicle_color is None
         assert default.vehicle_accessory is None
-        assert default.vehicle_wear == 0.
+        assert default.vehicle_wear == 0.0
         assert default.wheel_type is None
         assert default.vehicle_actor is None
         assert not default.lock_to_ground
-        assert default.ground_offset == 0.
+        assert default.ground_offset == 0.0
         assert default.wheel_combo == []
         assert default.wheel_combo_style == []
         assert default.accessories == []
@@ -1522,7 +1484,7 @@ class TestSerializeSimpleVehicleState:
             ],
             emergency_lights_on=True,
             brake_light_on=True,
-            headlight_on=True
+            headlight_on=True,
         )
         builder.Finish(SerializeSimpleVehicleState.serialize(builder, simple_vehicle_state))
         fb = SimpleVehicleStateFB.SimpleVehicleStateFB.GetRootAsSimpleVehicleStateFB(builder.Output(), 0)
@@ -1552,14 +1514,12 @@ class TestSerializeSimpleVehicleState:
         assert len(default.wheel_to_world) == 0
         assert not default.emergency_lights_on
         assert not default.brake_light_on
-        assert not default.headlight_on # expect headlights to be off by default
+        assert not default.headlight_on  # expect headlights to be off by default
 
 
 class TestSerializeControlState:
     def test_serdes(self, builder):
-        control_state = SerializeControlState.ControlStateData(
-            indicator_state=VehicleIndicatorState.Left
-        )
+        control_state = SerializeControlState.ControlStateData(indicator_state=VehicleIndicatorState.Left)
         builder.Finish(SerializeControlState.serialize(builder, control_state))
         fb = ControlStateFB.ControlStateFB.GetRootAsControlStateFB(builder.Output(), 0)
         result = SerializeControlState.deserialize(fb)
@@ -1603,27 +1563,11 @@ class TestSerializeSignalModuleOutput:
             elapsed_time=123.45,
             phase_bulb_values=[
                 PhaseBulbValue(
-                    phase=42,
-                    red=1.1,
-                    yellow=1.2,
-                    green=1.3,
-                    logical_state=PhaseBulbLogicalState.RedFlashing
+                    phase=42, red=1.1, yellow=1.2, green=1.3, logical_state=PhaseBulbLogicalState.RedFlashing
                 ),
-                PhaseBulbValue(
-                    phase=43,
-                    red=2.1,
-                    yellow=2.2,
-                    green=2.3,
-                    logical_state=PhaseBulbLogicalState.Green
-                ),
-                PhaseBulbValue(
-                    phase=44,
-                    red=3.1,
-                    yellow=3.2,
-                    green=3.3,
-                    logical_state=PhaseBulbLogicalState.Red
-                ),
-            ]
+                PhaseBulbValue(phase=43, red=2.1, yellow=2.2, green=2.3, logical_state=PhaseBulbLogicalState.Green),
+                PhaseBulbValue(phase=44, red=3.1, yellow=3.2, green=3.3, logical_state=PhaseBulbLogicalState.Red),
+            ],
         )
         builder.Finish(SerializeSignalModuleOutput.serialize(builder, signal_module_output))
         fb = SignalModuleOutputFB.SignalModuleOutputFB.GetRootAsSignalModuleOutputFB(builder.Output(), 0)
@@ -1654,9 +1598,7 @@ class TestSerializeSignalModuleOutput:
 
 class TestSerializePedestrianState:
     def test_serdes(self, builder):
-        control_state = SerializePedestrianState.PedestrianStateData(
-            animation_data="test animation data"
-        )
+        control_state = SerializePedestrianState.PedestrianStateData(animation_data="test animation data")
         builder.Finish(SerializePedestrianState.serialize(builder, control_state))
         fb = PedestrianStateFB.PedestrianStateFB.GetRootAsPedestrianStateFB(builder.Output(), 0)
         result = SerializePedestrianState.deserialize(fb)
@@ -1688,7 +1630,7 @@ class TestSerializeEnvironmentConfig:
                 street_parking_delineation_type=StreetParkingDelineationType.DoubleOpen,
                 street_parking_angle_zero_override=StreetParkingAngleZeroOverride.Dashed,
                 parking_space_material=ParkingSpaceMaterial.MI_ParkingTiles_CobbleStone_01,
-                global_parking_decal_wear=.456
+                global_parking_decal_wear=0.456,
             )
         )
         builder.Finish(SerializeEnvironmentConfig.serialize(builder, environment_config))
@@ -1732,17 +1674,17 @@ class TestSerializeObjectDecorationsInfo:
                     object_id=56,
                     decorations={
                         20: DecorationPreset(preset_name="test preset", variant=4567),
-                        13: ParkingSpaceDecal(decal_preset="test decal preset")
-                    }
+                        13: ParkingSpaceDecal(decal_preset="test decal preset"),
+                    },
                 ),
                 345: ObjectDecorations(
                     type=DecorationObjectType.Lane,
                     object_id=89,
                     decorations={
                         8374: PaintTexture(color_rgb=(4.5, 6.7, 7.8), wear=0.84),
-                        3984: "test string decoration"
-                    }
-                )
+                        3984: "test string decoration",
+                    },
+                ),
             }
         )
         builder.Finish(SerializeObjectDecorationsInfo.serialize(builder, object_decorations_info))
@@ -1781,11 +1723,7 @@ class TestSerializeObjectDecorationsInfo:
     def test_serdes_enums_as_int(self, builder, helpers):
         object_decorations_info = SerializeObjectDecorationsInfo.ObjectDecorationsInfoData(
             object_decorations={
-                10756: ObjectDecorations(
-                    type=0,
-                    object_id=56,
-                    decorations={}
-                ),
+                10756: ObjectDecorations(type=0, object_id=56, decorations={}),
             }
         )
         builder.Finish(SerializeObjectDecorationsInfo.serialize(builder, object_decorations_info))
@@ -1807,3 +1745,51 @@ class TestSerializeObjectDecorationsInfo:
         assert default
         assert isinstance(default, SerializeObjectDecorationsInfo.ObjectDecorationsInfoData)
         assert default.object_decorations == {}
+
+
+class TestSerializeVehiclePhysicsConfig:
+    def test_serdes(self, builder, helpers):
+        mat1 = np.array(
+            [
+                [1.1, 1.2, 1.3, 1.4],
+                [2.1, 2.2, 2.3, 2.4],
+                [3.1, 3.2, 3.3, 3.4],
+                [4.1, 4.2, 4.3, 4.4],
+            ],
+            dtype=np.float32,
+        )
+        mat2 = np.array(
+            [
+                [1.0, 2.0, 3.0, 4.0],
+                [5.0, 6.0, 7.0, 8.0],
+                [9.0, 10.0, 11.0, 12.0],
+                [13.0, 14.0, 15.0, 16.0],
+            ],
+            dtype=np.float32,
+        )
+        vehicle_physics_config = SerializeVehiclePhysicsConfig.VehiclePhysicsConfigData(
+            connections=[(42, mat1), (1234, mat2)]
+        )
+        builder.Finish(SerializeVehiclePhysicsConfig.serialize(builder, vehicle_physics_config))
+        fb = VehiclePhysicsConfigFB.VehiclePhysicsConfigFB.GetRootAsVehiclePhysicsConfigFB(builder.Output(), 0)
+        result = SerializeVehiclePhysicsConfig.deserialize(fb)
+
+        assert result
+        assert isinstance(result, SerializeVehiclePhysicsConfig.VehiclePhysicsConfigData)
+        assert len(result.connections) == 2
+        assert result.connections[0][0] == 42
+        assert isinstance(result.connections[0][1], np.ndarray)
+        assert np.allclose(result.connections[0][1], mat1)
+        assert result.connections[1][0] == 1234
+        assert isinstance(result.connections[1][1], np.ndarray)
+        assert np.allclose(result.connections[1][1], mat2)
+
+    def test_deserialize_default(self, builder, helpers):
+        VehiclePhysicsConfigFB.VehiclePhysicsConfigFBStart(builder)
+        builder.Finish(VehiclePhysicsConfigFB.VehiclePhysicsConfigFBEnd(builder))
+        fb = VehiclePhysicsConfigFB.VehiclePhysicsConfigFB.GetRootAsVehiclePhysicsConfigFB(builder.Output(), 0)
+        default = SerializeVehiclePhysicsConfig.deserialize(fb)
+
+        assert default
+        assert isinstance(default, SerializeVehiclePhysicsConfig.VehiclePhysicsConfigData)
+        assert len(default.connections) == 0

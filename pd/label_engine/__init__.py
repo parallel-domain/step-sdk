@@ -8,4 +8,6 @@
 Label Engine messages
 """
 
-from .label_engine import LabelData, load_pipeline_config, simulation_time_as_timestamp, DataType
+from .label_engine import DataType, LabelData, load_pipeline_config, simulation_time_as_timestamp
+
+DEFAULT_LABEL_ENGINE_CONFIG_NAME = "datalab_extended"

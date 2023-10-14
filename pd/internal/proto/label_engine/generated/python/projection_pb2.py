@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 from . import options_pb2 as options__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10projection.proto\x12\x07pd.data\x1a\roptions.proto\"\xb1\x01\n\x18GenerateProjectionConfig\x12%\n\x13input_annotation_3d\x18\x01 \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x00\x12$\n\x12input_instance_map\x18\x02 \x01(\tB\x08\x80\xb5\x18\x07\x88\xb5\x18\x00\x12\x1d\n\x0boutput_path\x18\x03 \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x01\x12)\n\x0csensor_types\x18\x04 \x03(\x0e\x32\x13.pd.data.SensorTypeb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10projection.proto\x12\x07pd.data\x1a\roptions.proto\"\x87\x02\n\x18GenerateProjectionConfig\x12%\n\x13input_annotation_3d\x18\x01 \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x00\x12$\n\x12input_instance_map\x18\x02 \x01(\tB\x08\x80\xb5\x18\x07\x88\xb5\x18\x00\x12\x1d\n\x0boutput_path\x18\x03 \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x01\x12)\n\x0csensor_types\x18\x04 \x03(\x0e\x32\x13.pd.data.SensorType\x12T\n\"instance_point_projection_settings\x18\x05 \x01(\x0b\x32(.pd.data.InstancePointProjectionSettings\"\xa0\x01\n\x1fInstancePointProjectionSettings\x12\x1f\n\x17output_offscreen_points\x18\x01 \x01(\x08\x12\x1e\n\x16pedestrian_semantic_id\x18\x02 \x01(\r\x12\x19\n\x11wheel_semantic_id\x18\x03 \x01(\r\x12!\n\x19wheel_stopper_semantic_id\x18\x04 \x01(\rb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'projection_pb2', globals())
@@ -28,5 +28,7 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _GENERATEPROJECTIONCONFIG.fields_by_name['output_path']._options = None
   _GENERATEPROJECTIONCONFIG.fields_by_name['output_path']._serialized_options = b'\200\265\030\t\210\265\030\001'
   _GENERATEPROJECTIONCONFIG._serialized_start=45
-  _GENERATEPROJECTIONCONFIG._serialized_end=222
+  _GENERATEPROJECTIONCONFIG._serialized_end=308
+  _INSTANCEPOINTPROJECTIONSETTINGS._serialized_start=311
+  _INSTANCEPOINTPROJECTIONSETTINGS._serialized_end=471
 # @@protoc_insertion_point(module_scope)

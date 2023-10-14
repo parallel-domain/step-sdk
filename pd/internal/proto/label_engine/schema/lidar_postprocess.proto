@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package pd.data;
+
+import "options.proto";
+
+message LidarPostProcessConfig
+{
+    string input_point_cloud_positions = 1      [(type)=ePointCloud, (stream)=eInput];
+	string input_point_cloud_metadata = 2       [(type)=ePointCloud, (stream)=eInput];
+	string input_surface_normals_3d = 3         [(type)=ePointCloud, (stream)=eInput];
+	string input_material_properties_3d = 4     [(type)=ePointCloud, (stream)=eInput];
+	string input_mesh_mask_3d = 5               [(type)=ePointCloud, (stream)=eInput];
+	string input_semantic_segmentation_3d = 6   [(type)=ePointCloud, (stream)=eInput];
+	string input_motion_vectors_3d = 7          [(type)=ePointCloud, (stream)=eInput];
+	string input_instance_segmentation_3d = 8   [(type)=ePointCloud, (stream)=eInput];
+	
+    string output_point_cloud_positions = 9     [(type)=ePointCloud, (stream)=eOutput];
+	string output_point_cloud_metadata = 10     [(type)=ePointCloud, (stream)=eOutput];
+	string output_surface_normals_3d = 11       [(type)=ePointCloud, (stream)=eOutput];
+	string output_material_properties_3d = 12   [(type)=ePointCloud, (stream)=eOutput];
+	string output_mesh_mask_3d = 13             [(type)=ePointCloud, (stream)=eOutput];
+	string output_semantic_segmentation_3d = 14 [(type)=ePointCloud, (stream)=eOutput];
+	string output_motion_vectors_3d = 15        [(type)=ePointCloud, (stream)=eOutput];
+	string output_instance_segmentation_3d = 16 [(type)=ePointCloud, (stream)=eOutput];
+	
+	bool output_reflections = 17 ;
+	MotionVectorMode motion_vector_3d_mode = 18 ;
+}

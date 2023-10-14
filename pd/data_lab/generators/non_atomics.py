@@ -4,11 +4,10 @@
 # Use of this file is only permitted if you have entered into a
 # separate written license agreement with Parallel Domain, Inc.
 
+from pd.data_lab.generators import BaseGenerator
 from pd.internal.proto.keystone.generated.python import pd_spawn_pb2 as pd_spawn_pb2_base
 from pd.internal.proto.keystone.generated.wrapper import pd_spawn_pb2
 from pd.internal.proto.keystone.generated.wrapper.utils import register_wrapper
-
-from pd.data_lab.generators import BaseGenerator
 
 
 class NonAtomicGeneratorMessage(BaseGenerator):

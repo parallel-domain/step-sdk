@@ -7,6 +7,9 @@
 import uuid
 from typing import List, Optional
 
+from pd.data_lab.config.environment import Environment, EnvironmentDefinition
+from pd.data_lab.config.location import Location
+from pd.data_lab.generators.helper import encode_atomic_generator
 from pd.internal.proto.keystone.generated.python import pd_distributions_pb2 as pd_distributions_pb2_base
 from pd.internal.proto.keystone.generated.python import pd_scenario_pb2 as pd_scenario_pb2_base
 from pd.internal.proto.keystone.generated.python import pd_sim_state_pb2 as pd_sim_state_pb2_base
@@ -18,12 +21,8 @@ from pd.internal.proto.keystone.generated.wrapper import (
     pd_spawn_pb2,
     pd_unified_generator_pb2,
 )
-from pd.internal.proto.keystone.generated.wrapper.utils import AtomicGeneratorMessage, register_wrapper
-
-from pd.data_lab.config.environment import Environment, EnvironmentDefinition
-from pd.data_lab.config.location import Location
-from pd.data_lab.generators.helper import encode_atomic_generator
 from pd.internal.proto.keystone.generated.wrapper.pd_sensor_pb2 import SensorRigConfig as SensorRig
+from pd.internal.proto.keystone.generated.wrapper.utils import AtomicGeneratorMessage, register_wrapper
 
 AtomicGeneratorParameters = pd_unified_generator_pb2.AtomicGeneratorParameters
 GeneratorConfigPreset = pd_spawn_pb2.GeneratorConfigPreset
@@ -85,7 +84,7 @@ class ScenarioGenConfig(
     ) -> pd_scenario_pb2_base.ScenarioGenConfig:
         scenario_gen_proto = pd_scenario_pb2_base.ScenarioGenConfig(
             num_frames=number_of_frames,
-            sim_settle_frames=100,
+            sim_settle_frames=40,
             start_skip_frames=5,
             end_skip_frames=5,
             sim_capture_rate=10,

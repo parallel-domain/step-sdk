@@ -24,24 +24,24 @@ Before calling :func:`init_asset_registry_version`, make sure that you have
 set the configuration required by :mod:`pd.management` for Step Management API.
 """
 
-from typing import List, Iterator, Tuple
 from pathlib import Path
+from typing import Iterator, List, Tuple
 from uuid import UUID
 
-from pd.core import PdError
 import pd.internal.assets.asset_registry as asset_registry
-from pd.management import fetch_ig_asset_registry, IgVersion
-from pd.state.pose6d import Pose6D
+from pd.core import PdError
 from pd.internal.assets.asset_registry import (
-    ObjAssets,
     DataVehicle,
-    PairVehicleColor,
     DataWheel,
+    ObjAssets,
+    PairVehicleColor,
     PairVehicleWheel,
     UtilAssetCategories,
     database,
 )
+from pd.management import IgVersion, fetch_ig_asset_registry
 from pd.management.utils import is_uuid
+from pd.state.pose6d import Pose6D
 
 
 def init_asset_registry_file(path: Path):
@@ -78,7 +78,9 @@ def init_asset_registry_version(ig_version: str):
         try:
             internal_version = next(iv.internal_version for iv in IgVersion.list() if iv.name == ig_version)
         except StopIteration:
-            raise PdError(f"Couldn't fetch Asset Registry for Ig version '{ig_version}'. This Ig version is not available.")
+            raise PdError(
+                f"Couldn't fetch Asset Registry for Ig version '{ig_version}'. This Ig version is not available."
+            )
         version = internal_version or ig_version
     else:
         version = UUID(ig_version)

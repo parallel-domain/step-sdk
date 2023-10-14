@@ -1,15 +1,27 @@
 import math
 
 import pd.state
-from pd.internal.proto.keystone.generated.wrapper.pd_scenario_pb2 import ScenarioGenConfig, ScenarioLocation
-from pd.internal.proto.keystone.generated.wrapper.pd_sensor_pb2 import SensorRigConfig, SensorConfig, CameraIntrinsic, \
-    SensorExtrinsic
-from pd.internal.proto.keystone.generated.wrapper.pd_spawn_pb2 import SpawnConfig, GeneratorConfig, SpawnConfigPreset, \
-    GeneratorConfigPreset
-from pd.internal.proto.keystone.generated.wrapper.pd_distributions_pb2 import CategoricalDistribution, Bucket, \
-    Distribution, ConstantDistribution
+from pd.internal.proto.keystone.generated.wrapper.pd_distributions_pb2 import (
+    Bucket,
+    CategoricalDistribution,
+    ConstantDistribution,
+    Distribution,
+)
 from pd.internal.proto.keystone.generated.wrapper.pd_environments_pb2 import EnvironmentDefinition, EnvironmentPreset
+from pd.internal.proto.keystone.generated.wrapper.pd_scenario_pb2 import ScenarioGenConfig, ScenarioLocation
+from pd.internal.proto.keystone.generated.wrapper.pd_sensor_pb2 import (
+    CameraIntrinsic,
+    SensorConfig,
+    SensorExtrinsic,
+    SensorRigConfig,
+)
 from pd.internal.proto.keystone.generated.wrapper.pd_sim_state_pb2 import BuildSimState
+from pd.internal.proto.keystone.generated.wrapper.pd_spawn_pb2 import (
+    GeneratorConfig,
+    GeneratorConfigPreset,
+    SpawnConfig,
+    SpawnConfigPreset,
+)
 
 
 def fisclose(a, b):
@@ -17,7 +29,7 @@ def fisclose(a, b):
 
 
 def assert_step_server_is_alive(step_session):
-    assert step_session.query_runtime_state()
+    assert step_session._query_system_info()
 
 
 def assert_query_rgb(step_session, agent_id, sensor_name):
@@ -28,13 +40,14 @@ def assert_query_rgb(step_session, agent_id, sensor_name):
 
 def preview_rgb(step_session, agent_id, sensor_name):
     import cv2
+
     sensor_data = step_session.query_sensor_data(agent_id, sensor_name, pd.state.SensorBuffer.RGB)
     rgb_data = sensor_data.data_as_rgb
     try:
-        cv2.imshow('img', cv2.cvtColor(rgb_data, cv2.COLOR_RGB2BGR))
+        cv2.imshow("img", cv2.cvtColor(rgb_data, cv2.COLOR_RGB2BGR))
         cv2.waitKey(0)
     except cv2.error:
-        print(f"Couldn't display GUI window, skipping preview")
+        print("Couldn't display GUI window, skipping preview")
 
 
 def create_minimal_build_sim_state(location: str) -> BuildSimState:
@@ -47,8 +60,8 @@ def create_minimal_build_sim_state(location: str) -> BuildSimState:
             location=location,
             generator_config=GeneratorConfig(
                 preset_distribution=CategoricalDistribution(buckets=[Bucket(probability=1.0)]),
-                presets=[GeneratorConfigPreset()]
-            )
+                presets=[GeneratorConfigPreset()],
+            ),
         )
     ]
     build_sim_state.sensor_rig = SensorRigConfig()
@@ -59,26 +72,24 @@ def create_minimal_build_sim_state(location: str) -> BuildSimState:
         ),
         environment=EnvironmentDefinition(
             preset_distribution=CategoricalDistribution(buckets=[Bucket(probability=1.0)]),
-            presets=[EnvironmentPreset(
-                time_of_day=CategoricalDistribution(buckets=[Bucket(string_value="DAY", probability=1.0)]),
-                cloud_coverage=Distribution(constant=ConstantDistribution(float_value=0.0)),
-                rain_intensity=Distribution(constant=ConstantDistribution(float_value=0.0)),
-                fog_intensity=Distribution(constant=ConstantDistribution(float_value=0.0)),
-                wetness=Distribution(constant=ConstantDistribution(float_value=0.0)),
-            )]
-        )
+            presets=[
+                EnvironmentPreset(
+                    time_of_day=CategoricalDistribution(buckets=[Bucket(string_value="DAY", probability=1.0)]),
+                    cloud_coverage=Distribution(constant=ConstantDistribution(float_value=0.0)),
+                    rain_intensity=Distribution(constant=ConstantDistribution(float_value=0.0)),
+                    fog_intensity=Distribution(constant=ConstantDistribution(float_value=0.0)),
+                    wetness=Distribution(constant=ConstantDistribution(float_value=0.0)),
+                )
+            ],
+        ),
     )
     build_sim_state.sensor_rig = SensorRigConfig(
-        sensor_configs=[SensorConfig(
-            display_name="Front",
-            camera_intrinsic=CameraIntrinsic(
-                width=1920,
-                height=1080,
-                fov=90.0
-            ),
-            sensor_extrinsic=SensorExtrinsic(
-                yaw=0, pitch=0, roll=0, x=0, y=0, z=0
+        sensor_configs=[
+            SensorConfig(
+                display_name="Front",
+                camera_intrinsic=CameraIntrinsic(width=1920, height=1080, fov=90.0),
+                sensor_extrinsic=SensorExtrinsic(yaw=0, pitch=0, roll=0, x=0, y=0, z=0),
             )
-        )]
+        ]
     )
     return build_sim_state

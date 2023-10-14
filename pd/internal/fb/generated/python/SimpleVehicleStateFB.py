@@ -174,7 +174,14 @@ class SimpleVehicleStateFB(object):
             return self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos)
         return 0
 
-def SimpleVehicleStateFBStart(builder): builder.StartObject(23)
+    # SimpleVehicleStateFB
+    def StateTimer(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(50))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return 0.0
+
+def SimpleVehicleStateFBStart(builder): builder.StartObject(24)
 def SimpleVehicleStateFBAddWheelToWorld(builder, wheelToWorld): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(wheelToWorld), 0)
 def SimpleVehicleStateFBStartWheelToWorldVector(builder, numElems): return builder.StartVector(64, numElems, 4)
 def SimpleVehicleStateFBAddAcceleration(builder, acceleration): builder.PrependFloat32Slot(1, acceleration, 0.0)
@@ -194,4 +201,5 @@ def SimpleVehicleStateFBAddVehicle2dMotion(builder, vehicle2dMotion): builder.Pr
 def SimpleVehicleStateFBAddGear(builder, gear): builder.PrependInt8Slot(20, gear, 0)
 def SimpleVehicleStateFBAddGearsRatiosIndex(builder, gearsRatiosIndex): builder.PrependUint32Slot(21, gearsRatiosIndex, 0)
 def SimpleVehicleStateFBAddHeadlightOn(builder, headlightOn): builder.PrependBoolSlot(22, headlightOn, 0)
+def SimpleVehicleStateFBAddStateTimer(builder, stateTimer): builder.PrependFloat32Slot(23, stateTimer, 0.0)
 def SimpleVehicleStateFBEnd(builder): return builder.EndObject()

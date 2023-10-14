@@ -15,7 +15,7 @@ from . import geometry_pb2 as geometry__pb2
 from . import options_pb2 as options__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0ftelemetry.proto\x12\x07pd.data\x1a\x0egeometry.proto\x1a\roptions.proto\"h\n\x17GenerateTelemetryConfig\x12.\n\x14input_transformation\x18\x01 \x01(\x0b\x32\x10.pd.data.Vector3\x12\x1d\n\x0boutput_path\x18\x02 \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x01\"l\n\tTelemetry\x12\x30\n\x0b\x66ixed_frame\x18\x01 \x01(\x0b\x32\x1b.pd.data.TransformationPose\x12-\n\x0clocalization\x18\x02 \x03(\x0b\x32\x17.pd.data.TelemetryValue\"\x99\x02\n\x0eTelemetryValue\x12\x11\n\ttimestamp\x18\x01 \x01(\x04\x12\x38\n\x13transformation_pose\x18\x02 \x01(\x0b\x32\x1b.pd.data.TransformationPose\x12)\n\x0flinear_velocity\x18\x03 \x01(\x0b\x32\x10.pd.data.Vector3\x12-\n\x13linear_acceleration\x18\x04 \x01(\x0b\x32\x10.pd.data.Vector3\x12-\n\x10\x61ngular_velocity\x18\x05 \x01(\x0b\x32\x13.pd.data.Quaternion\x12\x31\n\x14\x61ngular_acceleration\x18\x06 \x01(\x0b\x32\x13.pd.data.Quaternion\"b\n\x12TransformationPose\x12\"\n\x08position\x18\x01 \x01(\x0b\x32\x10.pd.data.Vector3\x12(\n\x0borientation\x18\x02 \x01(\x0b\x32\x13.pd.data.Quaternionb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0ftelemetry.proto\x12\x07pd.data\x1a\x0egeometry.proto\x1a\roptions.proto\"h\n\x17GenerateTelemetryConfig\x12.\n\x14input_transformation\x18\x01 \x01(\x0b\x32\x10.pd.data.Vector3\x12\x1d\n\x0boutput_path\x18\x02 \x01(\tB\x08\x80\xb5\x18\t\x88\xb5\x18\x01\"\xf7\x01\n\x11TelemetryMetadata\x12)\n\x0flinear_velocity\x18\x01 \x01(\x0b\x32\x10.pd.data.Vector3\x12-\n\x13linear_acceleration\x18\x02 \x01(\x0b\x32\x10.pd.data.Vector3\x12-\n\x10\x61ngular_velocity\x18\x03 \x01(\x0b\x32\x13.pd.data.Quaternion\x12\x31\n\x14\x61ngular_acceleration\x18\x04 \x01(\x0b\x32\x13.pd.data.Quaternion\x12\x10\n\x08\x61gent_id\x18\x05 \x01(\r\x12\x14\n\x0csim_timestep\x18\x06 \x01(\x01\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'telemetry_pb2', globals())
@@ -26,10 +26,6 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _GENERATETELEMETRYCONFIG.fields_by_name['output_path']._serialized_options = b'\200\265\030\t\210\265\030\001'
   _GENERATETELEMETRYCONFIG._serialized_start=59
   _GENERATETELEMETRYCONFIG._serialized_end=163
-  _TELEMETRY._serialized_start=165
-  _TELEMETRY._serialized_end=273
-  _TELEMETRYVALUE._serialized_start=276
-  _TELEMETRYVALUE._serialized_end=557
-  _TRANSFORMATIONPOSE._serialized_start=559
-  _TRANSFORMATIONPOSE._serialized_end=657
+  _TELEMETRYMETADATA._serialized_start=166
+  _TELEMETRYMETADATA._serialized_end=413
 # @@protoc_insertion_point(module_scope)

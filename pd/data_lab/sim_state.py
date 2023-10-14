@@ -4,20 +4,20 @@
 # Use of this file is only permitted if you have entered into a
 # separate written license agreement with Parallel Domain, Inc.
 
-import os
 import logging
+import os
 from datetime import datetime, timezone
 from typing import List, Optional, Union
 
 import numpy as np
 
 import pd.state
-from pd.data_lab.generators.simulation_agent import SimulationAgent, SimulationAgentBase
-from pd.state import Pose6D
-from pd.data_lab.context import load_map
 from pd.data_lab.config.location import Location
+from pd.data_lab.context import load_map
+from pd.data_lab.generators.simulation_agent import SimulationAgent, SimulationAgentBase
 from pd.internal.proto.keystone.generated.wrapper.pd_sensor_pb2 import SensorRigConfig as SensorRig
 from pd.internal.proto.umd.generated.wrapper.UMD_pb2 import UniversalMap
+from pd.state import Pose6D
 
 logger = logging.getLogger(__name__)
 
@@ -91,10 +91,6 @@ class SimState:
 
         # Load Map now that location has been identified
         self._map = load_map(location)
-
-    def set_time_of_day(self, time_of_day: str):
-        if self.current_state is not None:
-            self.current_state.world_info.time_of_day = time_of_day
 
     @property
     def map(self) -> UniversalMap:

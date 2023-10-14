@@ -1,5 +1,5 @@
 {
-    "sensor_configs": 
+    "sensor_configs":
     [
         {
             "display_name": "Front",
@@ -13,9 +13,9 @@
                 "lut": "Texture2D'/Game/pd/Textures/LUT/T_LUT_PD_CameraEmulation.T_LUT_PD_CameraEmulation'",
                 "lut_weight": 0.1,
                 "post_process": [
-                    { 
-                        "material": "MaterialInstanceConstant'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens'", 
-                        "weight": 1.0 
+                    {
+                        "material": "MaterialInstanceConstant'/Game/pd/material/vfx/MI_lensDistortion_NoLens.MI_lensDistortion_NoLens'",
+                        "weight": 1.0
                     }
                 ],
 
@@ -32,8 +32,8 @@
                 "yaw": 0.0,
                 "pitch": 0.0,
                 "roll": 0.0,
-                "x": 0.0, 
-                "y": 0.0, 
+                "x": 0.0,
+                "y": 0.0,
                 "z": 2.0
             }
         },
@@ -42,37 +42,37 @@
             "lidar_intrinsic":
             {
                 "beam_data" : [
-                    { "id": 1, "azimuth": -1.400, "elevation": -25.000}, 
-                    { "id": 2, "azimuth":  4.200, "elevation":  -1.000}, 
-                    { "id": 3, "azimuth": -1.400, "elevation":  -1.667}, 
-                    { "id": 4, "azimuth":  1.400, "elevation": -15.639}, 
-                    { "id": 5, "azimuth": -1.400, "elevation": -11.310}, 
-                    { "id": 6, "azimuth":  1.400, "elevation":   0.000}, 
-                    { "id": 7, "azimuth": -4.200, "elevation":  -0.667}, 
-                    { "id": 8, "azimuth":  1.400, "elevation":  -8.843}, 
-                    { "id": 9, "azimuth": -1.400, "elevation":  -7.254}, 
-                    { "id":10, "azimuth":  4.200, "elevation":   0.333}, 
-                    { "id":11, "azimuth": -1.400, "elevation":  -0.333}, 
-                    { "id":12, "azimuth":  1.400, "elevation":  -6.148}, 
-                    { "id":13, "azimuth": -4.200, "elevation":  -5.333}, 
-                    { "id":14, "azimuth":  1.400, "elevation":   1.333}, 
-                    { "id":15, "azimuth": -4.200, "elevation":   0.667}, 
-                    { "id":16, "azimuth":  1.400, "elevation":  -4.000}, 
-                    { "id":17, "azimuth": -1.400, "elevation":  -4.667}, 
-                    { "id":18, "azimuth":  4.200, "elevation":   1.667}, 
-                    { "id":19, "azimuth": -1.400, "elevation":   1.000}, 
-                    { "id":20, "azimuth":  4.200, "elevation":  -3.667}, 
-                    { "id":21, "azimuth": -4.200, "elevation":  -3.333}, 
-                    { "id":22, "azimuth":  1.400, "elevation":   3.333}, 
-                    { "id":23, "azimuth": -1.400, "elevation":   2.333}, 
-                    { "id":24, "azimuth":  1.400, "elevation":  -2.667}, 
-                    { "id":25, "azimuth": -1.400, "elevation":  -3.000}, 
-                    { "id":26, "azimuth":  1.400, "elevation":   7.000}, 
-                    { "id":27, "azimuth": -1.400, "elevation":   4.667}, 
-                    { "id":28, "azimuth":  4.200, "elevation":  -2.333}, 
-                    { "id":29, "azimuth": -4.200, "elevation":  -2.000}, 
-                    { "id":30, "azimuth":  1.400, "elevation":  15.000}, 
-                    { "id":31, "azimuth": -1.400, "elevation":  10.333}, 
+                    { "id": 1, "azimuth": -1.400, "elevation": -25.000},
+                    { "id": 2, "azimuth":  4.200, "elevation":  -1.000},
+                    { "id": 3, "azimuth": -1.400, "elevation":  -1.667},
+                    { "id": 4, "azimuth":  1.400, "elevation": -15.639},
+                    { "id": 5, "azimuth": -1.400, "elevation": -11.310},
+                    { "id": 6, "azimuth":  1.400, "elevation":   0.000},
+                    { "id": 7, "azimuth": -4.200, "elevation":  -0.667},
+                    { "id": 8, "azimuth":  1.400, "elevation":  -8.843},
+                    { "id": 9, "azimuth": -1.400, "elevation":  -7.254},
+                    { "id":10, "azimuth":  4.200, "elevation":   0.333},
+                    { "id":11, "azimuth": -1.400, "elevation":  -0.333},
+                    { "id":12, "azimuth":  1.400, "elevation":  -6.148},
+                    { "id":13, "azimuth": -4.200, "elevation":  -5.333},
+                    { "id":14, "azimuth":  1.400, "elevation":   1.333},
+                    { "id":15, "azimuth": -4.200, "elevation":   0.667},
+                    { "id":16, "azimuth":  1.400, "elevation":  -4.000},
+                    { "id":17, "azimuth": -1.400, "elevation":  -4.667},
+                    { "id":18, "azimuth":  4.200, "elevation":   1.667},
+                    { "id":19, "azimuth": -1.400, "elevation":   1.000},
+                    { "id":20, "azimuth":  4.200, "elevation":  -3.667},
+                    { "id":21, "azimuth": -4.200, "elevation":  -3.333},
+                    { "id":22, "azimuth":  1.400, "elevation":   3.333},
+                    { "id":23, "azimuth": -1.400, "elevation":   2.333},
+                    { "id":24, "azimuth":  1.400, "elevation":  -2.667},
+                    { "id":25, "azimuth": -1.400, "elevation":  -3.000},
+                    { "id":26, "azimuth":  1.400, "elevation":   7.000},
+                    { "id":27, "azimuth": -1.400, "elevation":   4.667},
+                    { "id":28, "azimuth":  4.200, "elevation":  -2.333},
+                    { "id":29, "azimuth": -4.200, "elevation":  -2.000},
+                    { "id":30, "azimuth":  1.400, "elevation":  15.000},
+                    { "id":31, "azimuth": -1.400, "elevation":  10.333},
                     { "id":32, "azimuth":  1.400, "elevation":  -1.333}
                 ],
 
@@ -93,8 +93,8 @@
                 "yaw": 0.0,
                 "pitch": 0.0,
                 "roll": 0.0,
-                "x": 0.0, 
-                "y": 0.0, 
+                "x": 0.0,
+                "y": 0.0,
                 "z": 2.0
             }
         }

@@ -6,12 +6,13 @@
 
 from typing import List
 
+from deprecation import deprecated
+
+from pd.data_lab.config.distribution import Bucket, CategoricalDistribution, Distribution
 from pd.internal.proto.keystone.generated.python import pd_distributions_pb2 as pd_distributions_pb2_base
 from pd.internal.proto.keystone.generated.python import pd_environments_pb2 as pd_environments_pb2_base
 from pd.internal.proto.keystone.generated.wrapper import pd_environments_pb2
 from pd.internal.proto.keystone.generated.wrapper.utils import register_wrapper
-
-from pd.data_lab.config.distribution import Bucket, CategoricalDistribution, Distribution
 
 
 class TimeOfDays:
@@ -35,6 +36,12 @@ class Environment(pd_environments_pb2.EnvironmentPreset):
             self.fog.set_constant_value(0.0)
 
     @property
+    @deprecated(
+        details=(
+            "Setting `clouds` has no effect. Implement `ScenarioCreator.get_location()` with an explicit lighting"
+            " instead."
+        ),
+    )
     def clouds(self) -> Distribution:
         if hasattr(self, "cloud_coverage"):
             return self.cloud_coverage
@@ -53,6 +60,12 @@ class Environment(pd_environments_pb2.EnvironmentPreset):
         raise RuntimeError()
 
     @property
+    @deprecated(
+        details=(
+            "Setting `time_of_day` has no effect. Implement `ScenarioCreator.get_location()` with an explicit lighting"
+            " instead."
+        ),
+    )
     def time_of_day(self) -> CategoricalDistribution:
         if hasattr(self, "_time_of_day"):  # using private variable because convenience property has same name
             return self._time_of_day

@@ -8,37 +8,39 @@
 IG and related objects
 """
 from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import TypeVar, Type, Optional, List, Dict
-from enum import Enum
 from datetime import datetime
+from enum import Enum
+from typing import Dict, List, Optional, Type, TypeVar
 from uuid import UUID
 
-from dacite import from_dict, Config
+from dacite import Config, from_dict
 
 from pd.core import PdError
 from pd.management.http_client import get_http_client
 
-
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class IgStatus(Enum):
     """
     Lifecycle status of a Step IG server instance
     """
-    Starting = 'starting'
-    Configuring = 'configuring'
-    Running = 'running'
-    Stopped = 'stopped'
+
+    Starting = "starting"
+    Configuring = "configuring"
+    Running = "running"
+    Stopped = "stopped"
 
 
 class IgQuality(Enum):
     """
     Quality of a Step IG server instance
     """
-    Low = 'low'
-    High = 'high'
+
+    Low = "low"
+    High = "high"
 
 
 @dataclass
@@ -97,19 +99,21 @@ class Ig:
     @property
     def name(self) -> str:
         """Name of the Step IG server instance"""
-        return self.self_url.split('/')[-1]
+        return self.self_url.split("/")[-1]
 
-    _RESOURCE_NAME = 'ig'
+    _RESOURCE_NAME = "ig"
     _DACITE_CONFIG = Config(type_hooks={datetime: datetime.fromisoformat}, cast=[IgStatus])
 
     @classmethod
-    def create(cls: Type[T],
-               sim_version: Optional[str] = None,
-               ig_version: Optional[str] = None,
-               le_version: Optional[str] = None,
-               quality: IgQuality = IgQuality.High,
-               levelpaks: Optional[Dict[str, str]] = None,
-               ttl: Optional[int] = None) -> T:
+    def create(
+        cls: Type[T],
+        sim_version: Optional[str] = None,
+        ig_version: Optional[str] = None,
+        le_version: Optional[str] = None,
+        quality: IgQuality = IgQuality.High,
+        levelpaks: Optional[Dict[str, str]] = None,
+        ttl: Optional[int] = None,
+    ) -> T:
         """
         Create a Step IG server instance
 
@@ -131,18 +135,18 @@ class Ig:
         """
         http_client = get_http_client()
         data = dict()
-        data['quality'] = quality.value
+        data["quality"] = quality.value
         if sim_version:
-            data['sim_version'] = sim_version
+            data["sim_version"] = sim_version
         if ig_version:
-            data['ig_version'] = ig_version
+            data["ig_version"] = ig_version
         if le_version:
-            data['le_version'] = le_version
-        data['levelpak'] = levelpaks or {}
+            data["le_version"] = le_version
+        data["levelpak"] = levelpaks or {}
         if ttl:
-            data['ttl'] = ttl
+            data["ttl"] = ttl
         url = cls._RESOURCE_NAME
-        _, content = http_client.request('post', url, data=data)
+        _, content = http_client.request("post", url, data=data)
         ig = from_dict(data_class=Ig, data=content, config=Ig._DACITE_CONFIG)
         # Backwards compatibility to step_url
         ig.ig_url = ig.ig_url or ig.step_url
@@ -153,8 +157,8 @@ class Ig:
         if not name:
             raise PdError("Name cannot be empty")
         http_client = get_http_client()
-        url = cls._RESOURCE_NAME + f'/{name}'
-        _, content = http_client.request('get', url)
+        url = cls._RESOURCE_NAME + f"/{name}"
+        _, content = http_client.request("get", url)
         ig = from_dict(data_class=Ig, data=content, config=Ig._DACITE_CONFIG)
         # Backwards compatibility to step_url
         ig.ig_url = ig.ig_url or ig.step_url
@@ -165,14 +169,14 @@ class Ig:
         if not name:
             raise PdError("Name cannot be empty")
         http_client = get_http_client()
-        url = cls._RESOURCE_NAME + f'/{name}'
-        http_client.request('delete', url)
+        url = cls._RESOURCE_NAME + f"/{name}"
+        http_client.request("delete", url)
 
     @classmethod
     def list(cls: Type[T]) -> List[T]:
         http_client = get_http_client()
         url = cls._RESOURCE_NAME
-        _, content = http_client.request('get', url)
+        _, content = http_client.request("get", url)
 
         @dataclass
         class IgList:
@@ -190,20 +194,21 @@ class IgVersion:
     """
     Available version of Step IG server
     """
+
     name: str
     """Ig version name"""
 
     internal_version: Optional[UUID] = None
     """Ig internal version"""
 
-    _RESOURCE_NAME = 'ig_versions'
+    _RESOURCE_NAME = "ig_versions"
     _DACITE_CONFIG = Config(cast=[UUID])
 
     @classmethod
     def list(cls) -> List[IgVersion]:
         http_client = get_http_client()
         url = cls._RESOURCE_NAME
-        _, content = http_client.request('get', url)
+        _, content = http_client.request("get", url)
         ig_versions = [from_dict(data_class=IgVersion, data=v, config=cls._DACITE_CONFIG) for v in content]
         return ig_versions
 
@@ -221,9 +226,9 @@ def fetch_ig_asset_registry(ig_version: str | UUID) -> bytes:
     http_client = get_http_client()
     if isinstance(ig_version, UUID):
         # switch to new API if internal version is available
-        url = f'asset_registry/{ig_version}'
+        url = f"asset_registry/{ig_version}"
     else:
         # TODO: remove usage of this endpoint after the new API is up
-        url = f'ig_versions/{ig_version}/asset_registry'
-    _, content = http_client.request('get', url, raw_response=True)
+        url = f"ig_versions/{ig_version}/asset_registry"
+    _, content = http_client.request("get", url, raw_response=True)
     return content

@@ -7,7 +7,7 @@
 import os
 from pathlib import Path
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 here = os.path.abspath(os.path.dirname(__file__))
 os.chdir(here)
@@ -29,41 +29,42 @@ setup(
     url="https://github.com/parallel-domain/step-sdk",
     setup_requires=["wheel"],
     install_requires=[
+        "click",
+        "dacite",
+        "deprecation>=2.1.0,<3.0.0",
         "flatbuffers==1.*",
+        "matplotlib",
         "numpy",
+        "opencv-python-headless",
+        "peewee",
+        "protobuf==3.*",
+        "pypeln>=0.4.9,<1.0.0",
         "pyquaternion",
         "pyzmq",
-        "protobuf==3.*",
-        "opencv-python-headless",
-        "click",
-        "shapely",
-        "dacite",
         "requests",
-        "peewee",
-        "matplotlib",
-        "pypeln>=0.4.9,<1.0.0",
+        "shapely",
     ],
     extras_require={
         "visualization": [
             "opencv-python",
         ],
         "dev": [
+            "imgui[glfw]>=2.0",
             "mypy",
             "pytest",
             "pytest-repeat",
             "requests-mock",
-            "imgui[glfw]>=2.0",
             "tqdm",
         ],
         "docs": [
             "Sphinx",
-            "sphinx-rtd-theme",
+            "breathe",
+            "exhale",
             "myst-parser",
             "scanpydoc",
             "sphinx-autodoc-typehints",
             "sphinx-paramlinks",
-            "breathe",
-            "exhale",
+            "sphinx-rtd-theme",
             "sphinxcontrib-redoc",
         ],
     },

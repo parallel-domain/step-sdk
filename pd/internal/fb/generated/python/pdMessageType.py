@@ -40,4 +40,6 @@ class pdMessageType(object):
     pdRequestLabelEngineAnnotationData = 34
     pdReturnLabelEngineAnnotationData = 35
     pdUpdateLabelEngineAnnotationData = 36
+    pdQueryLoadLocationStatus = 37
+    pdReturnLoadLocationStatus = 38
 

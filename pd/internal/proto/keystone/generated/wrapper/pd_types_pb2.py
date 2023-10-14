@@ -1,14 +1,34 @@
 from __future__ import annotations
-from typing import List, Dict, Optional, Union
-from pd.internal.proto.keystone.generated.python import pd_types_pb2
-from pd.internal.proto.keystone.generated.wrapper.utils import WRAPPER_REGISTRY, register_wrapper, get_wrapper, ProtoMessageClass, ProtoEnumClass, AtomicGeneratorMessage, ProtoListWrapper, ProtoDictWrapper
-from pd.internal.proto.keystone.generated.wrapper import pd_distributions_pb2 as _pd_distributions_pb2, pd_environments_pb2 as _pd_environments_pb2, pd_keystone_pb2 as _pd_keystone_pb2, pd_levelcook_pb2 as _pd_levelcook_pb2, pd_package_maps_from_p4_pb2 as _pd_package_maps_from_p4_pb2, pd_post_process_pb2 as _pd_post_process_pb2, pd_recook_pb2 as _pd_recook_pb2, pd_render_pb2 as _pd_render_pb2, pd_scenario_pb2 as _pd_scenario_pb2, pd_sensor_pb2 as _pd_sensor_pb2, pd_sim_state_pb2 as _pd_sim_state_pb2, pd_source_maps_pb2 as _pd_source_maps_pb2, pd_spawn_pb2 as _pd_spawn_pb2, pd_step_batch_pb2 as _pd_step_batch_pb2, pd_types_pb2 as _pd_types_pb2, pd_unified_generator_pb2 as _pd_unified_generator_pb2, pd_world_cook_from_p4_pb2 as _pd_world_cook_from_p4_pb2, pd_worldbuild_pb2 as _pd_worldbuild_pb2, pd_worldgen_pb2 as _pd_worldgen_pb2
+from typing import Optional
+from .utils import (
+    register_wrapper,
+    get_wrapper,
+    ProtoMessageClass
+)
+from ..python import (
+    pd_types_pb2
+)
+
 
 @register_wrapper(proto_type=pd_types_pb2.Float3)
 class Float3(ProtoMessageClass):
+    """
+    A three element vector of float values.
+
+    Args:
+        x: :attr:`x`
+        y: :attr:`y`
+        z: :attr:`z`
+    Attributes:
+        x: First element of the vector.
+        y: Second element of the vector.
+        z: Third element of the vector."""
+
     _proto_message = pd_types_pb2.Float3
 
-    def __init__(self, *, proto: Optional[pd_types_pb2.Float3]=None, x: Optional[float]=None, y: Optional[float]=None, z: Optional[float]=None):
+    def __init__(
+        self, *, proto: Optional[pd_types_pb2.Float3] = None, x: float = None, y: float = None, z: float = None
+    ):
         if proto is None:
             proto = pd_types_pb2.Float3()
         self.proto = proto
@@ -46,11 +66,26 @@ class Float3(ProtoMessageClass):
     def _update_proto_references(self, proto: pd_types_pb2.Float3):
         self.proto = proto
 
+
 @register_wrapper(proto_type=pd_types_pb2.Float3x3)
 class Float3x3(ProtoMessageClass):
+    """
+    A 3x3 matrix of float values.
+
+    Args:
+        r0: :attr:`r0`
+        r1: :attr:`r1`
+        r2: :attr:`r2`
+    Attributes:
+        r0: The first row of the matrix.
+        r1: The second row of the matrix.
+        r2: The third row of the matrix."""
+
     _proto_message = pd_types_pb2.Float3x3
 
-    def __init__(self, *, proto: Optional[pd_types_pb2.Float3x3]=None, r0: Optional[Float3]=None, r1: Optional[Float3]=None, r2: Optional[Float3]=None):
+    def __init__(
+        self, *, proto: Optional[pd_types_pb2.Float3x3] = None, r0: Float3 = None, r1: Float3 = None, r2: Float3 = None
+    ):
         if proto is None:
             proto = pd_types_pb2.Float3x3()
         self.proto = proto
@@ -71,7 +106,7 @@ class Float3x3(ProtoMessageClass):
     @r0.setter
     def r0(self, value: Float3):
         self.proto.r0.CopyFrom(value.proto)
-        
+
         self._r0 = value
         self._r0._update_proto_references(self.proto.r0)
 
@@ -82,7 +117,7 @@ class Float3x3(ProtoMessageClass):
     @r1.setter
     def r1(self, value: Float3):
         self.proto.r1.CopyFrom(value.proto)
-        
+
         self._r1 = value
         self._r1._update_proto_references(self.proto.r1)
 
@@ -93,7 +128,7 @@ class Float3x3(ProtoMessageClass):
     @r2.setter
     def r2(self, value: Float3):
         self.proto.r2.CopyFrom(value.proto)
-        
+
         self._r2 = value
         self._r2._update_proto_references(self.proto.r2)
 
@@ -103,31 +138,33 @@ class Float3x3(ProtoMessageClass):
         self._r1._update_proto_references(proto.r1)
         self._r2._update_proto_references(proto.r2)
 
+
 @register_wrapper(proto_type=pd_types_pb2.Pose)
 class Pose(ProtoMessageClass):
+    """
+    Represents a pose in 3D space, including translation and rotation.
+
+    Args:
+        position: :attr:`position`
+        orientation: :attr:`orientation`
+    Attributes:
+        position: The 3D position of the :obj:`Pose`.
+        orientation: The 3D rotation of the :obj:`Pose`."""
+
     _proto_message = pd_types_pb2.Pose
 
-    def __init__(self, *, proto: Optional[pd_types_pb2.Pose]=None, orientation: Optional[Float3x3]=None, position: Optional[Float3]=None):
+    def __init__(
+        self, *, proto: Optional[pd_types_pb2.Pose] = None, position: Float3 = None, orientation: Float3x3 = None
+    ):
         if proto is None:
             proto = pd_types_pb2.Pose()
         self.proto = proto
-        self._orientation = get_wrapper(proto_type=proto.orientation.__class__)(proto=proto.orientation)
         self._position = get_wrapper(proto_type=proto.position.__class__)(proto=proto.position)
-        if orientation is not None:
-            self.orientation = orientation
+        self._orientation = get_wrapper(proto_type=proto.orientation.__class__)(proto=proto.orientation)
         if position is not None:
             self.position = position
-
-    @property
-    def orientation(self) -> Float3x3:
-        return self._orientation
-
-    @orientation.setter
-    def orientation(self, value: Float3x3):
-        self.proto.orientation.CopyFrom(value.proto)
-        
-        self._orientation = value
-        self._orientation._update_proto_references(self.proto.orientation)
+        if orientation is not None:
+            self.orientation = orientation
 
     @property
     def position(self) -> Float3:
@@ -136,11 +173,22 @@ class Pose(ProtoMessageClass):
     @position.setter
     def position(self, value: Float3):
         self.proto.position.CopyFrom(value.proto)
-        
+
         self._position = value
         self._position._update_proto_references(self.proto.position)
 
+    @property
+    def orientation(self) -> Float3x3:
+        return self._orientation
+
+    @orientation.setter
+    def orientation(self, value: Float3x3):
+        self.proto.orientation.CopyFrom(value.proto)
+
+        self._orientation = value
+        self._orientation._update_proto_references(self.proto.orientation)
+
     def _update_proto_references(self, proto: pd_types_pb2.Pose):
         self.proto = proto
-        self._orientation._update_proto_references(proto.orientation)
         self._position._update_proto_references(proto.position)
+        self._orientation._update_proto_references(proto.orientation)

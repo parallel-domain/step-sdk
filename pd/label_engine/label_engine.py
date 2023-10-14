@@ -7,41 +7,43 @@
 """
 Label Engine messages
 """
+import io
 import math
 from dataclasses import dataclass
 from enum import IntEnum
+from io import BytesIO
 from pathlib import Path
-import io
 from typing import Optional, Tuple
 
 import cv2
 import numpy as np
 from google.protobuf.json_format import Parse
-from io import BytesIO
 
 from pd.core import PdError
+from pd.internal.proto.label_engine.generated.python.agent_state_pb2 import *  # noqa: F403
 
-from pd.internal.proto.label_engine.generated.python.annotation_pb2 import Annotation
 # These imports are needed to allow parsing of proto messages
 # We may want to switch these to dynamically import all classes in that directory
-from pd.internal.proto.label_engine.generated.python.annotation_pb2 import *
-from pd.internal.proto.label_engine.generated.python.agent_state_pb2 import *
-from pd.internal.proto.label_engine.generated.python.bounding_box_2d_pb2 import *
-from pd.internal.proto.label_engine.generated.python.bounding_box_3d_pb2 import *
-from pd.internal.proto.label_engine.generated.python.camera_calibration_pb2 import *
-from pd.internal.proto.label_engine.generated.python.geometry_pb2 import *
-from pd.internal.proto.label_engine.generated.python.ig_metadata_pb2 import *
-from pd.internal.proto.label_engine.generated.python.instance_map_pb2 import *
-from pd.internal.proto.label_engine.generated.python.instance_point_pb2 import *
-from pd.internal.proto.label_engine.generated.python.mesh_map_pb2 import *
-from pd.internal.proto.label_engine.generated.python.motion_vectors_2d_pb2 import *
-from pd.internal.proto.label_engine.generated.python.transform_map_pb2 import *
-from pd.internal.proto.label_engine.generated.python.umd_data_pb2 import *
+from pd.internal.proto.label_engine.generated.python.annotation_pb2 import *  # noqa: F403
+from pd.internal.proto.label_engine.generated.python.annotation_pb2 import Annotation
+from pd.internal.proto.label_engine.generated.python.bounding_box_2d_pb2 import *  # noqa: F403
+from pd.internal.proto.label_engine.generated.python.bounding_box_3d_pb2 import *  # noqa: F403
+from pd.internal.proto.label_engine.generated.python.camera_calibration_pb2 import *  # noqa: F403
+from pd.internal.proto.label_engine.generated.python.geometry_pb2 import *  # noqa: F403
+from pd.internal.proto.label_engine.generated.python.ig_metadata_pb2 import *  # noqa: F403
+from pd.internal.proto.label_engine.generated.python.instance_map_pb2 import *  # noqa: F403
+from pd.internal.proto.label_engine.generated.python.instance_point_pb2 import *  # noqa: F403
+from pd.internal.proto.label_engine.generated.python.mesh_map_pb2 import *  # noqa: F403
+from pd.internal.proto.label_engine.generated.python.mesh_map_pb2 import SemanticLabelMap
+from pd.internal.proto.label_engine.generated.python.motion_vectors_2d_pb2 import *  # noqa: F403
+from pd.internal.proto.label_engine.generated.python.transform_map_pb2 import *  # noqa: F403
+from pd.internal.proto.label_engine.generated.python.umd_data_pb2 import *  # noqa: F403
 
-
-_ID_U16_TO_COLOR_LOOKUP = cv2.applyColorMap(
-    np.random.randint(0, 256, 65536, dtype=np.uint8), cv2.COLORMAP_JET
-).reshape(-1, 3).astype(np.float32)
+_ID_U16_TO_COLOR_LOOKUP = (
+    cv2.applyColorMap(np.random.randint(0, 256, 65536, dtype=np.uint8), cv2.COLORMAP_JET)
+    .reshape(-1, 3)
+    .astype(np.float32)
+)
 
 
 # TODO: auto generate wrapper class from proto
@@ -61,7 +63,7 @@ class DataType(IntEnum):
     CameraDistortionCalibration = 12
     Configuration = 13
     IGMetadata = 14
-    Telemetry = 15
+    SemanticLabelMap = 15
 
 
 @dataclass
@@ -96,7 +98,7 @@ class LabelData:
         Returns data array as a single-channel float32 depth buffer
         """
         with np.load(BytesIO(self.data)) as npz_data:
-            data = npz_data['data']
+            data = npz_data["data"]
             return data
 
     @property
@@ -146,8 +148,10 @@ class LabelData:
         instance_image_rgb = self.data_as_instance_rgb.astype(np.float64)
         # Height and width must match, channels can be 3 (color) or 1 (grayscale)
         if rgb.shape[:2] != instance_image_rgb.shape[:2]:
-            raise PdError(f"Rgb image size {str(rgb.shape[:2])} must match the instances "
-                          f"image size {str(instance_image_rgb.shape[:2])}")
+            raise PdError(
+                f"Rgb image size {str(rgb.shape[:2])} must match the instances "
+                f"image size {str(instance_image_rgb.shape[:2])}"
+            )
         # Generates instance id alpha mask
         # Alpha mask has a non-zero alpha value for every non-zero pixel in instances rgb image
         # Lastly, broadcasts alpha to match dims of rgb image
@@ -156,7 +160,7 @@ class LabelData:
         alpha = np.expand_dims(alpha, axis=2)
         alpha = np.broadcast_to(alpha, shape=instance_image_rgb.shape)
         # Generates output image by combining rgb image with instances image
-        output_img = rgb * (1-alpha) + instance_image_rgb * alpha
+        output_img = rgb * (1 - alpha) + instance_image_rgb * alpha
         return output_img.astype(np.uint8)
 
     @property
@@ -188,6 +192,18 @@ class LabelData:
         message: Annotation = Parse(json_s, Annotation())
         return message
 
+    @property
+    def data_as_semantic_label_map(self) -> SemanticLabelMap:
+        """
+        Parses data as an MeshIDMap Data Object
+
+        Returns:
+            MeshIDMap data object proto message
+        """
+        json_s = self.data.decode()
+        message: SemanticLabelMap = Parse(json_s, SemanticLabelMap(), ignore_unknown_fields=True)
+        return message
+
 
 def load_pipeline_config(name: str) -> str:
     """
@@ -200,11 +216,12 @@ def load_pipeline_config(name: str) -> str:
         Config as a string
     """
     import pd.internal.label_engine_configs as label_engine_configs
+
     base_configs_path = Path(label_engine_configs.__file__).resolve().parent
     config_path = base_configs_path / f"{name}.pb.json"
     if not config_path.exists():
         raise PdError(f"Couldn't find Label Engine pipeline config named '{name}'.")
-    with config_path.open('r') as f:
+    with config_path.open("r") as f:
         config_data = f.read()
     return config_data
 
