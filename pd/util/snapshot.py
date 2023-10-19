@@ -35,7 +35,7 @@ pp = PrettyPrinter()
 
 
 _LOCATION = "FICT_Racetrack_1000_1"
-_TIME_OF_DAY = "LS_sky_noon_mostlySunny_1250_HDS025"
+_TIME_OF_DAY = "day_clear_06"
 
 # These coordinates are hand-picked for the chosen _LOCATION
 

@@ -26,7 +26,7 @@ from pd.label_engine import DataType, load_pipeline_config, simulation_time_as_t
 from pd.util.scripting import StepScriptContext, common_step_options
 
 DEFAULT_LOCATION = ("SF_6thAndMission_medium", "v2.0.1")
-DEFAULT_LIGHTING = "LS_sky_noon_partlyCloudy_1113_HDS024"
+DEFAULT_LIGHTING = "day_clear_07"
 SIM_RATE_PER_SECOND = 100  # Our simulation runs at this rate
 MAX_SIM_TIME_SEC = 25.0
 MAX_SIM_DISTANCE_METRES = 1000
@@ -179,7 +179,9 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
     # Set up output directory
     output_path = Path(output_dir)
     if output_path.exists():
-        sys.exit(f"Error: Output directory {output_path.absolute()} already exists. Please specify a different directory.")
+        sys.exit(
+            f"Error: Output directory {output_path.absolute()} already exists. Please specify a different directory."
+        )
     rgb_output_path = output_path / "rgb"
     depth_output_path = output_path / "depth"
     semseg_output_path = output_path / "semantic_segmentation_2d"
@@ -304,7 +306,7 @@ def cli(preview, location, lighting, streetlights, sensor, seed, output_dir, ste
                             ("world_lines_xyz",),
                             ("instance_state_xyz", frame_timestamp),
                             ("instance_pose_xyz", frame_timestamp),
-                            ("ontology", frame_timestamp)
+                            ("ontology", frame_timestamp),
                         )
                         while not all(
                             le_session.query_annotation_status(scene_name, *args) for args in wait_for_annotations_args

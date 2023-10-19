@@ -34,6 +34,7 @@ from pd.internal.fb.generated.python import (
     pdLoadLocation,
     pdMessage,
     pdQueryLabelEngineAnnotationStatus,
+    pdQueryLoadLocationStatus,
     pdQueryRuntimeInfo,
     pdQuerySensorData,
     pdQueryStateData,
@@ -46,6 +47,7 @@ from pd.internal.fb.generated.python import (
     pdReturnLabelEngineAnnotationData,
     pdReturnLabelEngineAnnotationStatus,
     pdReturnLidarSensorData,
+    pdReturnLoadLocationStatus,
     pdReturnRuntimeInfo,
     pdReturnScenarioData,
     pdReturnSensorData,
@@ -59,19 +61,6 @@ from pd.internal.fb.generated.python import (
     pdSubmitScenarioGenConfig,
     pdUpdateLabelEngineAnnotationData,
     pdUpdateState,
-    pdResponseCode,
-    pdRaycastQuery,
-    pdRaycastHits,
-    pdFloat3,
-    pdConfigLabelEngine,
-    pdQueryLabelEngineAnnotationStatus,
-    pdReturnLabelEngineAnnotationStatus,
-    pdRequestLabelEngineAnnotationData,
-    pdReturnLabelEngineAnnotationData,
-    pdUpdateLabelEngineAnnotationData,
-    pdRequestLabelEngineTimestamp,
-    pdReturnLoadLocationStatus,
-    pdQueryLoadLocationStatus,
 )
 from pd.internal.fb.generated.python.pdMessageType import pdMessageType
 from pd.internal.fb.generated.python.pdPerformanceFeature import pdPerformanceFeature
@@ -310,9 +299,7 @@ class IgSession(BaseSession):
         """
         Load a default map
         """
-        self.load_location(
-            location_name="Test_SF_6thAndMission_small", time_of_day="LS_sky_noon_mostlySunny_1250_HDS025"
-        )
+        self.load_location(location_name="Test_SF_6thAndMission_small", time_of_day="day_clear_06")
 
     def load_location(self, location_name: str, time_of_day: str, scene_name: Optional[str] = None):
         """

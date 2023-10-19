@@ -99,7 +99,7 @@ class CustomSimulationAgent(SimulationAgentBase, Generic[TSimState]):
 
     @staticmethod
     def character_assets() -> List[str]:
-        return sorted(list(get_asset_names_in_category("character")))
+        return sorted([a for a in get_asset_names_in_category("character") if "char_" in a])
 
     @staticmethod
     def vehicle_assets() -> List[str]:
@@ -150,7 +150,10 @@ class CustomVehicleSimulationAgent(CustomSimulationAgent, Generic[TSimState]):
         wheel_poses = []
         if len(possible_wheels) > 0:
             wheel_name = state.choice(possible_wheels)
-            wheel_poses = get_vehicle_wheel_poses(vehicle_name=asset_name, wheel_name=wheel_name)
+            wheel_poses = [
+                wp.as_transformation_matrix()
+                for wp in get_vehicle_wheel_poses(vehicle_name=asset_name, wheel_name=wheel_name)
+            ]
 
         color = None
         colors = get_vehicle_colors(asset_name)
@@ -159,7 +162,7 @@ class CustomVehicleSimulationAgent(CustomSimulationAgent, Generic[TSimState]):
 
         occupants = state.choice(CustomSimulationAgent.character_assets())
 
-        sensors = list()
+        sensors = []
         if self.sensor_rig is not None:
             sensors.extend(self.sensor_rig.sensors)
 
@@ -168,8 +171,11 @@ class CustomVehicleSimulationAgent(CustomSimulationAgent, Generic[TSimState]):
         self.step_agent.vehicle_type = asset_name
         self.step_agent.lock_to_ground = self.lock_to_ground
         self.step_agent.ground_offset = self.ground_offset
-        self.step_agent.wheel_type = wheel_name
-        self.step_agent.wheel_poses = wheel_poses
+        if len(possible_wheels) > 0:
+            self.step_agent.wheel_type = wheel_name
+            self.step_agent.wheel_combo = [wheel_name, wheel_name]
+            self.step_agent.wheel_combo_style = ["null", "null"]
+            self.step_agent.wheel_poses = wheel_poses
         self.step_agent.vehicle_color = color
         self.step_agent.vehicle_wear = state.random()
         self.step_agent.occupants = [occupants]

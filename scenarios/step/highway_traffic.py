@@ -22,7 +22,7 @@ from pd.core import PdError
 from pd.util import StepScriptContext, common_step_options
 
 DEFAULT_LOCATION = ("SJ_237AndNorth1st", "v2.0.2")
-DEFAULT_LIGHTING = "LS_sky_noon_partlyCloudy_1113_HDS024"
+DEFAULT_LIGHTING = "day_clear_07"
 SIM_RATE_PER_SECOND = 100  # Our simulation runs at this rate
 RENDER_FRAME_INTERVAL = 1  # Every Nth simulation state is rendered
 CAPTURE_FRAME_INTERVAL = 10  # Every Nth render is saved/displayed

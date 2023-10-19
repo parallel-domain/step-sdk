@@ -17,7 +17,7 @@ import pd.umd
 from pd.util import StepScriptContext, common_step_options
 
 DEFAULT_LOCATION = ("SJ_EssexAndBradford", "v2.0.2")
-DEFAULT_LIGHTING = "LS_sky_noon_mostlySunny_1250_HDS025"
+DEFAULT_LIGHTING = "day_clear_06"
 DEFAULT_HEIGHT = 60.0
 
 

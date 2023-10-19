@@ -101,6 +101,18 @@ class SimulationStateProvider:
                 cb(state)
             yield state
 
+    def amend_sim_state(self):
+        """
+        Amends stored sim state to bring it in alignment with the provider
+
+        Reason: Scenario gen API is not able to explicitly request certain parameters in sim state.
+                In batch pipeline we are able to set these out-of-band, but for Data Lab they need to be
+                in the state.
+        """
+        self._sim_state.current_state.world_info.time_of_day = self._lighting
+        self._sim_state.current_state.world_info.street_lights = float(self._street_lights)
+        self._sim_state.current_state.world_info.enable_headlights = self._headlights
+
 
 class FromDiskSimulation(SimulationStateProvider):
     """
@@ -258,8 +270,7 @@ class SimulationInstance(SimulationStateProvider):
         self._setup_pd_generators(scenario=discrete_scenario)
         self._update_pd_generators()
         self._setup_custom_generators(scenario=discrete_scenario)
-        self._update_custom_generators()
-        # self._simulated_frames += 1
+        self.amend_sim_state()
 
     def cleanup(self):
         super().cleanup()
@@ -311,9 +322,7 @@ class SimulationInstance(SimulationStateProvider):
         self._update_pd_generators()
         self._update_custom_generators()
 
-        self._sim_state.current_state.world_info.time_of_day = self._lighting
-        self._sim_state.current_state.world_info.street_lights = float(self._street_lights)
-        self._sim_state.current_state.world_info.enable_headlights = self._headlights
+        self.amend_sim_state()
 
         self._simulated_frames += 1
 
@@ -423,9 +432,7 @@ class CustomOnlySimulator(SimulationStateProvider):
             return False
         self._update_custom_generators()
 
-        self._sim_state.current_state.world_info.time_of_day = self._lighting
-        self._sim_state.current_state.world_info.street_lights = float(self._street_lights)
-        self._sim_state.current_state.world_info.enable_headlights = self._headlights
+        self.amend_sim_state()
 
         self._simulated_frames += 1
 
