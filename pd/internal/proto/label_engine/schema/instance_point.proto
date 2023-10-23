@@ -8,10 +8,15 @@ import "options.proto";
 message InstancePoint3DAnnotatorConfig
 {
   string input_instance_map = 1 [(type)=eMeshIDMap, (stream)=eInput];
+  string input_instance_state = 7 [(type)=eAnnotation, (stream)=eInput];
   string instance_point_map = 2;
   string semantic_label_filepath = 3 [(type)=eConfiguration];
   string output_path = 4 [(type)=eAnnotation, (stream)=eOutput];
   string output_ontology_path = 5 [(type)=eSemanticLabelMap, (stream)=eOutput];
+  
+  // Remove points of these semantic IDs if associated object is a human
+  // occupying a vehicle
+  repeated uint32 cull_occupant_points_of_semantic_ids = 8;
   
   // Wheel keypoints are not output from the IG but created from vehicle keypoints
   // This fields lets the transform know what semantic ID to label them as

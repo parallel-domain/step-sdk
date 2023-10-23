@@ -53,9 +53,17 @@ class SensorConfigFB(object):
             return obj
         return None
 
-def SensorConfigFBStart(builder): builder.StartObject(4)
+    # SensorConfigFB
+    def RenderEgo(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos)
+        return 0
+
+def SensorConfigFBStart(builder): builder.StartObject(5)
 def SensorConfigFBAddDisplayName(builder, displayName): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(displayName), 0)
 def SensorConfigFBAddSensorIntrinsicType(builder, sensorIntrinsicType): builder.PrependUint8Slot(1, sensorIntrinsicType, 0)
 def SensorConfigFBAddSensorIntrinsic(builder, sensorIntrinsic): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(sensorIntrinsic), 0)
 def SensorConfigFBAddSensorExtrinsic(builder, sensorExtrinsic): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(sensorExtrinsic), 0)
+def SensorConfigFBAddRenderEgo(builder, renderEgo): builder.PrependBoolSlot(4, renderEgo, 0)
 def SensorConfigFBEnd(builder): return builder.EndObject()

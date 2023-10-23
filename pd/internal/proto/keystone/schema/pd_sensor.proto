@@ -958,6 +958,11 @@ message SensorConfig
     The extrinsics of the sensor.
     */
     required SensorExtrinsic sensor_extrinsic = 5;
+
+    /*
+    Control whether or not the attached ego agent is rendered if present
+    */
+    optional bool render_ego = 6;   
 }
 
 /*

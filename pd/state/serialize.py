@@ -432,6 +432,7 @@ class SerializeSensor:
         SensorConfigFB.SensorConfigFBAddSensorExtrinsic(builder, extrinsic_fb)
         SensorConfigFB.SensorConfigFBAddSensorIntrinsicType(builder, intrinsic_type_fb)
         SensorConfigFB.SensorConfigFBAddSensorIntrinsic(builder, intrinsic_fb)
+        SensorConfigFB.SensorConfigFBAddRenderEgo(builder, obj.render_ego)
         return SensorConfigFB.SensorConfigFBEnd(builder)
 
     @staticmethod
@@ -448,6 +449,7 @@ class SerializeSensor:
             raise TypeError("Unsupported sensor type: ", fb.SensorIntrinsicType())
 
         sensor.name = fb.DisplayName().decode() or None
+        sensor.render_ego = bool(fb.RenderEgo())
         if fb.SensorExtrinsic():
             sensor.pose = SerializePose.deserialize(fb.SensorExtrinsic().SensorToVehicle())
             sensor.lock_to_yaw = fb.SensorExtrinsic().LockToYaw()

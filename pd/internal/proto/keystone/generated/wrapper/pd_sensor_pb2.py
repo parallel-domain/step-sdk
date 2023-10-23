@@ -3116,12 +3116,14 @@ class SensorConfig(ProtoMessageClass):
         lidar_intrinsic: :attr:`lidar_intrinsic`
         radar_intrinsic: :attr:`radar_intrinsic`
         sensor_extrinsic: :attr:`sensor_extrinsic`
+        render_ego: :attr:`render_ego`
     Attributes:
         display_name: The name of the sensor.
         camera_intrinsic: Instrinsics of a camera sensor.
         lidar_intrinsic: Instrinsics of a lidar sensor.
         radar_intrinsic: Instrinsics of a radar sensor.
-        sensor_extrinsic: The extrinsics of the sensor."""
+        sensor_extrinsic: The extrinsics of the sensor.
+        render_ego: Control whether or not the attached ego agent is rendered if present"""
 
     _proto_message = pd_sensor_pb2.SensorConfig
 
@@ -3134,6 +3136,7 @@ class SensorConfig(ProtoMessageClass):
         lidar_intrinsic: LidarIntrinsic = None,
         radar_intrinsic: RadarIntrinsic = None,
         sensor_extrinsic: SensorExtrinsic = None,
+        render_ego: bool = None,
     ):
         if proto is None:
             proto = pd_sensor_pb2.SensorConfig()
@@ -3152,6 +3155,8 @@ class SensorConfig(ProtoMessageClass):
             self.radar_intrinsic = radar_intrinsic
         if sensor_extrinsic is not None:
             self.sensor_extrinsic = sensor_extrinsic
+        if render_ego is not None:
+            self.render_ego = render_ego
 
     @property
     def display_name(self) -> str:
@@ -3204,6 +3209,14 @@ class SensorConfig(ProtoMessageClass):
 
         self._sensor_extrinsic = value
         self._sensor_extrinsic._update_proto_references(self.proto.sensor_extrinsic)
+
+    @property
+    def render_ego(self) -> bool:
+        return self.proto.render_ego
+
+    @render_ego.setter
+    def render_ego(self, value: bool):
+        self.proto.render_ego = value
 
     def _update_proto_references(self, proto: pd_sensor_pb2.SensorConfig):
         self.proto = proto

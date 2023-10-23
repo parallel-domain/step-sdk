@@ -115,10 +115,14 @@
 			"config": {
 				"@type": "type.googleapis.com/pd.data.InstancePoint3DAnnotatorConfig",
 				"input_instance_map": "generated_dgp_instance_map",
+				"input_instance_state": "generated_instance_state",
 				"instance_point_map": "%PD_ROOT%/install/customer/Internal/pd_data/keypoint_map.pb.json",
 				"semantic_label_filepath": "%PD_ROOT%/install/customer/Internal/pd_data/keypoint_semantic_label_map.pb.json",
 				"output_path": "instance_points_3d",
 				"output_ontology_path": "keypoint_ontology",
+				"cull_occupant_points_of_semantic_ids": [
+					3
+				],
 				"wheel_semantic_id": 6
 			}
 		},

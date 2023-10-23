@@ -3618,7 +3618,8 @@ class VehicleBehavior(ProtoMessageClass):
             Default: False
         lane_offset: Specifies the lateral offset of the vehicle in the vehicle's motion plan relative to lane center line. Possible
             values are floats from -1.0 to 1.0, and represent the proportion of the lane's half width to offset laterally.
-            Positive values offset to the right and negative values offset to the left.
+            Positive values offset to the right and negative values offset to the left. Offset distance is capped so vehicle
+            does not protrude laterally out of the lane edges.
 
             If not provided, will default to 0.0. Value is specified as a
             :obj:`ContinousUniformDistribution` which is randomly sampled from during scenario generation.

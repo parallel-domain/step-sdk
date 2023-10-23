@@ -32,6 +32,9 @@ message SensorConfigLE
         keystone.RadarIntrinsic radar_intrinsic = 4;
     }
     SensorExtrinsicMatrix sensor_extrinsic = 5;
+   
+    // Control whether or not the attached ego agent is rendered if present
+    bool render_ego = 6;
 }
 
 message SensorList

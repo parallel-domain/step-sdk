@@ -493,6 +493,7 @@ class TestSerializeSensor:
         camera.lock_to_yaw = True
         camera.attach_socket = "test-socket"
         camera.follow_rotation = False
+        camera.render_ego = True
         builder.Finish(SerializeSensor.serialize(builder, camera))
         fb = SensorConfigFB.SensorConfigFB.GetRootAsSensorConfigFB(builder.Output(), 0)
         result = SerializeSensor.deserialize(fb)
@@ -507,6 +508,7 @@ class TestSerializeSensor:
         assert result.lock_to_yaw
         assert result.attach_socket == "test-socket"
         assert result.follow_rotation is False
+        assert result.render_ego
 
     def test_deserialize_default_camera(self, builder):
         CameraConfigFB.CameraConfigFBStart(builder)
@@ -525,6 +527,7 @@ class TestSerializeSensor:
         assert not default.lock_to_yaw
         assert default.attach_socket is None
         assert default.follow_rotation is True
+        assert default.render_ego is False
 
     def test_serdes_lidar(self, builder, helpers):
         lidar = LiDARSensor(
@@ -533,6 +536,7 @@ class TestSerializeSensor:
         lidar.lock_to_yaw = True
         lidar.attach_socket = "test-socket"
         lidar.follow_rotation = False
+        lidar.render_ego = True
         builder.Finish(SerializeSensor.serialize(builder, lidar))
         fb = SensorConfigFB.SensorConfigFB.GetRootAsSensorConfigFB(builder.Output(), 0)
         result = SerializeSensor.deserialize(fb)
@@ -547,6 +551,7 @@ class TestSerializeSensor:
         assert result.lock_to_yaw
         assert result.attach_socket == "test-socket"
         assert result.follow_rotation is False
+        assert result.render_ego is True
 
     def test_deserialize_default_lidar(self, builder):
         LiDARConfigFB.LiDARConfigFBStart(builder)
@@ -565,6 +570,7 @@ class TestSerializeSensor:
         assert not default.lock_to_yaw
         assert default.attach_socket is None
         assert default.follow_rotation is True
+        assert default.render_ego is False
 
     def test_deserialize_default_raises_error_on_missing_sensor(self, builder):
         SensorConfigFB.SensorConfigFBStart(builder)

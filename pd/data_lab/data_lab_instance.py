@@ -320,6 +320,19 @@ class DataLabInstance:
         instance_name: Optional[str] = None,
         **kwargs,
     ) -> Tuple[Optional[RenderInstance], Optional[SimulationStateProvider], Optional[LabelEngineInstance], str]:
+        # Default to local instances when no instances are provided but local mode is specified
+        if is_local_mode and (simulator, renderer, label_engine) == (None, None, None):
+            if instance_name is not None:
+                raise ValueError(
+                    "You cannot specify an instance name when using local mode. "
+                    "Set the instance name to None or don't pass it at all to run in local mode."
+                )
+            simulator = SimulationInstance()
+            renderer = RenderInstance()
+            label_engine = LabelEngineInstance()
+            return renderer, simulator, label_engine, instance_name
+
+
         if simulator is False:
             simulator = CustomOnlySimulator()
         simulator = DataLabInstance.resolve_by_name(
@@ -366,9 +379,8 @@ class DataLabInstance:
                 ]
             ):
                 raise ValueError(
-                    "You cannot specify an instance name or renderer, simulation or label engine using an instance name"
-                    "when using local mode. If you are using a local instance, set the address value instead of a name."
-                    "Set the instance name to None or dont pass it at all to run in local mode."
+                    "In local mode, you cannot specify an instance name or an instance object that references a name. "
+                    "Please set instance name to None and set any instance object to reference an address."
                 )
 
         setup_datalab(

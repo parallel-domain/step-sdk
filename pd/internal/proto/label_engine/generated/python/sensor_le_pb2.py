@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 from pd.internal.proto.keystone.generated.python import pd_sensor_pb2 as pd__sensor__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fsensor_le.proto\x12\x07pd.data\x1a\x0fpd_sensor.proto\"w\n\x15SensorExtrinsicMatrix\x12\x19\n\x11sensor_to_vehicle\x18\x01 \x03(\x02\x12\x13\n\x0block_to_yaw\x18\x02 \x01(\x08\x12\x15\n\rattach_socket\x18\x03 \x01(\t\x12\x17\n\x0f\x66ollow_rotation\x18\x04 \x01(\x08\"\x95\x02\n\x0eSensorConfigLE\x12\x14\n\x0c\x64isplay_name\x18\x01 \x01(\t\x12\x35\n\x10\x63\x61mera_intrinsic\x18\x02 \x01(\x0b\x32\x19.keystone.CameraIntrinsicH\x00\x12\x33\n\x0flidar_intrinsic\x18\x03 \x01(\x0b\x32\x18.keystone.LidarIntrinsicH\x00\x12\x33\n\x0fradar_intrinsic\x18\x04 \x01(\x0b\x32\x18.keystone.RadarIntrinsicH\x00\x12\x38\n\x10sensor_extrinsic\x18\x05 \x01(\x0b\x32\x1e.pd.data.SensorExtrinsicMatrixB\x12\n\x10sensor_intrinsic\"\x1d\n\nSensorList\x12\x0f\n\x07sensors\x18\x01 \x03(\t\"\x9e\x01\n\x11SensorRigConfigLE\x12/\n\x0esensor_configs\x18\x01 \x03(\x0b\x32\x17.pd.data.SensorConfigLE\x12\x1f\n\x17sensor_rig_artifact_uid\x18\x02 \x01(\t\x12\x37\n\x1a\x64\x65\x66\x61ult_sensor_splits_list\x18\x03 \x03(\x0b\x32\x13.pd.data.SensorListb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fsensor_le.proto\x12\x07pd.data\x1a\x0fpd_sensor.proto\"w\n\x15SensorExtrinsicMatrix\x12\x19\n\x11sensor_to_vehicle\x18\x01 \x03(\x02\x12\x13\n\x0block_to_yaw\x18\x02 \x01(\x08\x12\x15\n\rattach_socket\x18\x03 \x01(\t\x12\x17\n\x0f\x66ollow_rotation\x18\x04 \x01(\x08\"\xa9\x02\n\x0eSensorConfigLE\x12\x14\n\x0c\x64isplay_name\x18\x01 \x01(\t\x12\x35\n\x10\x63\x61mera_intrinsic\x18\x02 \x01(\x0b\x32\x19.keystone.CameraIntrinsicH\x00\x12\x33\n\x0flidar_intrinsic\x18\x03 \x01(\x0b\x32\x18.keystone.LidarIntrinsicH\x00\x12\x33\n\x0fradar_intrinsic\x18\x04 \x01(\x0b\x32\x18.keystone.RadarIntrinsicH\x00\x12\x38\n\x10sensor_extrinsic\x18\x05 \x01(\x0b\x32\x1e.pd.data.SensorExtrinsicMatrix\x12\x12\n\nrender_ego\x18\x06 \x01(\x08\x42\x12\n\x10sensor_intrinsic\"\x1d\n\nSensorList\x12\x0f\n\x07sensors\x18\x01 \x03(\t\"\x9e\x01\n\x11SensorRigConfigLE\x12/\n\x0esensor_configs\x18\x01 \x03(\x0b\x32\x17.pd.data.SensorConfigLE\x12\x1f\n\x17sensor_rig_artifact_uid\x18\x02 \x01(\t\x12\x37\n\x1a\x64\x65\x66\x61ult_sensor_splits_list\x18\x03 \x03(\x0b\x32\x13.pd.data.SensorListb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'sensor_le_pb2', globals())
@@ -24,9 +24,9 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _SENSOREXTRINSICMATRIX._serialized_start=45
   _SENSOREXTRINSICMATRIX._serialized_end=164
   _SENSORCONFIGLE._serialized_start=167
-  _SENSORCONFIGLE._serialized_end=444
-  _SENSORLIST._serialized_start=446
-  _SENSORLIST._serialized_end=475
-  _SENSORRIGCONFIGLE._serialized_start=478
-  _SENSORRIGCONFIGLE._serialized_end=636
+  _SENSORCONFIGLE._serialized_end=464
+  _SENSORLIST._serialized_start=466
+  _SENSORLIST._serialized_end=495
+  _SENSORRIGCONFIGLE._serialized_start=498
+  _SENSORRIGCONFIGLE._serialized_end=656
 # @@protoc_insertion_point(module_scope)

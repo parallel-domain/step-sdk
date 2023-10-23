@@ -62,6 +62,11 @@ class Sensor(ABC):
 
     follow_rotation: bool = field(default=True, init=False)
 
+    render_ego: bool = field(default=False, init=False)
+    """
+    Whether the agent to which the sensor is attached will appear in the sensor
+    """
+
 
 #############################
 # CameraSensor
@@ -740,6 +745,7 @@ def sensors_from_json(json_dict: Dict[Any, Any]) -> List[Sensor]:
         sensor.attach_socket = _ext.get("attach_socket", sensor.attach_socket) or None
         sensor.follow_rotation = _ext.get("follow_rotation", sensor.follow_rotation)
         sensor.lock_to_yaw = _ext.get("log_to_yaw", sensor.lock_to_yaw)
+        sensor.render_ego = sensor_config.get("render_ego", False)
 
     return sensors
 

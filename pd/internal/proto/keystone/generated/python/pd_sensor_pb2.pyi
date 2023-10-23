@@ -435,18 +435,20 @@ class RadarNoiseParameters(_message.Message):
     def __init__(self, enable_thermal_noise: bool = ..., thermal_noise_std: Optional[float] = ..., thermal_noise_mean: Optional[float] = ..., enable_doa_noise: bool = ...) -> None: ...
 
 class SensorConfig(_message.Message):
-    __slots__ = ["camera_intrinsic", "display_name", "lidar_intrinsic", "radar_intrinsic", "sensor_extrinsic"]
+    __slots__ = ["camera_intrinsic", "display_name", "lidar_intrinsic", "radar_intrinsic", "render_ego", "sensor_extrinsic"]
     CAMERA_INTRINSIC_FIELD_NUMBER: ClassVar[int]
     DISPLAY_NAME_FIELD_NUMBER: ClassVar[int]
     LIDAR_INTRINSIC_FIELD_NUMBER: ClassVar[int]
     RADAR_INTRINSIC_FIELD_NUMBER: ClassVar[int]
+    RENDER_EGO_FIELD_NUMBER: ClassVar[int]
     SENSOR_EXTRINSIC_FIELD_NUMBER: ClassVar[int]
     camera_intrinsic: CameraIntrinsic
     display_name: str
     lidar_intrinsic: LidarIntrinsic
     radar_intrinsic: RadarIntrinsic
+    render_ego: bool
     sensor_extrinsic: SensorExtrinsic
-    def __init__(self, display_name: Optional[str] = ..., camera_intrinsic: Optional[Union[CameraIntrinsic, Mapping]] = ..., lidar_intrinsic: Optional[Union[LidarIntrinsic, Mapping]] = ..., radar_intrinsic: Optional[Union[RadarIntrinsic, Mapping]] = ..., sensor_extrinsic: Optional[Union[SensorExtrinsic, Mapping]] = ...) -> None: ...
+    def __init__(self, display_name: Optional[str] = ..., camera_intrinsic: Optional[Union[CameraIntrinsic, Mapping]] = ..., lidar_intrinsic: Optional[Union[LidarIntrinsic, Mapping]] = ..., radar_intrinsic: Optional[Union[RadarIntrinsic, Mapping]] = ..., sensor_extrinsic: Optional[Union[SensorExtrinsic, Mapping]] = ..., render_ego: bool = ...) -> None: ...
 
 class SensorExtrinsic(_message.Message):
     __slots__ = ["attach_socket", "follow_rotation", "lock_to_yaw", "pitch", "roll", "x", "y", "yaw", "z"]

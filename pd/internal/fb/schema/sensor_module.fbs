@@ -397,6 +397,7 @@ table SensorConfigFB
     display_name : string;   
     sensor_intrinsic : SensorIntrinsicConfigFB;
     sensor_extrinsic : SensorExtrinsicConfigFB;
+    render_ego: bool = false;   // Control whether or not the attached ego agent is rendered if present
 }
 
 table SensorRigConfigFB
