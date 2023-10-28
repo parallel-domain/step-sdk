@@ -23,7 +23,6 @@ before using the ORM classes or convenience functions in this module.
 Before calling :func:`init_asset_registry_version`, make sure that you have
 set the configuration required by :mod:`pd.management` for Step Management API.
 """
-
 from pathlib import Path
 from typing import Iterator, List, Tuple
 from uuid import UUID
@@ -32,10 +31,12 @@ import pd.internal.assets.asset_registry as asset_registry
 from pd.core import PdError
 from pd.internal.assets.asset_registry import (
     DataVehicle,
+    DataVehicleWheelOffset,
     DataWheel,
     ObjAssets,
     PairVehicleColor,
     PairVehicleWheel,
+    PairVehicleWheelCombo,
     UtilAssetCategories,
     database,
 )
@@ -114,6 +115,55 @@ def asset_coords_to_sim_coords(x: float, y: float, z: float) -> Tuple[float, flo
     return -x, z, y
 
 
+def asset_dimension_to_sim_dimension(x: float, y: float, z: float) -> Tuple[float, float, float]:
+    """
+    Converts dimensions from asset coordinate frame to Sim coordinate frame
+
+    The asset registry stores coordinates in the asset coordinate frame. This function converts
+    them to the Sim coordinate frame that is used in :class:`~pd.state.State`.
+
+    Returns:
+        A tuple of (x, y, z) coordinates in Sim coordinate frame
+    """
+    return x, z, y
+
+
+def asset_pivot_point_to_asset_geometric_center_offset(
+    min_x: float, max_x: float, min_y: float, max_y: float, min_z: float, max_z: float
+) -> Tuple[float, float, float]:
+    """
+    Calculates the offset from the pivot point to the geometric center for an asset in its
+    internal asset coordinate system.
+    If asset has a rotation, it needs to be applied outside of this function.
+
+    Returns:
+        A tuple of (x, y, z) coordinates in asset coordinate frame
+    """
+    dim_x, dim_y, dim_z = (max_x - min_x), (max_y - min_y), (max_z - min_z)
+    offset_x, offset_y, offset_z = max_x - dim_x / 2, max_y - dim_y / 2, max_z - dim_z / 2
+
+    return offset_x, offset_y, offset_z
+
+
+def asset_pivot_point_to_sim_geometric_center_offset(
+    min_x: float, max_x: float, min_y: float, max_y: float, min_z: float, max_z: float
+) -> Tuple[float, float, float]:
+    """
+    Calculates the offset from the pivot point to the geometric center for an asset in Sim coordinate system.
+    If asset has a rotation, it needs to be applied outside of this function.
+
+    Returns:
+        A tuple of (x, y, z) coordinates in Sim coordinate frame
+    """
+    offset_x_asset, offset_y_asset, offset_z_asset = asset_pivot_point_to_asset_geometric_center_offset(
+        min_x=min_x, max_x=max_x, min_y=min_y, max_y=max_y, min_z=min_z, max_z=max_z
+    )
+
+    offset_x, offset_y, offset_z = asset_coords_to_sim_coords(x=offset_x_asset, y=offset_y_asset, z=offset_z_asset)
+
+    return offset_x, offset_y, offset_z
+
+
 def get_vehicle_colors(vehicle_name) -> List[str]:
     """
     Returns names of colors available for a given vehicle
@@ -154,6 +204,43 @@ def get_vehicle_wheel_names(vehicle_name):
     query = query.join(VehicleObjAssets, on=(VehicleObjAssets.id == DataVehicle.asset))
     query = query.where(VehicleObjAssets.name == vehicle_name)
     return [row.name for row in query]
+
+
+def get_vehicle_wheel_combos(vehicle_name):
+    """
+    Returns combos of wheels that belong to a given vehicle
+
+    Args:
+        vehicle_name: Name of the vehicle
+
+    Returns:
+        Wheel Combos
+    """
+
+    VehicleObjAssets = ObjAssets.alias()
+    query = PairVehicleWheelCombo.select(PairVehicleWheelCombo.wheel_combo)
+    query = query.join(VehicleObjAssets, on=(VehicleObjAssets.id == PairVehicleWheelCombo.vehicle))
+    query = query.where(VehicleObjAssets.name == vehicle_name)
+    return [row.wheel_combo.split(" ") if " " in row.wheel_combo else [row.wheel_combo] for row in query]
+
+
+def get_vehicle_wheel_combo_styles(vehicle_name):
+    """
+    Returns style combo of wheels that belong to a given vehicle
+
+    Args:
+        vehicle_name: Name of the vehicle
+
+    Returns:
+        Wheel Combos style
+    """
+
+    VehicleObjAssets = ObjAssets.alias()
+    query = PairVehicleWheelCombo.select(PairVehicleWheelCombo.style_combo)
+    query = query.join(VehicleObjAssets, on=(VehicleObjAssets.id == PairVehicleWheelCombo.vehicle))
+    query = query.where(VehicleObjAssets.name == vehicle_name)
+    combo_styles = [row.style_combo.split(" ") if " " in row.style_combo else [row.style_combo] for row in query]
+    return combo_styles
 
 
 def get_wheel_radius(wheel_name: str) -> float:
@@ -232,6 +319,82 @@ def get_vehicle_wheel_poses(vehicle_name: str, wheel_name: str) -> List[Pose6D]:
         ),
     ]
     return wheels
+
+
+def get_vehicle_wheel_combo_poses(vehicle_name: str, wheel_combo: List[str]) -> List[Pose6D]:
+    """
+    Returns the wheel poses for a given vehicle and wheel combo
+
+    Args:
+        vehicle_name: Name of the vehicle
+        wheel_comb: list of pairs of wheels.
+
+    Returns:
+        List of multiple Poses corresponding to wheels from combo.
+    """
+
+    wheels = []
+    i = 0
+    for wheel_name in wheel_combo:
+        right_wheel_pose = get_vehicle_wheel_pose(vehicle_name, wheel_name, i)
+        i += 1
+        left_wheel_pose = get_vehicle_wheel_pose(vehicle_name, wheel_name, i)
+
+        if left_wheel_pose:
+            wheels.append(left_wheel_pose)
+        if right_wheel_pose:
+            wheels.append(right_wheel_pose)
+        i += 1
+
+    # making sure that wheel offset from multi axle vehicle is removed
+    # multi axle vehicle uses index 0,1,4,5
+    if len(wheels) == 6:
+        wheels.pop(3)
+        wheels.pop(2)
+
+    # making sure that poses are not too long
+    return wheels[:4]
+
+
+def get_vehicle_wheel_pose(vehicle_name: str, wheel_name: str, wheel_index: int) -> Pose6D:
+    """
+    Returns the wheel pose for a given vehicle and one wheel combination
+
+    Args:
+        vehicle_name: Name of the vehicle
+        wheel_name: Name of the wheel
+        wheel_index: Index of the wheel on the vehicle
+
+    Returns:
+        1 wheel pose
+    """
+    # The y-offset is determined by the wheel_offsets and the bounding_box centers
+    # The z-offset is determined by wheel radius
+
+    query = (
+        DataVehicleWheelOffset.select()
+        .join(ObjAssets)
+        .where(ObjAssets.name == vehicle_name)
+        .where(DataVehicleWheelOffset.wheel_index == wheel_index)
+    )
+    vehicle_data = next(iter(query))
+
+    if not vehicle_data.wheel_offset:
+        return None
+
+    wheel_offset = tuple(map(float, vehicle_data.wheel_offset.split(" ")))
+    wheel_radius = get_wheel_radius(wheel_name)
+    # Note: Z-axis in bbox corresponds to Y-axis in sim coordinates
+    vehicle_asset = ObjAssets.get(ObjAssets.name == vehicle_name)
+    bbox_min_z, bbox_max_z = vehicle_asset.bbox_min_z, vehicle_asset.bbox_max_z
+    y_center_offset = (bbox_min_z + bbox_max_z) / 2.0
+
+    wheel = Pose6D.from_translation(
+        x_metres=wheel_offset[0],
+        y_metres=wheel_offset[1] + y_center_offset,
+        z_metres=wheel_radius,
+    )
+    return wheel
 
 
 def get_category_names() -> Iterator[str]:

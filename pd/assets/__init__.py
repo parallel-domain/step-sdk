@@ -23,11 +23,16 @@ from pd.internal.assets.asset_registry import (  # noqa
 
 from .assets import (
     asset_coords_to_sim_coords,
+    asset_pivot_point_to_asset_geometric_center_offset,
+    asset_pivot_point_to_sim_geometric_center_offset,
     get_asset_names_in_category,
     get_asset_registry_path,
     get_category_names,
     get_vehicle_colors,
     get_vehicle_names,
+    get_vehicle_wheel_combo_poses,
+    get_vehicle_wheel_combo_styles,
+    get_vehicle_wheel_combos,
     get_vehicle_wheel_names,
     get_vehicle_wheel_poses,
     get_wheel_radius,
